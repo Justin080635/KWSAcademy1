@@ -1,0 +1,6 @@
+{
+  "name": "KWS Academy — Professional Discovery Assessment",
+  "description": "Professional self-discovery assessment and structured consultation portal for KWS Academy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

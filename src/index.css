@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --kws-bg: #f4f6fb;
+    --kws-surface: #ffffff;
+    --kws-surface-subtle: #ebeef7;
+    --kws-ink: #14183a;
+    --kws-muted: #52587a;
+    --kws-accent: #2b3bc4;
+    --kws-accent-hover: #222fa3;
+    --kws-accent-fg: #ffffff;
+    --kws-gold: #f2a900;
+    --kws-gold-ink: #7a5200;
+    --kws-border: #d9ddee;
+    --kws-border-strong: #bfc6e2;
+    --kws-success: #1a7f5a;
+    --kws-success-surface: #eaf6f1;
+    --kws-danger: #b42318;
+    --kws-danger-surface: #fef3f2;
+    --kws-font-display: "Bricolage Grotesque", system-ui, -apple-system, sans-serif;
+    --kws-font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+    --kws-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+    color-scheme: light;
+  }
+
+  .dark {
+    --kws-bg: #0e1124;
+    --kws-surface: #171b36;
+    --kws-surface-subtle: #1e2345;
+    --kws-ink: #eef0fa;
+    --kws-muted: #a6acce;
+    --kws-accent: #8d9bff;
+    --kws-accent-hover: #a5b0ff;
+    --kws-accent-fg: #0e1124;
+    --kws-gold: #f2a900;
+    --kws-gold-ink: #ffd166;
+    --kws-border: #2c325e;
+    --kws-border-strong: #404882;
+    --kws-success: #5fd3a2;
+    --kws-success-surface: #132c24;
+    --kws-danger: #fda29b;
+    --kws-danger-surface: #33191c;
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: var(--kws-font-sans);
+    background-color: var(--kws-bg);
+    color: var(--kws-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--kws-bg);
+    color: var(--kws-ink);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--kws-font-display);
+    letter-spacing: -0.015em;
+  }
+
+  .font-mono-tabular {
+    font-family: var(--kws-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--kws-gold);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  header,
+  footer,
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: #ffffff !important;
+    color: #14183a !important;
+  }
+}
+
