@@ -510,7 +510,7 @@ export function AssessmentQuestionView({
                   transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
                   className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold transition-[background-color,border-color,color,box-shadow] duration-250 ${
                     isCompleted
-                      ? 'border-transparent bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs'
+                      ? 'border-transparent bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs'
                       : isActive
                         ? 'border-[var(--kws-accent)] bg-[var(--kws-surface)] text-[var(--kws-accent)] ring-4 ring-[var(--kws-accent)]/15'
                         : 'border-[var(--kws-border-strong)] bg-[var(--kws-surface)] text-[var(--kws-muted)]'
@@ -571,7 +571,7 @@ export function AssessmentQuestionView({
           >
             <span
               aria-hidden="true"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs"
             >
               <Sparkles className="h-4 w-4" />
             </span>
@@ -616,7 +616,7 @@ export function AssessmentQuestionView({
                     transition={
                       prefersReducedMotion ? { duration: 0 } : KWS_SPRING
                     }
-                    className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_12px_30px_-6px_rgba(43,59,196,0.45)] ring-4 ring-[var(--kws-accent)]/12"
+                    className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[0_12px_30px_-6px_var(--kws-shadow-accent)] ring-4 ring-[var(--kws-accent)]/15"
                     aria-hidden="true"
                   >
                     <Check className="h-7 w-7 stroke-[2.5]" />
@@ -761,7 +761,7 @@ export function AssessmentQuestionView({
 
                         {question.kind === 'contact_details' ? (
                           <div className="mt-5 space-y-4 sm:space-y-5">
-                            <p className="border-l-2 border-[var(--kws-accent)]/40 pl-3.5 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
+                            <p className="rounded-[14px] border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/65 px-4 py-3 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
                               This just saves a copy of your profile for you and
                               lets us reach out if you ask for a chat. You’ll
                               see your full results right away either way.
@@ -959,15 +959,15 @@ export function AssessmentQuestionView({
                                   }
                                   className={`group flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[20px] border px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[60px] sm:gap-4 sm:px-5 sm:py-4 ${
                                     isSelected
-                                      ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-xs'
-                                      : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/40 hover:shadow-xs'
+                                      ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-[0_8px_20px_-10px_var(--kws-shadow-accent)]'
+                                      : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-tint-bg)]/40 hover:shadow-xs'
                                   }`}
                                 >
                                   <div className="flex items-center gap-3 text-sm leading-relaxed sm:gap-3.5 sm:text-base">
                                     <span
                                       className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] sm:text-sm ${
                                         isSelected
-                                          ? 'scale-105 bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs'
+                                          ? 'scale-105 bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs'
                                           : 'bg-[var(--kws-surface-subtle)] text-[var(--kws-muted)] group-hover:scale-105 group-hover:text-[var(--kws-ink)]'
                                       }`}
                                     >

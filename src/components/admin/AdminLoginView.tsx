@@ -48,20 +48,31 @@ export function AdminLoginView({
 
   return (
     <div className="mx-auto max-w-[540px] px-4 py-12 sm:px-6 sm:py-16">
-      <Surface className="p-6 sm:p-8">
-        <div className="flex items-center gap-2.5 text-sm font-medium text-[var(--kws-muted)]">
-          <Lock className="h-4 w-4 text-[var(--kws-accent)]" aria-hidden="true" />
-          <span>KWS Academy Staff Portal</span>
-        </div>
+      <Surface className="overflow-hidden p-0">
+        <div
+          aria-hidden="true"
+          className="h-1.5 w-full bg-[image:var(--kws-gradient-band)]"
+        />
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center gap-2.5 text-sm font-medium text-[var(--kws-muted)]">
+            <span
+              aria-hidden="true"
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[image:var(--kws-gradient-btn)] text-[11px] font-extrabold text-[var(--kws-btn-fg)] ring-1 ring-[var(--kws-gold)]/35"
+            >
+              K
+            </span>
+            <Lock className="h-3.5 w-3.5 text-[var(--kws-accent)]" aria-hidden="true" />
+            <span>KWS Academy Staff Portal</span>
+          </div>
 
-        <h1 className="mt-3 font-display text-2xl font-bold text-[var(--kws-ink)]">
-          Staff sign-in
-        </h1>
-        <p className="mt-1.5 text-sm text-[var(--kws-muted)]">
-          Private access to discovery analytics, respondent profiles,
-          consultation follow-up management, and filtered CSV/Excel/JSON
-          exports.
-        </p>
+          <h1 className="mt-3 font-display text-2xl font-bold text-[var(--kws-ink)]">
+            Staff sign-in
+          </h1>
+          <p className="mt-1.5 text-sm text-[var(--kws-muted)]">
+            Private access to discovery analytics, respondent profiles,
+            consultation follow-up management, and filtered CSV/Excel/JSON
+            exports.
+          </p>
 
         {!authConfigured ? (
           <div className="mt-6 space-y-4">
@@ -183,6 +194,7 @@ export function AdminLoginView({
             </div>
           </form>
         )}
+        </div>
       </Surface>
     </div>
   );

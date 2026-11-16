@@ -90,8 +90,8 @@ export function BlurredReportPreview({
       </div>
 
       {/* Soft frosted locked preview card with dashed border & filled lock circle */}
-      <div className="mt-5 flex flex-col items-center justify-center rounded-[20px] border border-dashed border-[var(--kws-accent)]/35 bg-gradient-to-br from-[var(--kws-tint-bg)] via-[var(--kws-surface)]/80 to-[var(--kws-surface-subtle)]/80 px-5 py-6 text-center backdrop-blur-md">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_8px_20px_-6px_rgba(43,59,196,0.38)]">
+      <div className="kws-light-sweep mt-5 flex flex-col items-center justify-center rounded-[20px] border border-dashed border-[var(--kws-accent)]/40 bg-gradient-to-br from-[var(--kws-tint-bg)] via-[var(--kws-surface)]/85 to-[var(--kws-surface-subtle)]/85 px-5 py-6 text-center backdrop-blur-md">
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[0_8px_20px_-6px_var(--kws-shadow-accent)] ring-1 ring-[var(--kws-gold)]/30">
           <Lock className="h-4 w-4" aria-hidden="true" />
         </span>
         <p className="mt-3 text-sm font-semibold text-[var(--kws-ink)]">

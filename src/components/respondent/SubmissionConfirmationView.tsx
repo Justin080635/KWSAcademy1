@@ -141,7 +141,7 @@ export function SubmissionConfirmationView({
 
           <div className="mt-6">
             <div
-              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_10px_28px_-6px_rgba(43,59,196,0.45)] ring-4 ring-[var(--kws-accent)]/12"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[0_10px_28px_-6px_var(--kws-shadow-accent)] ring-4 ring-[var(--kws-accent)]/15"
               aria-hidden="true"
             >
               <Check className="h-6 w-6 stroke-[2.5]" />

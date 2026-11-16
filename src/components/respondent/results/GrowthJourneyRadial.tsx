@@ -1,12 +1,19 @@
-import { useId, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useEffect, useId, useRef, useState } from 'react';
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useInView,
+  useReducedMotion,
+} from 'motion/react';
 import { GROWTH_STAGES } from '../../../domain/assessmentContent.ts';
 import type { GrowthStageDefinition, GrowthStageLevel } from '../../../domain/types.ts';
 import {
   KWS_DURATIONS,
   KWS_EASE,
-  VIEWPORT_REVEAL,
 } from '../../ui/motionPrimitives.tsx';
+
+const completedJourneyKeys = new Set<string>();
 
 interface GrowthJourneyRadialProps {
   currentStage: GrowthStageDefinition;
@@ -51,12 +58,84 @@ export function GrowthJourneyRadial({
   mixedStageFlag,
   mixedStageObservation,
 }: GrowthJourneyRadialProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = Boolean(useReducedMotion());
   const rawId = useId();
   const gradId = `kws-stage-arc-${rawId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const [inspectedLevel, setInspectedLevel] = useState<GrowthStageLevel>(
     currentStage.level
   );
+
+  const routeKey =
+    typeof window !== 'undefined' ? window.location.pathname : 'ssr';
+  const journeyKey = `${routeKey}::stage-${currentStage.level}`;
+  const dialRef = useRef<HTMLDivElement | null>(null);
+  const arcPathRef = useRef<SVGPathElement | null>(null);
+  const inView = useInView(dialRef, { once: true, amount: 'some' });
+  const isCompletedRef = useRef<boolean>(
+    prefersReducedMotion || completedJourneyKeys.has(journeyKey)
+  );
+  const isAnimatingRef = useRef<boolean>(false);
+  const progressRef = useRef<number>(isCompletedRef.current ? 1 : 0);
+
+  useEffect(() => {
+    const applyArcProgress = (p: number) => {
+      if (!arcPathRef.current) return;
+      arcPathRef.current.setAttribute('stroke-dashoffset', String(1 - p));
+      arcPathRef.current.setAttribute(
+        'stroke-opacity',
+        String(p > 0.005 ? 1 : 0)
+      );
+    };
+
+    if (prefersReducedMotion || completedJourneyKeys.has(journeyKey)) {
+      isCompletedRef.current = true;
+      isAnimatingRef.current = false;
+      progressRef.current = 1;
+      applyArcProgress(1);
+      return;
+    }
+
+    if (isCompletedRef.current) {
+      applyArcProgress(1);
+      return;
+    }
+
+    if (!inView || isAnimatingRef.current) {
+      if (!inView) {
+        progressRef.current = 0;
+        applyArcProgress(0);
+      }
+      return;
+    }
+
+    isAnimatingRef.current = true;
+    progressRef.current = 0;
+    applyArcProgress(0);
+
+    const controls = animate(0, 1, {
+      duration: 2.0,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate(latest) {
+        const clamped = Math.max(0, Math.min(1, latest));
+        progressRef.current = clamped;
+        applyArcProgress(clamped);
+      },
+      onComplete() {
+        isAnimatingRef.current = false;
+        isCompletedRef.current = true;
+        progressRef.current = 1;
+        completedJourneyKeys.add(journeyKey);
+        applyArcProgress(1);
+      },
+    });
+
+    return () => {
+      controls.stop();
+      if (!isCompletedRef.current) {
+        isAnimatingRef.current = false;
+      }
+    };
+  }, [journeyKey, inView, prefersReducedMotion]);
 
   const stageProgressRatio =
     (currentStage.level - 1) / (GROWTH_STAGES.length - 1);
@@ -90,6 +169,7 @@ export function GrowthJourneyRadial({
       {/* Left: Radial Stage Orbit Visualization */}
       <div className="flex flex-col items-center lg:col-span-5">
         <div
+          ref={dialRef}
           className="relative select-none"
           style={{ width: DIAL_SIZE, height: DIAL_SIZE - 26 }}
           role="img"
@@ -120,19 +200,20 @@ export function GrowthJourneyRadial({
             />
 
             {/* Animated progress arc up to respondent's stage */}
-            <motion.path
+            <path
+              ref={arcPathRef}
               d={activePath}
               fill="none"
               stroke={`url(#${gradId})`}
               strokeWidth="14"
               strokeLinecap="round"
-              initial={prefersReducedMotion ? false : { pathLength: 0 }}
-              whileInView={{ pathLength: 1 }}
-              viewport={VIEWPORT_REVEAL}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { duration: 0.9, ease: KWS_EASE }
+              pathLength={1}
+              strokeDasharray={1}
+              strokeDashoffset={
+                isCompletedRef.current ? 0 : 1 - progressRef.current
+              }
+              strokeOpacity={
+                isCompletedRef.current || progressRef.current > 0.005 ? 1 : 0
               }
             />
 
@@ -196,7 +277,7 @@ export function GrowthJourneyRadial({
                     fontWeight="700"
                     fill={
                       isCurrent
-                        ? '#14183a'
+                        ? '#29212a'
                         : isReached
                           ? '#ffffff'
                           : 'var(--kws-muted)'

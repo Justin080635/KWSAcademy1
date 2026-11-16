@@ -450,14 +450,14 @@ export function ResultsView({
           }`}
           style={{
             background:
-              'radial-gradient(circle at 72% 28%, rgba(242, 169, 0, 0.22) 0%, rgba(141, 155, 255, 0.15) 35%, transparent 68%)',
+              'radial-gradient(circle at 72% 28%, rgba(198, 164, 106, 0.24) 0%, rgba(232, 213, 224, 0.14) 36%, transparent 68%)',
           }}
           aria-hidden="true"
         />
         {/* Subtle calm floating geometric accents */}
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute top-12 right-[18%] hidden h-3 w-3 rounded-full bg-[#ffd166]/45 sm:block ${
+          className={`pointer-events-none absolute top-12 right-[18%] hidden h-3 w-3 rounded-full bg-[var(--kws-gold-bright)]/50 sm:block ${
             prefersReducedMotion ? '' : 'kws-float-slow'
           }`}
         />
@@ -470,7 +470,7 @@ export function ResultsView({
         />
 
         <div className="relative z-10 mx-auto max-w-[1040px] px-4 py-14 sm:px-6 sm:py-20">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-[#c9d2ff]">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-[var(--kws-on-dark-muted)]">
             <span className="tracking-wide uppercase">
               KWS Academy · Personal Discovery Report
             </span>
@@ -485,7 +485,7 @@ export function ResultsView({
                 initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: KWS_DURATIONS.reveal, ease: KWS_EASE }}
-                className="text-sm font-semibold text-[#ffd166] sm:text-base"
+                className="text-sm font-semibold text-[var(--kws-gold-bright)] sm:text-base"
               >
                 {firstName
                   ? `${firstName}, this is what stood out from your answers`
@@ -499,7 +499,7 @@ export function ResultsView({
                   delay: prefersReducedMotion ? 0 : 0.05,
                   ease: KWS_EASE,
                 }}
-                className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#c9d2ff]"
+                className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--kws-on-dark-muted)]"
               >
                 {heroCopy.eyebrow}
               </motion.p>
@@ -531,7 +531,7 @@ export function ResultsView({
                         ease: KWS_EASE,
                       }
                 }
-                className="mt-5 max-w-2xl text-base leading-relaxed text-[#e8ecff] sm:text-lg"
+                className="mt-5 max-w-2xl text-base leading-relaxed text-[var(--kws-on-dark-muted)] sm:text-lg"
               >
                 {heroCopy.subline}
               </motion.p>
@@ -553,7 +553,7 @@ export function ResultsView({
                 <button
                   type="button"
                   onClick={() => scrollToSection('section-style')}
-                  className="group inline-flex min-h-[44px] items-center gap-2.5 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-[#14183a] shadow-lg transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-[#eef1fb] active:scale-[0.98] cursor-pointer"
+                  className="group inline-flex min-h-[44px] items-center gap-2.5 rounded-full bg-white px-6 py-2.5 text-sm font-bold text-[#5F1B47] shadow-lg transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:bg-[#F7F1F4] active:scale-[0.98] cursor-pointer"
                 >
                   Explore your full discovery
                   <ArrowDown
@@ -589,7 +589,7 @@ export function ResultsView({
                   tone="onDark"
                 />
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-[#ffd166]">
+                  <p className="text-xs font-semibold text-[var(--kws-gold-bright)]">
                     Current Growth Stage
                   </p>
                   <p className="mt-0.5 font-display text-2xl font-bold text-white">
@@ -742,10 +742,10 @@ export function ResultsView({
                           delay: prefersReducedMotion ? 0 : idx * 0.04,
                           ease: KWS_EASE,
                         }}
-                        className={`flex flex-col items-center rounded-[18px] px-3 py-4 text-center transition-[transform,box-shadow,background-color] duration-200 hover:-translate-y-0.5 ${
+                        className={`flex flex-col items-center rounded-[18px] border px-3 py-4 text-center transition-[transform,box-shadow,background-color,border-color] duration-200 hover:-translate-y-0.5 ${
                           isLead
-                            ? 'bg-[var(--kws-tint-bg)] shadow-xs'
-                            : 'bg-[var(--kws-surface-subtle)]/55'
+                            ? 'border-[var(--kws-accent)]/35 bg-[var(--kws-tint-bg)] shadow-[0_8px_22px_-12px_var(--kws-shadow-accent)]'
+                            : 'border-transparent bg-[var(--kws-surface-subtle)]/65'
                         }`}
                       >
                         <CircularProgressRing
@@ -1006,7 +1006,7 @@ export function ResultsView({
                 duration: KWS_DURATIONS.reveal,
                 ease: KWS_EASE,
               }}
-              className="mt-8 rounded-[26px] border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] p-6 shadow-md sm:p-8"
+              className="mt-8 rounded-[26px] border border-[var(--kws-accent)]/30 bg-[var(--kws-surface)] p-6 shadow-[var(--kws-shadow-card)] sm:p-8"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-[var(--kws-accent)]">

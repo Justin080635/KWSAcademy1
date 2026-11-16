@@ -699,9 +699,17 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                   {staffRole ?? 'staff'}
                 </span>
               </p>
-              <p className="mt-0.5 font-display text-base font-bold text-[var(--kws-ink)]">
-                KWS Academy Admin
-              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <span
+                  aria-hidden="true"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[image:var(--kws-gradient-btn)] text-[11px] font-extrabold text-[var(--kws-btn-fg)] ring-1 ring-[var(--kws-gold)]/35"
+                >
+                  K
+                </span>
+                <p className="font-display text-base font-bold text-[var(--kws-ink)]">
+                  KWS Academy Admin
+                </p>
+              </div>
               {staffRole === 'viewer' && (
                 <p className="mt-1 text-xs text-[var(--kws-muted)]">
                   Read-only viewer role
@@ -723,9 +731,9 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                     onClick={() =>
                       onNavigate({ area: 'admin', view: item.view })
                     }
-                    className={`flex min-h-[42px] shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap lg:w-full ${
+                    className={`flex min-h-[42px] shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all cursor-pointer whitespace-nowrap lg:w-full ${
                       isActive
-                        ? 'bg-[var(--kws-accent)] text-[var(--kws-accent-fg)]'
+                        ? 'bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs'
                         : 'text-[var(--kws-muted)] hover:bg-[var(--kws-surface-subtle)] hover:text-[var(--kws-ink)]'
                     }`}
                   >
@@ -2765,7 +2773,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                         <a
                           href={buildAdminExportUrl('xlsx', filters)}
                           download
-                          className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[var(--kws-accent)] px-4 py-2 text-sm font-semibold text-[var(--kws-accent-fg)] hover:bg-[var(--kws-accent-hover)] transition-colors"
+                          className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[image:var(--kws-gradient-btn)] px-4 py-2 text-sm font-semibold text-[var(--kws-btn-fg)] shadow-xs hover:brightness-110 transition-all"
                         >
                           <Download className="h-4 w-4" aria-hidden="true" />
                           Download .xlsx

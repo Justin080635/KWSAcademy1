@@ -1,11 +1,6 @@
-import { useId } from 'react';
-import { motion, useReducedMotion } from 'motion/react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { animate, useInView, useReducedMotion } from 'motion/react';
 import type { CircularMetricSpec, CircularMetricTone } from '../../domain/types.ts';
-import {
-  AnimatedCountValue,
-  KWS_EASE,
-  VIEWPORT_REVEAL,
-} from './motionPrimitives.tsx';
 
 interface CircularProgressRingProps {
   metric: CircularMetricSpec;
@@ -13,6 +8,7 @@ interface CircularProgressRingProps {
   layout?: 'stacked' | 'inline';
   showLabel?: boolean;
   viewportReveal?: boolean;
+  surface?: 'default' | 'onDark';
   className?: string;
 }
 
@@ -25,15 +21,39 @@ const SIZE_CONFIG: Record<
   lg: { px: 120, stroke: 9, valueClass: 'text-2xl' },
 };
 
+const RING_REVEAL_DURATION_SEC = 2.05;
+const RING_EASE_OUT = [0.22, 1, 0.36, 1] as const;
+
+// Completed rings are remembered per route + metric signature so scrolling away,
+// parent re-renders, or returning to the results page will not replay animations.
+const completedRingKeys = new Set<string>();
+
+function parseDisplayValue(displayValue: string): {
+  prefix: string;
+  targetNum: number | null;
+  suffix: string;
+} {
+  const match = displayValue.match(/^(\D*?)(\d+)(.*)$/);
+  if (!match) {
+    return { prefix: '', targetNum: null, suffix: '' };
+  }
+  return {
+    prefix: match[1] ?? '',
+    targetNum: Number(match[2]),
+    suffix: match[3] ?? '',
+  };
+}
+
 export function CircularProgressRing({
   metric,
   size = 'md',
   layout = 'stacked',
   showLabel = true,
   viewportReveal = false,
+  surface = 'default',
   className = '',
 }: CircularProgressRingProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = Boolean(useReducedMotion());
   const rawGradientId = useId();
   const gradientId = `kws-ring-${rawGradientId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
 
@@ -45,10 +65,33 @@ export function CircularProgressRing({
   const safeMax = Math.max(1, metric.max);
   const clampedValue = Math.max(0, Math.min(safeMax, metric.value));
   const ratio = clampedValue / safeMax;
-  const dashOffset = circumference * (1 - ratio);
 
   const tone: CircularMetricTone = metric.tone ?? 'accent';
   const isGold = tone === 'gold';
+  const isSuccess = tone === 'success';
+  const isMuted = tone === 'muted';
+  const isOnDark = surface === 'onDark';
+  const trackStroke = isOnDark
+    ? 'rgba(255, 255, 255, 0.2)'
+    : 'var(--kws-surface-subtle)';
+  const stopStartColor = isGold
+    ? 'var(--kws-gold-bright)'
+    : isSuccess
+      ? 'var(--kws-success)'
+      : isMuted
+        ? 'var(--kws-border-strong)'
+        : isOnDark
+          ? '#f0b8dc'
+          : 'var(--kws-ring-start)';
+  const stopEndColor = isGold
+    ? 'var(--kws-gold)'
+    : isSuccess
+      ? 'var(--kws-success)'
+      : isMuted
+        ? 'var(--kws-muted)'
+        : isOnDark
+          ? '#df9ec7'
+          : 'var(--kws-ring-end)';
 
   const segmentsCount =
     metric.segments && metric.segments > 1 && metric.segments <= 12
@@ -59,6 +102,179 @@ export function CircularProgressRing({
     ? Math.round(ratio * segmentsCount)
     : 0;
 
+  const gapArc = size === 'sm' ? 4 : 7;
+  const sliceLength = segmentsCount ? circumference / segmentsCount : 0;
+  const segArc = segmentsCount ? Math.max(2, sliceLength - gapArc) : 0;
+
+  const { prefix, targetNum, suffix } = parseDisplayValue(metric.displayValue);
+  const routeKey =
+    typeof window !== 'undefined' ? window.location.pathname : 'ssr';
+  const ringKey = `${routeKey}::${metric.id}::${clampedValue}::${safeMax}::${surface}`;
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const continuousCircleRef = useRef<SVGCircleElement | null>(null);
+  const segmentRefs = useRef<Array<SVGCircleElement | null>>([]);
+
+  const inView = useInView(containerRef, { once: true, amount: 'some' });
+  const shouldStart = !viewportReveal || inView;
+
+  const isCompletedRef = useRef<boolean>(
+    prefersReducedMotion || completedRingKeys.has(ringKey)
+  );
+  const isAnimatingRef = useRef<boolean>(false);
+  const currentProgressRef = useRef<number>(
+    isCompletedRef.current ? 1 : 0
+  );
+  const lastRingKeyRef = useRef<string>(ringKey);
+
+  if (lastRingKeyRef.current !== ringKey) {
+    lastRingKeyRef.current = ringKey;
+    const alreadyDone = prefersReducedMotion || completedRingKeys.has(ringKey);
+    isCompletedRef.current = alreadyDone;
+    isAnimatingRef.current = false;
+    currentProgressRef.current = alreadyDone ? 1 : 0;
+  }
+
+  const [shownNum, setShownNum] = useState<number | null>(() => {
+    if (targetNum === null) return null;
+    return isCompletedRef.current ? targetNum : 0;
+  });
+
+  useEffect(() => {
+    const applySvgProgress = (p: number) => {
+      if (segmentsCount) {
+        const filledProgress = p * filledSegments;
+        for (let idx = 0; idx < filledSegments; idx += 1) {
+          const el = segmentRefs.current[idx];
+          if (!el) continue;
+          const segFill = Math.max(0, Math.min(1, filledProgress - idx));
+          const segOffset = segArc * (1 - segFill);
+          const segOpacity = segFill > 0.01 ? 1 : 0;
+          el.setAttribute('stroke-dashoffset', String(segOffset));
+          el.setAttribute('stroke-opacity', String(segOpacity));
+        }
+      } else if (continuousCircleRef.current) {
+        const currentRatio = ratio * p;
+        const nextOffset = circumference * (1 - currentRatio);
+        const nextOpacity = currentRatio > 0.001 ? 1 : 0;
+        continuousCircleRef.current.setAttribute(
+          'stroke-dashoffset',
+          String(nextOffset)
+        );
+        continuousCircleRef.current.setAttribute(
+          'stroke-opacity',
+          String(nextOpacity)
+        );
+      }
+    };
+
+    if (prefersReducedMotion || completedRingKeys.has(ringKey)) {
+      isCompletedRef.current = true;
+      isAnimatingRef.current = false;
+      currentProgressRef.current = 1;
+      applySvgProgress(1);
+      if (targetNum !== null) {
+        setShownNum(targetNum);
+      }
+      return;
+    }
+
+    if (isCompletedRef.current) {
+      applySvgProgress(1);
+      if (targetNum !== null) {
+        setShownNum(targetNum);
+      }
+      return;
+    }
+
+    if (!shouldStart) {
+      currentProgressRef.current = 0;
+      applySvgProgress(0);
+      if (targetNum !== null) {
+        setShownNum(0);
+      }
+      return;
+    }
+
+    if (ratio <= 0 || (segmentsCount !== null && filledSegments <= 0)) {
+      isCompletedRef.current = true;
+      isAnimatingRef.current = false;
+      currentProgressRef.current = 1;
+      completedRingKeys.add(ringKey);
+      applySvgProgress(0);
+      if (targetNum !== null) {
+        setShownNum(targetNum);
+      }
+      return;
+    }
+
+    if (isAnimatingRef.current) {
+      return;
+    }
+
+    isAnimatingRef.current = true;
+    currentProgressRef.current = 0;
+    applySvgProgress(0);
+    if (targetNum !== null) {
+      setShownNum(0);
+    }
+
+    let lastRenderedNum = 0;
+    const controls = animate(0, 1, {
+      duration: RING_REVEAL_DURATION_SEC,
+      ease: RING_EASE_OUT,
+      onUpdate(latest) {
+        const clampedP = Math.max(0, Math.min(1, latest));
+        currentProgressRef.current = clampedP;
+        applySvgProgress(clampedP);
+        if (targetNum !== null) {
+          const nextNum = Math.round(clampedP * targetNum);
+          if (nextNum !== lastRenderedNum) {
+            lastRenderedNum = nextNum;
+            setShownNum(nextNum);
+          }
+        }
+      },
+      onComplete() {
+        isAnimatingRef.current = false;
+        isCompletedRef.current = true;
+        currentProgressRef.current = 1;
+        completedRingKeys.add(ringKey);
+        applySvgProgress(1);
+        if (targetNum !== null) {
+          setShownNum(targetNum);
+        }
+      },
+    });
+
+    return () => {
+      controls.stop();
+      if (!isCompletedRef.current) {
+        isAnimatingRef.current = false;
+      }
+    };
+  }, [
+    ringKey,
+    shouldStart,
+    prefersReducedMotion,
+    ratio,
+    circumference,
+    segmentsCount,
+    filledSegments,
+    segArc,
+    targetNum,
+  ]);
+
+  const renderProgress = isCompletedRef.current ? 1 : currentProgressRef.current;
+  const renderRatio = ratio * renderProgress;
+  const renderDashOffset = circumference * (1 - renderRatio);
+  const renderStrokeOpacity = renderRatio > 0.001 ? 1 : 0;
+
+  const formattedDisplay =
+    targetNum === null || prefersReducedMotion || shownNum === null
+      ? metric.displayValue
+      : `${prefix}${shownNum}${suffix}`;
+
   const valueTextSize =
     size === 'lg' && metric.displayValue.length > 6
       ? 'text-lg'
@@ -68,6 +284,7 @@ export function CircularProgressRing({
 
   return (
     <div
+      ref={containerRef}
       className={`flex ${
         layout === 'inline'
           ? 'flex-row items-center gap-3.5 text-left'
@@ -95,61 +312,60 @@ export function CircularProgressRing({
               x2="100%"
               y2="100%"
             >
-              <stop
-                offset="0%"
-                stopColor={isGold ? '#ffd166' : 'var(--kws-ring-start)'}
-              />
-              <stop
-                offset="100%"
-                stopColor={isGold ? 'var(--kws-gold)' : 'var(--kws-ring-end)'}
-              />
+              <stop offset="0%" stopColor={stopStartColor} />
+              <stop offset="100%" stopColor={stopEndColor} />
             </linearGradient>
           </defs>
 
           {segmentsCount ? (
-            Array.from({ length: segmentsCount }, (_, idx) => {
-              const gapArc = size === 'sm' ? 4 : 7;
-              const sliceLength = circumference / segmentsCount;
-              const segArc = Math.max(2, sliceLength - gapArc);
-              const rotationDeg = (idx / segmentsCount) * 360;
-              const isFilled = idx < filledSegments;
+            <>
+              {Array.from({ length: segmentsCount }, (_, idx) => {
+                const rotationDeg = (idx / segmentsCount) * 360;
+                return (
+                  <circle
+                    key={`track-${idx}`}
+                    cx={center}
+                    cy={center}
+                    r={radius}
+                    fill="none"
+                    stroke={trackStroke}
+                    strokeWidth={cfg.stroke}
+                    strokeLinecap="round"
+                    strokeDasharray={`${segArc} ${circumference}`}
+                    transform={`rotate(${rotationDeg} ${center} ${center})`}
+                  />
+                );
+              })}
+              {Array.from({ length: filledSegments }, (_, idx) => {
+                const rotationDeg = (idx / segmentsCount) * 360;
+                const segFill = Math.max(
+                  0,
+                  Math.min(1, renderProgress * filledSegments - idx)
+                );
+                const segOffset = segArc * (1 - segFill);
+                const segOpacity = segFill > 0.01 ? 1 : 0;
 
-              return (
-                <motion.circle
-                  key={idx}
-                  cx={center}
-                  cy={center}
-                  r={radius}
-                  fill="none"
-                  stroke={
-                    isFilled
-                      ? `url(#${gradientId})`
-                      : 'var(--kws-surface-subtle)'
-                  }
-                  strokeWidth={cfg.stroke}
-                  strokeLinecap="round"
-                  strokeDasharray={`${segArc} ${circumference}`}
-                  transform={`rotate(${rotationDeg} ${center} ${center})`}
-                  initial={
-                    prefersReducedMotion
-                      ? false
-                      : { opacity: isFilled ? 0.25 : 1 }
-                  }
-                  animate={viewportReveal ? undefined : { opacity: 1 }}
-                  whileInView={viewportReveal ? { opacity: 1 } : undefined}
-                  viewport={viewportReveal ? VIEWPORT_REVEAL : undefined}
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0 }
-                      : {
-                          duration: 0.34,
-                          delay: idx * 0.06,
-                          ease: KWS_EASE,
-                        }
-                  }
-                />
-              );
-            })
+                return (
+                  <circle
+                    key={`fill-${idx}`}
+                    ref={(el) => {
+                      segmentRefs.current[idx] = el;
+                    }}
+                    cx={center}
+                    cy={center}
+                    r={radius}
+                    fill="none"
+                    stroke={`url(#${gradientId})`}
+                    strokeWidth={cfg.stroke}
+                    strokeLinecap="round"
+                    strokeDasharray={`${segArc} ${circumference}`}
+                    strokeDashoffset={segOffset}
+                    strokeOpacity={segOpacity}
+                    transform={`rotate(${rotationDeg} ${center} ${center})`}
+                  />
+                );
+              })}
+            </>
           ) : (
             <>
               <circle
@@ -157,10 +373,11 @@ export function CircularProgressRing({
                 cy={center}
                 r={radius}
                 fill="none"
-                stroke="var(--kws-surface-subtle)"
+                stroke={trackStroke}
                 strokeWidth={cfg.stroke}
               />
-              <motion.circle
+              <circle
+                ref={continuousCircleRef}
                 cx={center}
                 cy={center}
                 r={radius}
@@ -169,34 +386,21 @@ export function CircularProgressRing({
                 strokeWidth={cfg.stroke}
                 strokeLinecap="round"
                 strokeDasharray={circumference}
-                initial={
-                  prefersReducedMotion
-                    ? false
-                    : { strokeDashoffset: circumference }
-                }
-                animate={
-                  viewportReveal ? undefined : { strokeDashoffset: dashOffset }
-                }
-                whileInView={
-                  viewportReveal ? { strokeDashoffset: dashOffset } : undefined
-                }
-                viewport={viewportReveal ? VIEWPORT_REVEAL : undefined}
-                transition={
-                  prefersReducedMotion
-                    ? { duration: 0 }
-                    : { duration: 0.78, ease: KWS_EASE }
-                }
+                strokeDashoffset={renderDashOffset}
+                strokeOpacity={renderStrokeOpacity}
               />
             </>
           )}
         </svg>
 
         <div className="absolute inset-0 flex items-center justify-center px-2">
-          <AnimatedCountValue
-            displayValue={metric.displayValue}
-            viewportReveal={viewportReveal}
-            className={`font-display font-bold leading-none tabular-nums text-[var(--kws-ink)] ${valueTextSize}`}
-          />
+          <span
+            className={`font-display font-bold leading-none tabular-nums ${
+              isOnDark ? 'text-white' : 'text-[var(--kws-ink)]'
+            } ${valueTextSize}`}
+          >
+            {formattedDisplay}
+          </span>
         </div>
       </div>
 

@@ -163,10 +163,10 @@ export function WelcomeView({
         return (
           <article
             key={`${prefix}-${item.id}`}
-            className="group flex w-[75vw] max-w-[330px] shrink-0 flex-col justify-between rounded-[22px] border border-[var(--kws-border)] bg-[var(--kws-surface)] p-6 text-[var(--kws-ink)] shadow-[0_18px_40px_-14px_rgba(10,14,40,0.42)] transition-[transform,box-shadow,border-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-[var(--kws-border-strong)] sm:w-[340px] sm:p-7"
+            className="group flex w-[75vw] max-w-[330px] shrink-0 flex-col justify-between rounded-[22px] border border-[var(--kws-border)] bg-[var(--kws-surface)] p-6 text-[var(--kws-ink)] shadow-[0_18px_40px_-14px_rgba(41,33,42,0.36)] transition-[transform,box-shadow,border-color] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-[var(--kws-border-strong)] sm:w-[340px] sm:p-7"
           >
             <div>
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs ring-1 ring-[var(--kws-gold)]/25 transition-transform duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
                 <Icon className="h-5 w-5" aria-hidden="true" />
               </div>
               <h3 className="mt-5 font-display text-lg font-bold leading-snug text-[var(--kws-ink)]">
@@ -273,39 +273,109 @@ export function WelcomeView({
             className="lg:col-span-6"
           >
             <div className="relative mx-auto flex max-w-[460px] flex-col items-center sm:px-6 sm:py-6">
+              {/* Subtle ambient burgundy & champagne halo behind hero frame */}
+              <div
+                aria-hidden="true"
+                className="kws-ambient-breathe pointer-events-none absolute inset-4 rounded-full opacity-80 blur-2xl"
+                style={{
+                  background:
+                    'radial-gradient(circle, rgba(95,27,71,0.16) 0%, rgba(198,164,106,0.16) 46%, transparent 74%)',
+                }}
+              />
+
               {/* Decorative floating dots & circles strictly in KWS palette tints */}
               <span
                 aria-hidden="true"
-                className="kws-float-slow pointer-events-none absolute top-4 left-6 h-3.5 w-3.5 rounded-full bg-[var(--kws-gold)]/75 sm:top-6 sm:left-10"
+                className="kws-float-slow pointer-events-none absolute top-4 left-6 h-3.5 w-3.5 rounded-full bg-[var(--kws-gold)]/85 shadow-xs sm:top-6 sm:left-10"
               />
               <span
                 aria-hidden="true"
                 style={{ animationDelay: '-1.8s' }}
-                className="kws-float-slow-alt pointer-events-none absolute top-10 right-6 h-5 w-5 rounded-full border-2 border-[var(--kws-accent)]/35 sm:right-10"
+                className="kws-float-slow-alt pointer-events-none absolute top-10 right-6 h-5 w-5 rounded-full border-2 border-[var(--kws-accent)]/40 sm:right-10"
               />
               <span
                 aria-hidden="true"
                 style={{ animationDelay: '-2.6s' }}
-                className="kws-float-slow pointer-events-none absolute bottom-12 left-4 h-2.5 w-2.5 rounded-full bg-[var(--kws-accent)]/45 sm:bottom-14 sm:left-6"
+                className="kws-float-slow pointer-events-none absolute bottom-12 left-4 h-2.5 w-2.5 rounded-full bg-[var(--kws-accent)]/55 sm:bottom-14 sm:left-6"
               />
               <span
                 aria-hidden="true"
                 style={{ animationDelay: '-0.9s' }}
-                className="kws-float-slow-alt pointer-events-none absolute right-6 bottom-16 h-4 w-4 rounded-full bg-[var(--kws-accent)]/15 sm:right-8 sm:bottom-20"
+                className="kws-float-slow-alt pointer-events-none absolute right-6 bottom-16 h-4 w-4 rounded-full bg-[var(--kws-mauve)] sm:right-8 sm:bottom-20"
               />
               <span
                 aria-hidden="true"
                 style={{ animationDelay: '-3.1s' }}
-                className="kws-float-slow pointer-events-none hidden sm:block absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[var(--kws-accent)]/50"
+                className="kws-float-slow pointer-events-none hidden sm:block absolute -top-1 left-1/2 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[var(--kws-accent)]/55"
               />
               <span
                 aria-hidden="true"
                 style={{ animationDelay: '-1.4s' }}
-                className="kws-float-slow-alt pointer-events-none hidden sm:block absolute -bottom-1 left-[42%] h-3 w-3 rounded-full border-2 border-[var(--kws-gold)]/65"
+                className="kws-float-slow-alt pointer-events-none hidden sm:block absolute -bottom-1 left-[42%] h-3 w-3 rounded-full border-2 border-[var(--kws-gold)]/75"
               />
 
-              <div className="relative flex h-[268px] w-[268px] items-center justify-center rounded-full border-2 border-dashed border-[var(--kws-accent)]/40 bg-[var(--kws-surface)]/55 p-3 shadow-[var(--kws-shadow-card)] sm:h-[340px] sm:w-[340px] sm:p-4 lg:h-[368px] lg:w-[368px]">
-                <div className="h-full w-full overflow-hidden rounded-full border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)]">
+              <div className="group relative flex h-[284px] w-[284px] items-center justify-center rounded-full p-4 sm:h-[360px] sm:w-[360px] sm:p-5 lg:h-[392px] lg:w-[392px]">
+                {/* Outer clockwise rotating dotted SVG ring + orbital accent dots */}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 400 400"
+                  className={`pointer-events-none absolute inset-0 h-full w-full ${
+                    prefersReducedMotion ? '' : 'kws-orbit-cw'
+                  }`}
+                >
+                  <circle
+                    cx="200"
+                    cy="200"
+                    r="192"
+                    fill="none"
+                    stroke="var(--kws-accent)"
+                    strokeOpacity="0.45"
+                    strokeWidth="2.2"
+                    strokeDasharray="3 10"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="200"
+                    cy="8"
+                    r="5"
+                    fill="var(--kws-accent)"
+                  />
+                  <circle
+                    cx="200"
+                    cy="392"
+                    r="4"
+                    fill="var(--kws-gold)"
+                  />
+                </svg>
+
+                {/* Inner counter-clockwise rotating champagne dashed ring */}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 400 400"
+                  className={`pointer-events-none absolute inset-2.5 h-[calc(100%-20px)] w-[calc(100%-20px)] ${
+                    prefersReducedMotion ? '' : 'kws-orbit-ccw'
+                  }`}
+                >
+                  <circle
+                    cx="200"
+                    cy="200"
+                    r="192"
+                    fill="none"
+                    stroke="var(--kws-gold)"
+                    strokeOpacity="0.58"
+                    strokeWidth="1.6"
+                    strokeDasharray="14 10 4 10"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="8"
+                    cy="200"
+                    r="3.5"
+                    fill="var(--kws-gold)"
+                  />
+                </svg>
+
+                <div className="kws-light-sweep relative h-full w-full overflow-hidden rounded-full border-2 border-[var(--kws-surface)] bg-[var(--kws-surface-subtle)] shadow-[var(--kws-shadow-card)] ring-1 ring-[var(--kws-border-strong)]">
                   {!heroImageError ? (
                     <img
                       src={HERO_IMAGE_SRC}
@@ -313,12 +383,12 @@ export function WelcomeView({
                       referrerPolicy="no-referrer"
                       draggable={false}
                       onError={() => setHeroImageError(true)}
-                      className="h-full w-full object-cover object-[50%_38%]"
+                      className="h-full w-full object-cover object-[50%_38%] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.035]"
                     />
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-[image:var(--kws-gradient-band)] p-6 text-center text-white">
                       <Sparkles
-                        className="h-7 w-7 text-[var(--kws-gold)]"
+                        className="h-7 w-7 text-[var(--kws-gold-bright)]"
                         aria-hidden="true"
                       />
                       <p className="mt-2 font-display text-base font-bold">
@@ -355,7 +425,7 @@ export function WelcomeView({
                   }}
                   className="flex items-center gap-3.5 sm:justify-center"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-[var(--kws-gold)] ring-1 ring-white/20">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-[var(--kws-gold-bright)] ring-1 ring-white/25">
                     <Icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="font-display text-base font-bold tracking-tight text-white sm:text-[17px]">
@@ -400,7 +470,7 @@ export function WelcomeView({
                       }}
                       className="group flex items-start gap-4 rounded-[22px] border border-[var(--kws-border)] bg-[var(--kws-bg)] p-5 transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:shadow-[var(--kws-shadow-card)] sm:gap-5 sm:p-6"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs ring-1 ring-[var(--kws-gold)]/25 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
                         <Icon className="h-5 w-5" aria-hidden="true" />
                       </div>
                       <div className="min-w-0 space-y-1.5">
@@ -429,7 +499,7 @@ export function WelcomeView({
               className="lg:col-span-5"
             >
               <div className="mx-auto max-w-[440px] rounded-[24px] border-2 border-dashed border-[var(--kws-accent)]/40 bg-[var(--kws-tint-bg)] p-3 sm:p-4">
-                <div className="aspect-square w-full overflow-hidden rounded-[16px] border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] shadow-[var(--kws-shadow-card)]">
+                <div className="kws-light-sweep aspect-square w-full overflow-hidden rounded-[16px] border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] shadow-[var(--kws-shadow-card)]">
                   {!discoverImageError ? (
                     <img
                       src={DISCOVER_IMAGE_SRC}
@@ -442,7 +512,7 @@ export function WelcomeView({
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-[image:var(--kws-gradient-band)] p-8 text-center text-white">
                       <Briefcase
-                        className="h-8 w-8 text-[var(--kws-gold)]"
+                        className="h-8 w-8 text-[var(--kws-gold-bright)]"
                         aria-hidden="true"
                       />
                       <p className="mt-3 font-display text-lg font-bold">
@@ -558,7 +628,7 @@ export function WelcomeView({
                         aria-hidden="true"
                         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors duration-200 ${
                           isOpen
-                            ? 'border-[var(--kws-accent)] bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)]'
+                            ? 'border-[var(--kws-accent)] bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)]'
                             : 'border-[var(--kws-border-strong)] bg-[var(--kws-surface-subtle)] text-[var(--kws-ink)]'
                         }`}
                       >

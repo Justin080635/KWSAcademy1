@@ -112,7 +112,7 @@ export function TopBar({
               e.preventDefault();
               navigateAndClose({ area: 'respondent', view: 'welcome' }, 'overview');
             }}
-            className="hover:text-[var(--kws-ink)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-[var(--kws-accent)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
             Overview
           </a>
@@ -122,7 +122,7 @@ export function TopBar({
               e.preventDefault();
               navigateAndClose({ area: 'respondent', view: 'welcome' }, 'stages');
             }}
-            className="hover:text-[var(--kws-ink)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-[var(--kws-accent)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
             What You’ll Discover
           </a>
@@ -132,7 +132,7 @@ export function TopBar({
               e.preventDefault();
               navigateAndClose({ area: 'respondent', view: 'welcome' }, 'faq');
             }}
-            className="hover:text-[var(--kws-ink)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+            className="hover:text-[var(--kws-accent)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
             Good to Know
           </a>

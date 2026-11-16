@@ -100,7 +100,7 @@ function drawCanvasRing(
   ctx.font = '700 28px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText(valueText, cx, cy);
 
-  ctx.fillStyle = '#c9d2ff';
+  ctx.fillStyle = '#f0dce8';
   ctx.font = '600 20px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText(label, cx, cy + r + 28);
   ctx.restore();
@@ -119,11 +119,11 @@ export async function renderShareCardToBlob(
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  // Deep KWS gradient backdrop
+  // Deep KWS burgundy gradient backdrop
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, '#14183a');
-  bgGrad.addColorStop(0.55, '#222fa3');
-  bgGrad.addColorStop(1, '#2b3bc4');
+  bgGrad.addColorStop(0, '#29212a');
+  bgGrad.addColorStop(0.5, '#481436');
+  bgGrad.addColorStop(1, '#5f1b47');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
@@ -139,18 +139,18 @@ export async function renderShareCardToBlob(
   ctx.stroke();
 
   const glow = ctx.createRadialGradient(840, 210, 10, 840, 210, 380);
-  glow.addColorStop(0, 'rgba(242, 169, 0, 0.22)');
-  glow.addColorStop(1, 'rgba(242, 169, 0, 0)');
+  glow.addColorStop(0, 'rgba(198, 164, 106, 0.24)');
+  glow.addColorStop(1, 'rgba(198, 164, 106, 0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
 
   // Header
-  ctx.fillStyle = '#ffd166';
+  ctx.fillStyle = '#e8ce9c';
   ctx.font = '700 24px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText('KWS ACADEMY · PROFESSIONAL DISCOVERY', 84, 118);
 
-  ctx.fillStyle = '#c9d2ff';
+  ctx.fillStyle = '#f0dce8';
   ctx.font = '500 28px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText(
     payload.displayName
@@ -161,7 +161,7 @@ export async function renderShareCardToBlob(
   );
 
   // Leading style hero typography
-  ctx.fillStyle = '#aeb8ff';
+  ctx.fillStyle = '#e8d5e0';
   ctx.font = '600 22px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText(payload.styleSublabel.toUpperCase(), 84, 286);
 
@@ -176,7 +176,7 @@ export async function renderShareCardToBlob(
   }
 
   // Personalised statement
-  ctx.fillStyle = '#e4e8ff';
+  ctx.fillStyle = '#f7f1f4';
   ctx.font = '500 32px "Plus Jakarta Sans", system-ui, sans-serif';
   const stmtLines = wrapCanvasText(ctx, payload.personalStatement, 912);
   let stmtY = cursorY + 26;
@@ -202,10 +202,10 @@ export async function renderShareCardToBlob(
     payload.stageNumber / 5,
     '',
     `${payload.stageNumber}/5`,
-    '#f2a900'
+    '#c6a46a'
   );
 
-  ctx.fillStyle = '#ffd166';
+  ctx.fillStyle = '#e8ce9c';
   ctx.font = '600 22px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText('CURRENT GROWTH STAGE', 258, stageBoxY + 62);
 
@@ -221,7 +221,7 @@ export async function renderShareCardToBlob(
   ctx.fill();
   ctx.stroke();
 
-  ctx.fillStyle = '#aeb8ff';
+  ctx.fillStyle = '#e8d5e0';
   ctx.font = '600 22px "Plus Jakarta Sans", system-ui, sans-serif';
   ctx.fillText('HIGHLIGHTED CAPABILITY', 124, capBoxY + 58);
 
@@ -229,7 +229,7 @@ export async function renderShareCardToBlob(
   ctx.font = '700 32px "Bricolage Grotesque", system-ui, sans-serif';
   ctx.fillText(payload.capabilityTitle, 124, capBoxY + 104);
 
-  ctx.fillStyle = '#e4e8ff';
+  ctx.fillStyle = '#f7f1f4';
   ctx.font = '400 25px "Plus Jakarta Sans", system-ui, sans-serif';
   const insightLines = wrapCanvasText(ctx, payload.capabilityInsight, 560);
   let insY = capBoxY + 154;
@@ -246,7 +246,7 @@ export async function renderShareCardToBlob(
     payload.understandingScore / 1,
     'Know',
     `${payload.understandingScore}/1`,
-    '#8d9bff'
+    '#df9ec7'
   );
   drawCanvasRing(
     ctx,
@@ -256,7 +256,7 @@ export async function renderShareCardToBlob(
     payload.experienceScore / 4,
     'Done',
     `${payload.experienceScore}/4`,
-    '#f2a900'
+    '#c6a46a'
   );
 
   // Clean Footer
@@ -383,7 +383,7 @@ export function ShareDiscoveryCard({
             }`}
             style={{
               background:
-                'radial-gradient(circle, rgba(242,169,0,0.45) 0%, transparent 70%)',
+                'radial-gradient(circle, rgba(198,164,106,0.38) 0%, transparent 70%)',
             }}
             aria-hidden="true"
           />
@@ -397,7 +397,7 @@ export function ShareDiscoveryCard({
           <div className="relative z-10 space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-bold tracking-[0.12em] text-[#ffd166]">
+                <p className="text-[11px] font-bold tracking-[0.12em] text-[var(--kws-gold-bright)]">
                   KWS ACADEMY
                 </p>
                 <p className="mt-0.5 text-sm font-medium text-white/85">
@@ -410,7 +410,7 @@ export function ShareDiscoveryCard({
             </div>
 
             <div className="border-t border-white/15 pt-5">
-              <p className="text-xs font-semibold text-[#c9d2ff]">
+              <p className="text-xs font-semibold text-[var(--kws-on-dark-muted)]">
                 {payload.styleSublabel}
               </p>
               <h3 className="mt-1 font-display text-3xl font-extrabold leading-tight text-white sm:text-4xl">
@@ -424,6 +424,7 @@ export function ShareDiscoveryCard({
             <div className="flex items-center gap-4 rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
               <CircularProgressRing
                 viewportReveal
+                surface="onDark"
                 metric={{
                   id: 'share_card_stage',
                   label: payload.stageName,
@@ -437,7 +438,7 @@ export function ShareDiscoveryCard({
                 showLabel={false}
               />
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-[#ffd166]">
+                <p className="text-[11px] font-semibold text-[var(--kws-gold-bright)]">
                   Growth journey
                 </p>
                 <p className="font-display text-lg font-bold text-white">
@@ -449,7 +450,7 @@ export function ShareDiscoveryCard({
             <div className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold text-[#c9d2ff]">
+                  <p className="text-[11px] font-semibold text-[var(--kws-on-dark-muted)]">
                     Highlighted strength
                   </p>
                   <p className="mt-0.5 font-display text-base font-bold text-white">
@@ -463,6 +464,7 @@ export function ShareDiscoveryCard({
                   <div className="text-center">
                     <CircularProgressRing
                       viewportReveal
+                      surface="onDark"
                       metric={{
                         id: 'share_card_u',
                         label: 'Know',
@@ -482,6 +484,7 @@ export function ShareDiscoveryCard({
                   <div className="text-center">
                     <CircularProgressRing
                       viewportReveal
+                      surface="onDark"
                       metric={{
                         id: 'share_card_e',
                         label: 'Done',

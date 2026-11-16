@@ -32,9 +32,9 @@ export function Button({
 
   const variants = {
     primary:
-      'bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_10px_24px_-8px_rgba(43,59,196,0.45)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_14px_28px_-8px_rgba(43,59,196,0.55)]',
+      'bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[0_10px_24px_-8px_var(--kws-shadow-accent)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_14px_28px_-8px_var(--kws-shadow-accent)]',
     secondary:
-      'bg-[var(--kws-surface)] text-[var(--kws-ink)] border border-[var(--kws-border-strong)] hover:-translate-y-0.5 hover:border-[var(--kws-accent)] hover:bg-[var(--kws-surface-subtle)] hover:shadow-xs',
+      'bg-[var(--kws-surface)] text-[var(--kws-ink)] border border-[var(--kws-border-strong)] hover:-translate-y-0.5 hover:border-[var(--kws-accent)] hover:bg-[var(--kws-tint-bg)]/55 hover:shadow-xs',
     ghost:
       'bg-transparent text-[var(--kws-muted)] hover:text-[var(--kws-ink)] hover:bg-[var(--kws-surface-subtle)]',
   };

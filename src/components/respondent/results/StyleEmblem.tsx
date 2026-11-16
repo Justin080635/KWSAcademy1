@@ -1,3 +1,4 @@
+import { useReducedMotion } from 'motion/react';
 import {
   BriefcaseBusiness,
   Clapperboard,
@@ -21,12 +22,62 @@ const SIZE_MAP = {
   lg: 76,
 };
 
+const STYLE_ICON_MOTION: Record<
+  StyleId | 'BROAD',
+  { className: string; duration: string; delay: string }
+> = {
+  STORYTELLER: { className: 'kws-icon-float-tilt', duration: '3.5s', delay: '0s' },
+  STRATEGIST: { className: 'kws-icon-sway', duration: '3.9s', delay: '-0.6s' },
+  CREATOR: { className: 'kws-icon-pulse-breath', duration: '3.1s', delay: '-1.1s' },
+  CONNECTOR: { className: 'kws-icon-drift', duration: '3.4s', delay: '-1.6s' },
+  EXECUTOR: { className: 'kws-icon-pulse-breath', duration: '2.9s', delay: '-0.4s' },
+  OPPORTUNITY_BUILDER: { className: 'kws-icon-float-tilt', duration: '3.6s', delay: '-1.3s' },
+  BROAD: { className: 'kws-icon-sway', duration: '4s', delay: '-0.8s' },
+};
+
+const CAPABILITY_ICON_MOTION: Record<
+  PillarId,
+  { className: string; duration: string; delay: string }
+> = {
+  media_industry_intelligence: {
+    className: 'kws-icon-sway',
+    duration: '3.8s',
+    delay: '0s',
+  },
+  marketing_brand_strategy: {
+    className: 'kws-icon-pulse-breath',
+    duration: '3s',
+    delay: '-0.5s',
+  },
+  strategic_communications_storytelling: {
+    className: 'kws-icon-float-tilt',
+    duration: '3.4s',
+    delay: '-1.1s',
+  },
+  digital_content_media_production: {
+    className: 'kws-icon-float-tilt',
+    duration: '3.7s',
+    delay: '-1.7s',
+  },
+  campaign_project_execution: {
+    className: 'kws-icon-drift',
+    duration: '3.2s',
+    delay: '-2.2s',
+  },
+  creative_business_professional_development: {
+    className: 'kws-icon-drift',
+    duration: '3.9s',
+    delay: '-2.8s',
+  },
+};
+
 export function StyleEmblem({
   styleId,
   size = 'md',
   tone = 'brand',
   className = '',
 }: StyleEmblemProps) {
+  const prefersReducedMotion = Boolean(useReducedMotion());
   const px = SIZE_MAP[size];
   const primary =
     tone === 'onDark' ? '#ffffff' : 'var(--kws-accent)';
@@ -39,10 +90,11 @@ export function StyleEmblem({
     tone === 'onDark'
       ? 'rgba(255, 255, 255, 0.25)'
       : 'var(--kws-border)';
+  const motionSpec = STYLE_ICON_MOTION[styleId];
 
   return (
     <div
-      className={`inline-flex shrink-0 items-center justify-center rounded-full ${className}`}
+      className={`relative inline-flex shrink-0 items-center justify-center rounded-full ${className}`}
       style={{
         width: px,
         height: px,
@@ -51,12 +103,32 @@ export function StyleEmblem({
       }}
       aria-hidden="true"
     >
+      {!prefersReducedMotion && (
+        <span
+          className="kws-emblem-glow pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background:
+              tone === 'onDark'
+                ? 'radial-gradient(circle, rgba(232,206,156,0.28) 0%, transparent 72%)'
+                : 'radial-gradient(circle, rgba(95,27,71,0.16) 0%, rgba(198,164,106,0.12) 48%, transparent 72%)',
+          }}
+        />
+      )}
       <svg
         width={Math.round(px * 0.56)}
         height={Math.round(px * 0.56)}
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
+        className={prefersReducedMotion ? 'relative z-10' : `relative z-10 ${motionSpec.className}`}
+        style={
+          prefersReducedMotion
+            ? undefined
+            : {
+                animationDuration: motionSpec.duration,
+                animationDelay: motionSpec.delay,
+              }
+        }
       >
         {styleId === 'STORYTELLER' && (
           <>
@@ -170,18 +242,42 @@ export function CapabilityIcon({
   pillarId: PillarId;
   className?: string;
 }) {
-  switch (pillarId) {
-    case 'media_industry_intelligence':
-      return <Compass className={className} aria-hidden="true" />;
-    case 'marketing_brand_strategy':
-      return <Target className={className} aria-hidden="true" />;
-    case 'strategic_communications_storytelling':
-      return <MessageSquareQuote className={className} aria-hidden="true" />;
-    case 'digital_content_media_production':
-      return <Clapperboard className={className} aria-hidden="true" />;
-    case 'campaign_project_execution':
-      return <Layers className={className} aria-hidden="true" />;
-    case 'creative_business_professional_development':
-      return <BriefcaseBusiness className={className} aria-hidden="true" />;
-  }
+  const prefersReducedMotion = Boolean(useReducedMotion());
+  const motionSpec = CAPABILITY_ICON_MOTION[pillarId];
+
+  const renderIcon = () => {
+    switch (pillarId) {
+      case 'media_industry_intelligence':
+        return <Compass className={className} aria-hidden="true" />;
+      case 'marketing_brand_strategy':
+        return <Target className={className} aria-hidden="true" />;
+      case 'strategic_communications_storytelling':
+        return <MessageSquareQuote className={className} aria-hidden="true" />;
+      case 'digital_content_media_production':
+        return <Clapperboard className={className} aria-hidden="true" />;
+      case 'campaign_project_execution':
+        return <Layers className={className} aria-hidden="true" />;
+      case 'creative_business_professional_development':
+        return <BriefcaseBusiness className={className} aria-hidden="true" />;
+    }
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center justify-center ${
+        prefersReducedMotion ? '' : motionSpec.className
+      }`}
+      style={
+        prefersReducedMotion
+          ? undefined
+          : {
+              animationDuration: motionSpec.duration,
+              animationDelay: motionSpec.delay,
+            }
+      }
+      aria-hidden="true"
+    >
+      {renderIcon()}
+    </span>
+  );
 }
