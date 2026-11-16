@@ -160,19 +160,19 @@ export function CapabilityCardView({
   };
 
   return (
-    <Surface className="p-5 sm:p-7">
+    <Surface className="p-3.5 sm:p-7">
       {/* Capability Card Header */}
-      <div className="border-b border-[var(--kws-border)] pb-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-accent)]">
+      <div className="border-b border-[var(--kws-border)] pb-2.5 sm:pb-4">
+        <div className="flex flex-wrap items-baseline justify-between gap-1.5 sm:gap-2">
+          <p className="font-mono-tabular text-[11px] font-semibold text-[var(--kws-accent)] sm:text-xs">
             Capability {card.index} of {totalCards}
           </p>
-          <p className="text-xs text-[var(--kws-muted)]">
+          <p className="hidden text-xs text-[var(--kws-muted)] sm:block">
             Understanding &amp; Practical Experience are distinct dimensions
           </p>
         </div>
 
-        <h2 className="mt-1.5 font-display text-xl font-bold text-[var(--kws-ink)] sm:text-2xl">
+        <h2 className="mt-1 font-display text-base font-bold text-[var(--kws-ink)] sm:mt-1.5 sm:text-2xl">
           {card.pillar.name}
         </h2>
 
@@ -180,7 +180,7 @@ export function CapabilityCardView({
         <div
           role="tablist"
           aria-label="Capability dimensions"
-          className="mt-4 grid grid-cols-2 gap-2 rounded-lg bg-[var(--kws-bg)] p-1"
+          className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-lg bg-[var(--kws-bg)] p-1 sm:mt-4 sm:gap-2"
         >
           <button
             type="button"
@@ -190,7 +190,7 @@ export function CapabilityCardView({
               subDirectionRef.current = -1;
               setSubStep('understanding');
             }}
-            className={`flex min-h-[44px] items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold transition-colors cursor-pointer ${
+            className={`flex min-h-[36px] items-center justify-between gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[11px] font-semibold transition-colors cursor-pointer sm:min-h-[44px] sm:px-3 sm:py-2 sm:text-xs ${
               subStep === 'understanding'
                 ? 'bg-[var(--kws-surface)] text-[var(--kws-ink)] shadow-xs'
                 : 'text-[var(--kws-muted)] hover:text-[var(--kws-ink)]'
@@ -216,7 +216,7 @@ export function CapabilityCardView({
                 setSubStep('experience');
               }
             }}
-            className={`flex min-h-[44px] items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold transition-colors ${
+            className={`flex min-h-[36px] items-center justify-between gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[11px] font-semibold transition-colors sm:min-h-[44px] sm:px-3 sm:py-2 sm:text-xs ${
               !selectedUnderstanding
                 ? 'cursor-not-allowed text-[var(--kws-muted)]/50'
                 : subStep === 'experience'
@@ -239,7 +239,7 @@ export function CapabilityCardView({
       </div>
 
       {/* Active Dimension Prompt & Options */}
-      <div className="mt-5 overflow-hidden">
+      <div className="mt-3 overflow-hidden sm:mt-5">
         <AnimatePresence mode="wait" initial={false} custom={subDirectionRef.current}>
           <motion.div
             key={activeQuestion.id}
@@ -257,20 +257,20 @@ export function CapabilityCardView({
             }
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-xs font-semibold text-[var(--kws-muted)]">
+            <p className="text-[11px] font-semibold text-[var(--kws-muted)] sm:text-xs">
               {subStep === 'understanding'
                 ? 'Part A · Understanding scenario'
                 : 'Part B · Your practical experience'}
             </p>
 
-            <h1 className="mt-1.5 font-display text-lg font-bold leading-snug text-[var(--kws-ink)] sm:text-xl [text-wrap:balance]">
+            <h1 className="mt-1 font-display text-[15px] font-bold leading-snug text-[var(--kws-ink)] sm:mt-1.5 sm:text-xl [text-wrap:balance]">
               {activeQuestion.prompt}
             </h1>
 
             <div
               role="radiogroup"
               aria-label={activeQuestion.prompt}
-              className="mt-4 space-y-2.5"
+              className="mt-2.5 space-y-1.5 sm:mt-4 sm:space-y-2.5"
             >
               {activeQuestion.options.map((opt, idx) => {
                 const isSelected = activeSelection === opt.id;
@@ -287,15 +287,15 @@ export function CapabilityCardView({
                         'strengths_growth'
                       )
                     }
-                    className={`group flex w-full min-h-[52px] items-start justify-between gap-3 rounded-xl border px-4 py-3.5 text-left transition-all duration-150 ease-out cursor-pointer active:scale-[0.995] ${
+                    className={`group flex w-full min-h-[42px] items-start justify-between gap-2.5 rounded-xl border px-3 py-2 text-left transition-all duration-150 ease-out cursor-pointer active:scale-[0.995] sm:min-h-[52px] sm:gap-3 sm:px-4 sm:py-3.5 ${
                       isSelected
                         ? 'border-[var(--kws-accent)] bg-[var(--kws-surface-subtle)] ring-1 ring-[var(--kws-accent)]'
                         : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/50'
                     }`}
                   >
-                    <div className="flex items-start gap-3 text-sm leading-relaxed sm:text-base">
+                    <div className="flex items-start gap-2 text-[13px] leading-snug sm:gap-3 sm:text-base sm:leading-relaxed">
                       <span
-                        className={`mt-0.5 inline-flex min-w-[1.5rem] font-mono-tabular text-sm font-semibold ${
+                        className={`mt-0.5 inline-flex min-w-[1.25rem] font-mono-tabular text-xs font-semibold sm:min-w-[1.5rem] sm:text-sm ${
                           isSelected
                             ? 'text-[var(--kws-accent)]'
                             : 'text-[var(--kws-muted)] group-hover:text-[var(--kws-ink)]'
@@ -314,7 +314,7 @@ export function CapabilityCardView({
                         className="mt-0.5 shrink-0"
                       >
                         <CheckCircle2
-                          className="h-5 w-5 text-[var(--kws-accent)]"
+                          className="h-4 w-4 text-[var(--kws-accent)] sm:h-5 sm:w-5"
                           aria-hidden="true"
                         />
                       </motion.span>
@@ -327,8 +327,8 @@ export function CapabilityCardView({
         </AnimatePresence>
       </div>
 
-      {/* Explicit Card Controls */}
-      <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[var(--kws-border)] pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      {/* Explicit Card Controls (side-by-side on mobile so cards fit above fold) */}
+      <div className="mt-4 grid grid-cols-2 gap-2.5 border-t border-[var(--kws-border)] pt-3 sm:mt-7 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
         <Button
           variant="secondary"
           onClick={handleBack}
@@ -344,9 +344,16 @@ export function CapabilityCardView({
           disabled={!activeSelection}
           className="w-full sm:w-auto"
         >
-          {subStep === 'understanding'
-            ? 'Continue to Practical Experience'
-            : 'Continue'}
+          {subStep === 'understanding' ? (
+            <>
+              <span className="sm:hidden">Next part</span>
+              <span className="hidden sm:inline">
+                Continue to Practical Experience
+              </span>
+            </>
+          ) : (
+            'Continue'
+          )}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>

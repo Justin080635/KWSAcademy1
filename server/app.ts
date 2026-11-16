@@ -15,11 +15,13 @@ import {
   PART_A_CONFIG_VERSION,
   SCORING_ENGINE_VERSION,
 } from '../src/domain/scoring.ts';
+import { getInsightForPillar } from '../src/domain/pillarInsightEngine.ts';
 import type { PartAScoringConfig } from '../src/domain/scoringConfig.ts';
 import type {
   AdminSubmissionFilters,
   AssessmentQuestion,
   AssessmentResult,
+  AssessmentSectionId,
   AssessmentSectionMeta,
   CommunicationChannel,
   CommunicationDeliveryStatus,
@@ -27,6 +29,7 @@ import type {
   ConsultationStatus,
   HumanReviewCategory,
   LeadSegmentationConfig,
+  RespondentAnswers,
   SubmissionRecord,
 } from '../src/domain/types.ts';
 import {
@@ -281,6 +284,106 @@ export async function createApp(options?: {
       stepsCount: steps.length,
       professionalStyles: PROFESSIONAL_STYLES,
       growthStages: GROWTH_STAGES,
+    });
+  });
+
+  const VALID_PILLAR_IDS = new Set<AssessmentSectionId>([
+    'professional_style',
+    'growth_journey',
+    'strengths_growth',
+    'profile_next_steps',
+  ]);
+
+  // 2b. Personalized Pillar Discovery Insight Evaluation (No secret keys exposed)
+  app.post('/api/assessment/pillar-insight', (req, res) => {
+    const body = req.body as {
+      pillarId?: unknown;
+      answers?: Partial<RespondentAnswers>;
+    };
+    const pillarId =
+      typeof body?.pillarId === 'string' ? body.pillarId.trim() : '';
+
+    if (!VALID_PILLAR_IDS.has(pillarId as AssessmentSectionId)) {
+      res.status(400).json({
+        error: 'INVALID_PILLAR_ID',
+        message:
+          'pillarId must be one of professional_style, growth_journey, strengths_growth, or profile_next_steps.',
+      });
+      return;
+    }
+
+    const rawAnswers = body?.answers ?? {};
+    const safeSelections: Record<string, string> = {};
+    if (rawAnswers.selections && typeof rawAnswers.selections === 'object') {
+      for (const [k, v] of Object.entries(rawAnswers.selections)) {
+        if (typeof v === 'string' && k.length <= 64 && v.length <= 96) {
+          safeSelections[k] = v;
+        }
+      }
+    }
+
+    const safeOtherText: Record<string, string> = {};
+    if (rawAnswers.otherText && typeof rawAnswers.otherText === 'object') {
+      for (const [k, v] of Object.entries(rawAnswers.otherText)) {
+        if (typeof v === 'string' && k.length <= 64) {
+          safeOtherText[k] = sanitizeSingleLine(v, 300);
+        }
+      }
+    }
+
+    const rawContact = (rawAnswers.contact ?? {}) as Partial<
+      RespondentAnswers['contact']
+    >;
+    const safeAnswers: RespondentAnswers = {
+      selections: safeSelections,
+      otherText: safeOtherText,
+      contact: {
+        fullName:
+          typeof rawContact.fullName === 'string'
+            ? sanitizeSingleLine(rawContact.fullName, 140)
+            : '',
+        whatsappNumber:
+          typeof rawContact.whatsappNumber === 'string'
+            ? sanitizeSingleLine(rawContact.whatsappNumber, 40)
+            : '',
+        email:
+          typeof rawContact.email === 'string'
+            ? sanitizeSingleLine(rawContact.email, 160)
+            : '',
+        city:
+          typeof rawContact.city === 'string'
+            ? sanitizeSingleLine(rawContact.city, 100)
+            : '',
+        state:
+          typeof rawContact.state === 'string'
+            ? sanitizeSingleLine(rawContact.state, 100)
+            : '',
+        institution:
+          typeof rawContact.institution === 'string'
+            ? sanitizeSingleLine(rawContact.institution, 160)
+            : '',
+        whatsappConsent: Boolean(rawContact.whatsappConsent),
+      },
+    };
+
+    const activeVersion = repository.getActiveAssessmentVersion();
+    const activeQuestions = (
+      activeVersion.questions ?? ASSESSMENT_QUESTIONS
+    ).filter((q) => q.active !== false);
+    const partAConfig = repository.getPartAScoringConfig();
+
+    const evaluated = getInsightForPillar(
+      pillarId as AssessmentSectionId,
+      safeAnswers,
+      {
+        partAConfig,
+        questions: activeQuestions,
+      }
+    );
+
+    res.json({
+      insight: evaluated.insight,
+      partAConfigApproved: partAConfig.approved,
     });
   });
 

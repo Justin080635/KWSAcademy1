@@ -7,6 +7,7 @@ import {
   STAGE_MAP,
   STYLE_MAP,
 } from './assessmentContent.ts';
+import { buildAllPillarInsightsFromResults } from './pillarInsights.ts';
 import {
   DEFAULT_PART_A_SCORING_CONFIG,
   PART_B_OPTION_VALUES,
@@ -484,7 +485,7 @@ function buildDevelopmentPriorities(
   return [stagePriority, ...capabilityPriorities];
 }
 
-function buildNextStep(
+export function buildNextStep(
   answers: RespondentAnswers,
   questions?: AssessmentQuestion[]
 ): NextStepResult {
@@ -552,6 +553,14 @@ export function scoreAssessment(
     capabilities
   );
   const nextStep = buildNextStep(answers, activeQuestions);
+  const pillarInsights = buildAllPillarInsightsFromResults({
+    answers,
+    professionalStyle,
+    growthJourney,
+    capabilities,
+    nextStep,
+    questions: activeQuestions,
+  });
 
   return {
     scoringVersion: SCORING_ENGINE_VERSION,
@@ -562,6 +571,7 @@ export function scoreAssessment(
     capabilities,
     developmentPriorities,
     nextStep,
+    pillarInsights,
   };
 }
 

@@ -4,6 +4,7 @@ import type {
   AssessmentConfigPayload,
   AssessmentQuestion,
   AssessmentResult,
+  AssessmentSectionId,
   AssessmentSectionMeta,
   AssessmentVersionRecord,
   CampaignAttribution,
@@ -17,6 +18,7 @@ import type {
   HumanReviewCategory,
   IntegrationStatusItem,
   LeadSegmentationConfig,
+  PillarInsightResult,
   PilotFeedback,
   QuestionTelemetryInput,
   RespondentAnswers,
@@ -117,6 +119,19 @@ async function requestJson<T>(
 
 export async function fetchAssessmentConfig(): Promise<AssessmentConfigPayload> {
   return requestJson('/api/assessment/config');
+}
+
+export async function fetchPillarInsight(
+  pillarId: AssessmentSectionId,
+  answers: RespondentAnswers
+): Promise<{
+  insight: PillarInsightResult;
+  partAConfigApproved: boolean;
+}> {
+  return requestJson('/api/assessment/pillar-insight', {
+    method: 'POST',
+    body: JSON.stringify({ pillarId, answers }),
+  });
 }
 
 export async function createDraftSubmission(payload: {

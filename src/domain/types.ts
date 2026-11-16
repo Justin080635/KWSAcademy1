@@ -205,6 +205,50 @@ export interface NextStepResult {
   invitationNote: string;
 }
 
+export type CircularMetricTone = 'accent' | 'gold' | 'success' | 'muted';
+
+export interface CircularMetricSpec {
+  id: string;
+  label: string;
+  value: number;
+  max: number;
+  displayValue: string;
+  sublabel: string;
+  tone: CircularMetricTone;
+  segments?: number;
+  isPending?: boolean;
+}
+
+export interface PillarInsightResult {
+  insightId: string;
+  pillarId: AssessmentSectionId;
+  sectionCode: 'A' | 'B' | 'C' | 'D';
+  priority: number;
+  patternKey: string;
+  headline: string;
+  message: string;
+  secondaryObservation?: string;
+  curiosityHook?: string;
+  ctaLabel: string;
+  spotlightLabel?: string;
+  primaryMetric: CircularMetricSpec;
+  secondaryMetric?: CircularMetricSpec;
+  previewSummary: {
+    unlockedLabel: string;
+    unlockedDetail: string;
+    obscuredHint: string;
+    partAConfigApproved: boolean;
+  };
+  isFallback: boolean;
+}
+
+export interface AssessmentPillarInsightsBundle {
+  professionalStyle: PillarInsightResult;
+  growthJourney: PillarInsightResult;
+  strengthsGrowth: PillarInsightResult;
+  profileNextSteps: PillarInsightResult;
+}
+
 export interface AssessmentResult {
   scoringVersion: string;
   generatedAt: string;
@@ -214,6 +258,7 @@ export interface AssessmentResult {
   capabilities: CapabilityResultItem[];
   developmentPriorities: DevelopmentPriorityItem[];
   nextStep: NextStepResult;
+  pillarInsights?: AssessmentPillarInsightsBundle;
 }
 
 export type ConsultationStatus =
