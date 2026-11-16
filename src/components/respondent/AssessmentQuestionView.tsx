@@ -6,17 +6,13 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import {
   ASSESSMENT_QUESTIONS,
   ASSESSMENT_SECTIONS,
   ASSESSMENT_STEPS,
-  STAGE_MAP,
 } from '../../domain/assessmentContent.ts';
-import {
-  PILLAR_INSIGHT_THRESHOLDS,
-  selectBestInsight,
-} from '../../domain/pillarInsights.ts';
 import {
   isStepCompleteForSteps,
   validateContactDetails,
@@ -26,17 +22,17 @@ import type {
   AssessmentSectionId,
   AssessmentSectionMeta,
   AssessmentStep,
-  GrowthStageLevel,
-  PillarInsightResult,
   QuestionTelemetryInput,
   RespondentAnswers,
 } from '../../domain/types.ts';
-import { fetchPillarInsight } from '../../services/api.ts';
 import { useQuestionTiming } from '../../state/useQuestionTiming.ts';
 import { Button } from '../ui/Button.tsx';
-import { CircularProgressRing } from '../ui/CircularProgressRing.tsx';
 import { Surface } from '../ui/Surface.tsx';
-import { BlurredReportPreview } from './BlurredReportPreview.tsx';
+import {
+  KWS_DURATIONS,
+  KWS_EASE,
+  KWS_SPRING,
+} from '../ui/motionPrimitives.tsx';
 import { CapabilityCardView } from './CapabilityCardView.tsx';
 
 interface AssessmentQuestionViewProps {
@@ -63,110 +59,130 @@ interface AssessmentQuestionViewProps {
 
 const OPTION_LETTERS = 'ABCDEFGH';
 
-const MOBILE_SECTION_LABELS: Record<AssessmentSectionId, string> = {
-  professional_style: 'Style',
-  growth_journey: 'Journey',
-  strengths_growth: 'Strengths',
-  profile_next_steps: 'Next Steps',
-};
-
-const MILESTONE_ORDER: Partial<Record<AssessmentSectionId, string>> = {
-  professional_style: 'Pillar 1 Discovery · Section A Complete',
-  growth_journey: 'Pillar 2 Discovery · Section B Complete',
-  strengths_growth: 'Pillar 3 Discovery · Section C Complete',
-};
-
-const NEXT_SECTION_PREVIEW: Partial<
-  Record<AssessmentSectionId, { label: string; teaser: string }>
+const BREAK_SCREEN_COPY: Record<
+  AssessmentSectionId,
+  { headline: string; supportingLine: string; ctaLabel: string }
 > = {
   professional_style: {
-    label: 'Up next · Section B — Your Growth Journey',
-    teaser:
-      'Six concise reflections locate your current growth stage and 12-month focus.',
+    headline: 'Round one done. Your instincts are in.',
+    supportingLine: 'Next, a look at where you are on your path.',
+    ctaLabel: 'Keep going',
   },
   growth_journey: {
-    label: 'Up next · Section C — Strengths & Growth Areas',
-    teaser:
-      'Six paired capability cards separate situational judgment from hands-on experience.',
+    headline: 'Nice. Your path is mapped.',
+    supportingLine:
+      "Up next: six quick strengths, what you know and what you've done.",
+    ctaLabel: "Let's do it",
   },
   strengths_growth: {
-    label: 'Final step · Section D — Your Profile & Next Steps',
-    teaser:
-      'A few brief context questions and your details before your complete report unlocks.',
+    headline: 'Strengths done. One last stretch.',
+    supportingLine: 'Just a few questions about you, then your profile.',
+    ctaLabel: 'Almost there',
+  },
+  profile_next_steps: {
+    headline: "That's everything.",
+    supportingLine: 'Ready to see what your answers say about you?',
+    ctaLabel: 'Reveal my profile',
   },
 };
 
-/**
- * Pure client-safe offline fallback when awaiting or falling back from /api/assessment/pillar-insight.
- * Never embeds Part A option-to-style matrices or Part C answer keys.
- */
-function buildClientFallbackInsight(
-  sectionId: AssessmentSectionId,
-  answers: RespondentAnswers,
-  questions: AssessmentQuestion[]
-): PillarInsightResult {
+function BreakScreenIllustration({
+  sectionId,
+}: {
+  sectionId: AssessmentSectionId;
+}) {
   if (sectionId === 'professional_style') {
-    const orientationQs = questions.filter(
-      (q) => q.kind === 'orientation' && q.active !== false
+    // Rising stepping-stone trail & compass star (heading onto growth path)
+    return (
+      <div
+        aria-hidden="true"
+        className="flex h-14 w-20 items-center justify-center rounded-2xl border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/80"
+      >
+        <svg viewBox="0 0 72 48" className="h-10 w-16" fill="none">
+          <path
+            d="M10 35C22 35 24 23 36 23C48 23 50 13 61 13"
+            stroke="var(--kws-accent)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeDasharray="4 4"
+          />
+          <circle cx="10" cy="35" r="4" fill="var(--kws-accent)" fillOpacity="0.35" />
+          <circle cx="36" cy="23" r="4.5" fill="var(--kws-accent)" fillOpacity="0.7" />
+          <circle cx="61" cy="13" r="5.5" fill="var(--kws-gold)" />
+        </svg>
+      </div>
     );
-    const total = Math.max(1, orientationQs.length);
-    const answered = orientationQs.filter((q) =>
-      Boolean(answers.selections[q.id])
-    ).length;
-
-    return selectBestInsight('professional_style', {
-      pillarId: 'professional_style',
-      partA: {
-        partAConfigApproved: false,
-        answeredCount: answered,
-        totalQuestions: total,
-        pattern: null,
-        topStyleId: null,
-        topStyleName: null,
-        topCount: 0,
-        topSharePct: 0,
-        secondaryStyleId: null,
-        secondaryStyleName: null,
-        secondaryCount: 0,
-        secondarySharePct: 0,
-        tiedAtTopCount: 0,
-        clusteredNearTopCount: 0,
-        activeStylesCount: 0,
-        leadGap: 0,
-      },
-    });
   }
 
   if (sectionId === 'growth_journey') {
-    const scoredIds = ['growth_q01', 'growth_q02', 'growth_q03', 'growth_q04'];
-    const values = scoredIds.map((qId) => {
-      const optId = answers.selections[qId] ?? '';
-      const match = optId.match(/_stage_([1-5])$/);
-      if (match) return Number(match[1]) as GrowthStageLevel;
-      const q = questions.find((item) => item.id === qId);
-      const idx = q ? q.options.findIndex((o) => o.id === optId) : -1;
-      return (idx >= 0 ? Math.min(5, Math.max(1, idx + 1)) : 1) as GrowthStageLevel;
-    });
-    const avg = values.reduce((a, b) => a + b, 0) / Math.max(1, values.length);
-    const rounded = Math.min(5, Math.max(1, Math.floor(avg + 0.5))) as GrowthStageLevel;
-    const spread = Math.max(...values) - Math.min(...values);
-    const stageDef = STAGE_MAP[rounded];
-
-    return selectBestInsight('growth_journey', {
-      pillarId: 'growth_journey',
-      partB: {
-        unroundedAverage: Math.round(avg * 100) / 100,
-        roundedStageLevel: rounded,
-        stageName: stageDef.name,
-        spread,
-        mixedStageFlag: spread >= PILLAR_INSIGHT_THRESHOLDS.partB.mixedStageMinSpread,
-        hasChallenge: Boolean(answers.selections.growth_q05),
-        hasTwelveMonthGoal: Boolean(answers.selections.growth_q06),
-      },
-    });
+    // Balanced 6-bar strengths equalizer & spark (heading into Part C)
+    return (
+      <div
+        aria-hidden="true"
+        className="flex h-14 w-20 items-center justify-center rounded-2xl border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/80"
+      >
+        <svg viewBox="0 0 72 48" className="h-10 w-16" fill="none">
+          <rect x="12" y="24" width="6" height="14" rx="3" fill="var(--kws-accent)" fillOpacity="0.4" />
+          <rect x="21" y="17" width="6" height="21" rx="3" fill="var(--kws-accent)" fillOpacity="0.65" />
+          <rect x="30" y="12" width="6" height="26" rx="3" fill="var(--kws-accent)" />
+          <rect x="39" y="19" width="6" height="19" rx="3" fill="var(--kws-gold)" />
+          <rect x="48" y="15" width="6" height="23" rx="3" fill="var(--kws-accent)" fillOpacity="0.75" />
+          <rect x="57" y="22" width="6" height="16" rx="3" fill="var(--kws-accent)" fillOpacity="0.45" />
+        </svg>
+      </div>
+    );
   }
 
-  return selectBestInsight(sectionId, { pillarId: sectionId });
+  if (sectionId === 'strengths_growth') {
+    // Finish line ribbon / short bridge ahead (heading into Part D)
+    return (
+      <div
+        aria-hidden="true"
+        className="flex h-14 w-20 items-center justify-center rounded-2xl border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/80"
+      >
+        <svg viewBox="0 0 72 48" className="h-10 w-16" fill="none">
+          <rect x="14" y="14" width="44" height="20" rx="10" stroke="var(--kws-accent)" strokeWidth="2.5" strokeOpacity="0.35" />
+          <rect x="14" y="14" width="33" height="20" rx="10" fill="var(--kws-accent)" fillOpacity="0.18" />
+          <circle cx="49" cy="24" r="7" fill="var(--kws-gold)" />
+          <path
+            d="M46 24L48.2 26.2L52.5 21.8"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    );
+  }
+
+  // After Part D: radiant profile card ready to reveal
+  return (
+    <div
+      aria-hidden="true"
+      className="flex h-14 w-20 items-center justify-center rounded-2xl border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/80"
+    >
+      <svg viewBox="0 0 72 48" className="h-10 w-16" fill="none">
+        <rect
+          x="16"
+          y="10"
+          width="40"
+          height="28"
+          rx="6"
+          fill="var(--kws-surface)"
+          stroke="var(--kws-accent)"
+          strokeWidth="2.2"
+        />
+        <circle cx="27" cy="21" r="4" fill="var(--kws-gold)" />
+        <path
+          d="M35 19H49M35 24H45M23 30H49"
+          stroke="var(--kws-accent)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
 }
 
 export function AssessmentQuestionView({
@@ -188,12 +204,8 @@ export function AssessmentQuestionView({
 }: AssessmentQuestionViewProps) {
   const prefersReducedMotion = useReducedMotion();
   const [showContactErrors, setShowContactErrors] = useState(false);
+  const [showMissingHint, setShowMissingHint] = useState(false);
   const [transitionAfterSection, setTransitionAfterSection] =
-    useState<AssessmentSectionId | null>(null);
-  const [pillarInsightsBySection, setPillarInsightsBySection] = useState<
-    Partial<Record<AssessmentSectionId, PillarInsightResult>>
-  >({});
-  const [loadingInsightSection, setLoadingInsightSection] =
     useState<AssessmentSectionId | null>(null);
 
   const enteredSectionsRef = useRef<Set<AssessmentSectionId>>(new Set());
@@ -266,11 +278,27 @@ export function AssessmentQuestionView({
     handleLeaveAbandon
   );
 
+  const scrollTopSmoothly = useCallback(() => {
+    if (typeof window !== 'undefined' && window.scrollY > 24) {
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      });
+    }
+  }, [prefersReducedMotion]);
+
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    scrollTopSmoothly();
     setShowContactErrors(false);
+    setShowMissingHint(false);
     setTransitionAfterSection(null);
-  }, [safeStepIndex]);
+  }, [safeStepIndex, scrollTopSmoothly]);
+
+  useEffect(() => {
+    if (canProceed) {
+      setShowMissingHint(false);
+    }
+  }, [canProceed]);
 
   useEffect(() => {
     if (!currentStep || transitionAfterSection) return;
@@ -294,107 +322,25 @@ export function AssessmentQuestionView({
     }
   }, [safeStepIndex, currentStep, transitionAfterSection, onEmitTelemetry]);
 
-  const loadPillarInsight = useCallback(
-    (sectionId: AssessmentSectionId, currentAnswers: RespondentAnswers) => {
-      setLoadingInsightSection(sectionId);
-      void fetchPillarInsight(sectionId, currentAnswers)
-        .then((res) => {
-          setPillarInsightsBySection((prev) => ({
-            ...prev,
-            [sectionId]: res.insight,
-          }));
-        })
-        .catch(() => {
-          const fallback = buildClientFallbackInsight(
-            sectionId,
-            currentAnswers,
-            questions
-          );
-          setPillarInsightsBySection((prev) => ({
-            ...prev,
-            [sectionId]: prev[sectionId] ?? fallback,
-          }));
-        })
-        .finally(() => {
-          setLoadingInsightSection((prev) => (prev === sectionId ? null : prev));
-        });
-    },
-    [questions]
-  );
-
   if (!currentStep) {
     return null;
   }
 
-  // Responsive completion progress calculations
   const sectionSteps = steps.filter(
     (s) => s.sectionId === currentStep.sectionId
   );
   const indexInSection = sectionSteps.findIndex((s) => s.id === currentStep.id);
 
-  let currentStepFraction = 0;
-  if (transitionAfterSection) {
-    currentStepFraction = 1;
-  } else if (currentStep.kind === 'capability_card') {
-    const hasUnderstanding = Boolean(
-      answers.selections[currentStep.card.understandingQuestion.id]
-    );
-    const hasExperience = Boolean(
-      answers.selections[currentStep.card.experienceQuestion.id]
-    );
-    currentStepFraction =
-      hasUnderstanding && hasExperience ? 0.85 : hasUnderstanding ? 0.45 : 0;
-  } else if (canProceed) {
-    currentStepFraction = 0.75;
-  }
-
-  const activeSectionRatio = transitionAfterSection
-    ? 1
-    : sectionSteps.length > 0
-      ? Math.min(
-          1,
-          (indexInSection + Math.max(0.18, currentStepFraction)) /
-            sectionSteps.length
-        )
-      : 0;
-  const activeSectionPct = Math.round(activeSectionRatio * 100);
-
-  const overallPct =
-    totalSteps > 0
-      ? transitionAfterSection
-        ? Math.round(((safeStepIndex + 1) / totalSteps) * 100)
-        : Math.max(
-            3,
-            Math.min(
-              100,
-              Math.round(
-                ((safeStepIndex + currentStepFraction) / totalSteps) * 100
-              )
-            )
-          )
-      : 0;
-
-  const momentumLabel =
-    overallPct >= 85
-      ? 'Final stretch'
-      : overallPct >= 55
-        ? 'Past halfway'
-        : overallPct >= 25
-          ? 'Building clarity'
-          : 'Finding your rhythm';
-
   const stepSlideVariants = {
     enter: (dir: number) =>
-      prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: dir * 28 },
-    center: { opacity: 1, x: 0 },
+      prefersReducedMotion
+        ? { opacity: 1 }
+        : { opacity: 0, x: dir * 20, scale: 0.988 },
+    center: { opacity: 1, x: 0, scale: 1 },
     exit: (dir: number) =>
-      prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: dir * -24 },
-  };
-
-  const triggerPillarReveal = (sectionId: AssessmentSectionId) => {
-    setTransitionAfterSection(sectionId);
-    loadPillarInsight(sectionId, answers);
-    window.scrollTo({ top: 0, behavior: 'auto' });
+      prefersReducedMotion
+        ? { opacity: 1 }
+        : { opacity: 0, x: dir * -16, scale: 0.992 },
   };
 
   const handleNextQuestion = () => {
@@ -407,7 +353,12 @@ export function AssessmentQuestionView({
       setShowContactErrors(true);
       return;
     }
-    if (!canProceed) return;
+    if (!canProceed) {
+      setShowMissingHint(true);
+      return;
+    }
+
+    setShowMissingHint(false);
 
     if (currentStep.kind === 'question') {
       const timing = getTimingSnapshot();
@@ -433,14 +384,11 @@ export function AssessmentQuestionView({
     }
 
     directionRef.current = 1;
-    if (isLastStep) {
+    if (isSectionLast && BREAK_SCREEN_COPY[currentStep.sectionId]) {
+      setTransitionAfterSection(currentStep.sectionId);
+      scrollTopSmoothly();
+    } else if (isLastStep) {
       onSubmit();
-    } else if (
-      isSectionLast &&
-      nextStepObj &&
-      MILESTONE_ORDER[currentStep.sectionId]
-    ) {
-      triggerPillarReveal(currentStep.sectionId);
     } else {
       onStepChange(safeStepIndex + 1);
     }
@@ -449,6 +397,7 @@ export function AssessmentQuestionView({
   const handleBack = () => {
     if (isSubmitting) return;
     directionRef.current = -1;
+    setShowMissingHint(false);
     if (transitionAfterSection) {
       setTransitionAfterSection(null);
       return;
@@ -474,297 +423,286 @@ export function AssessmentQuestionView({
     }
   };
 
-  const activeRevealInsight: PillarInsightResult | null = transitionAfterSection
-    ? (pillarInsightsBySection[transitionAfterSection] ??
-      buildClientFallbackInsight(transitionAfterSection, answers, questions))
+  const celebration = transitionAfterSection
+    ? BREAK_SCREEN_COPY[transitionAfterSection]
     : null;
 
-  const unlockedHighlightsForPreview = useMemo(() => {
-    if (!transitionAfterSection) return [];
-    const order: AssessmentSectionId[] = [
-      'professional_style',
-      'growth_journey',
-      'strengths_growth',
-    ];
-    const cutoff = order.indexOf(transitionAfterSection);
-    const items: Array<{ sectionLabel: string; value: string }> = [];
+  const partStatusText = `Part ${currentSection?.code ?? 'A'} · ${indexInSection + 1} of ${sectionSteps.length}`;
 
-    for (let i = 0; i <= cutoff; i += 1) {
-      const secId = order[i];
-      const item =
-        secId === transitionAfterSection
-          ? activeRevealInsight
-          : pillarInsightsBySection[secId];
-      if (!item) continue;
-      items.push({
-        sectionLabel: item.previewSummary.unlockedLabel,
-        value: item.previewSummary.unlockedDetail,
-      });
+  const showPartCHalfwayBanner =
+    !transitionAfterSection &&
+    currentStep.kind === 'capability_card' &&
+    currentStep.card.index === 4;
+
+  const trackProgressRatio = useMemo(() => {
+    if (sections.length <= 1) return 0;
+    const maxSegment = sections.length - 1;
+    if (transitionAfterSection) {
+      return Math.min(1, (currentSectionIndex + 1) / maxSegment);
     }
-    return items;
-  }, [transitionAfterSection, activeRevealInsight, pillarInsightsBySection]);
-
-  const nextSectionMeta = transitionAfterSection
-    ? NEXT_SECTION_PREVIEW[transitionAfterSection]
-    : null;
+    const withinSectionFraction =
+      sectionSteps.length > 0 ? indexInSection / sectionSteps.length : 0;
+    const continuousNode =
+      currentSectionIndex +
+      (currentSectionIndex < maxSegment ? withinSectionFraction : 0);
+    return Math.max(0, Math.min(1, continuousNode / maxSegment));
+  }, [
+    sections.length,
+    transitionAfterSection,
+    currentSectionIndex,
+    indexInSection,
+    sectionSteps.length,
+  ]);
 
   return (
-    <div className="mx-auto max-w-[780px] px-3.5 py-3 sm:px-6 sm:py-8">
-      {/* Four-Section Responsive Segmented Progress Indicator */}
-      <nav
-        aria-label="Assessment sections"
-        className="mb-3 space-y-1.5 sm:mb-6 sm:space-y-2.5"
-      >
-        <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-[var(--kws-muted)]">
-          <span className="font-semibold text-[var(--kws-ink)]">
-            {transitionAfterSection
-              ? `${currentSection?.partLabel} Complete`
-              : currentSection?.partLabel}
-          </span>
-          <span className="font-mono-tabular flex items-center gap-1.5">
-            <span>{momentumLabel}</span>
-            <span aria-hidden="true">·</span>
+    <div className="mx-auto max-w-[780px] px-4 pt-4 pb-6 sm:px-6 sm:py-10">
+      {/* Clean Four-Stop Journey Path (No percentages, no monospace; hide part status row on break screens) */}
+      <nav aria-label="Discovery journey progress" className="mb-5 sm:mb-7">
+        {!transitionAfterSection && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--kws-muted)] sm:text-sm">
             <span className="font-semibold text-[var(--kws-ink)]">
-              {overallPct}%
+              {currentSection?.partLabel}
             </span>
-          </span>
-        </div>
+            <span className="tabular-nums text-[var(--kws-muted)]">
+              {partStatusText}
+            </span>
+          </div>
+        )}
 
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+        <ol className="relative flex items-start justify-between gap-2">
+          {/* Connecting track behind the four nodes */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-3.5 right-[12%] left-[12%] h-[3px] overflow-hidden rounded-full bg-[var(--kws-border)]"
+          >
+            <motion.div
+              className={`h-full w-full origin-left rounded-full bg-[image:var(--kws-gradient-btn)] ${
+                trackProgressRatio > 0 && !prefersReducedMotion
+                  ? 'kws-progress-sheen'
+                  : ''
+              }`}
+              initial={false}
+              animate={{ scaleX: trackProgressRatio }}
+              transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
+            />
+          </div>
+
           {sections.map((sec, idx) => {
             const isCompleted =
               idx < currentSectionIndex ||
               (transitionAfterSection === sec.id && idx === currentSectionIndex);
             const isActive = idx === currentSectionIndex && !isCompleted;
-            const fillRatio = isCompleted
-              ? 1
-              : isActive
-                ? activeSectionRatio
-                : 0;
-            const fillPct = isCompleted
-              ? 100
-              : isActive
-                ? activeSectionPct
-                : 0;
 
             return (
-              <div key={sec.id} className="min-w-0 space-y-1">
-                <div
-                  role="progressbar"
-                  aria-label={sec.title}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={fillPct}
-                  className="h-2 w-full overflow-hidden rounded-full bg-[var(--kws-border)] sm:h-2.5"
-                >
-                  <motion.div
-                    initial={false}
-                    animate={{ scaleX: fillRatio }}
-                    transition={
-                      prefersReducedMotion
-                        ? { duration: 0 }
-                        : {
-                            type: 'spring',
-                            stiffness: 260,
-                            damping: 28,
-                            mass: 0.8,
-                          }
-                    }
-                    style={{ transformOrigin: 'left center' }}
-                    className={`h-full w-full rounded-full ${
-                      isCompleted
-                        ? 'bg-[var(--kws-success)]'
-                        : 'bg-[var(--kws-accent)]'
-                    }`}
-                  />
-                </div>
-                <p
-                  className={`flex items-center gap-1 truncate text-[11px] sm:text-xs ${
-                    isActive || isCompleted
-                      ? 'font-semibold text-[var(--kws-ink)]'
-                      : 'text-[var(--kws-muted)]/75'
+              <li
+                key={sec.id}
+                aria-current={isActive ? 'step' : undefined}
+                className="relative z-10 flex flex-1 flex-col items-center text-center"
+              >
+                <motion.span
+                  key={`${sec.id}-${isCompleted ? 'done' : isActive ? 'active' : 'pending'}`}
+                  initial={
+                    prefersReducedMotion || !isCompleted
+                      ? false
+                      : { scale: 0.85 }
+                  }
+                  animate={{ scale: 1 }}
+                  transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
+                  className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold transition-[background-color,border-color,color,box-shadow] duration-250 ${
+                    isCompleted
+                      ? 'border-transparent bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs'
+                      : isActive
+                        ? 'border-[var(--kws-accent)] bg-[var(--kws-surface)] text-[var(--kws-accent)] ring-4 ring-[var(--kws-accent)]/15'
+                        : 'border-[var(--kws-border-strong)] bg-[var(--kws-surface)] text-[var(--kws-muted)]'
                   }`}
                 >
                   {isCompleted ? (
-                    <motion.span
-                      initial={
-                        prefersReducedMotion
-                          ? false
-                          : { scale: 0.6, opacity: 0 }
-                      }
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                      className="inline-flex shrink-0"
-                    >
-                      <Check
-                        className="h-3 w-3 text-[var(--kws-success)]"
-                        aria-hidden="true"
-                      />
-                    </motion.span>
+                    <Check className="h-3.5 w-3.5 stroke-[2.75]" aria-hidden="true" />
                   ) : (
-                    <span
-                      className={`font-mono-tabular shrink-0 ${
-                        isActive ? 'text-[var(--kws-accent)]' : ''
-                      }`}
-                    >
-                      {sec.code}.
-                    </span>
+                    sec.code
                   )}
-                  <span className="truncate">
-                    <span className="sm:hidden">
-                      {MOBILE_SECTION_LABELS[sec.id]}
-                    </span>
-                    <span className="hidden sm:inline">{sec.navLabel}</span>
-                  </span>
-                </p>
-              </div>
+                </motion.span>
+                <span
+                  className={`mt-1.5 text-[11px] transition-colors duration-200 sm:text-xs ${
+                    isActive || isCompleted
+                      ? 'font-semibold text-[var(--kws-ink)]'
+                      : 'text-[var(--kws-muted)]'
+                  }`}
+                >
+                  {sec.navLabel}
+                </span>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </nav>
 
-      {/* Compact Section Intro Banner on First Step of Each Section */}
-      {!transitionAfterSection && isSectionFirst && currentSection && (
-        <Surface
-          subtle
-          className="mb-2.5 px-3 py-2 sm:mb-5 sm:px-5 sm:py-3.5"
-        >
-          <p className="text-xs leading-snug text-[var(--kws-muted)] sm:text-sm sm:leading-relaxed">
-            {currentSection.instructions}
-          </p>
-        </Surface>
-      )}
+      {/* Section Intro Banner on First Question of Each Part */}
+      <AnimatePresence initial={false}>
+        {!transitionAfterSection && isSectionFirst && currentSection && (
+          <motion.div
+            key={`intro-${currentSection.id}`}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
+            transition={{ duration: KWS_DURATIONS.base, ease: KWS_EASE }}
+            className="mb-5 rounded-[20px] border border-[var(--kws-border)]/75 bg-[var(--kws-tint-bg)]/75 px-5 py-3.5 sm:mb-6"
+          >
+            <p className="text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
+              {currentSection.instructions}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Active Step Content or Personalized Pillar Discovery Reveal Screen */}
-      <div className="overflow-x-hidden">
+      {/* Non-Blocking Halfway Banner in Part C (right after card 3, on arrival at card 4) */}
+      <AnimatePresence initial={false}>
+        {showPartCHalfwayBanner && (
+          <motion.div
+            key="part-c-halfway"
+            role="status"
+            initial={
+              prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.99 }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
+            transition={{ duration: KWS_DURATIONS.base, ease: KWS_EASE }}
+            className="mb-5 flex items-center gap-3.5 rounded-[20px] border border-[var(--kws-accent)]/25 bg-[var(--kws-tint-bg)] px-5 py-3.5 sm:mb-6"
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs"
+            >
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-sm font-bold text-[var(--kws-ink)] sm:text-base">
+                Halfway through your strengths.
+              </p>
+              <p className="text-xs text-[var(--kws-muted)] sm:text-sm">
+                Three to go. You're doing great.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Active Question OR Clean Section Break Screen */}
+      <div className="overflow-x-clip">
         <AnimatePresence
           mode="wait"
           initial={false}
           custom={directionRef.current}
         >
-          {transitionAfterSection && activeRevealInsight ? (
+          {transitionAfterSection && celebration ? (
             <motion.div
-              key={`transition-${transitionAfterSection}`}
+              key={`celebration-${transitionAfterSection}`}
               custom={directionRef.current}
               variants={stepSlideVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: KWS_DURATIONS.base, ease: KWS_EASE }}
             >
-              <Surface className="overflow-hidden p-4 sm:p-8">
-                {/* Header status row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--kws-border)] pb-3">
-                  <div className="flex items-center gap-2 font-mono-tabular text-xs font-semibold text-[var(--kws-success)]">
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0"
+              <Surface className="rounded-[24px] p-7 sm:p-10">
+                <div className="flex items-center justify-between gap-4">
+                  <motion.div
+                    initial={
+                      prefersReducedMotion
+                        ? false
+                        : { scale: 0.78, opacity: 0 }
+                    }
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={
+                      prefersReducedMotion ? { duration: 0 } : KWS_SPRING
+                    }
+                    className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_12px_30px_-6px_rgba(43,59,196,0.45)] ring-4 ring-[var(--kws-accent)]/12"
+                    aria-hidden="true"
+                  >
+                    <Check className="h-7 w-7 stroke-[2.5]" />
+                  </motion.div>
+
+                  <div className={prefersReducedMotion ? '' : 'kws-float-slow'}>
+                    <BreakScreenIllustration sectionId={transitionAfterSection} />
+                  </div>
+                </div>
+
+                <h1 className="mt-6 font-display text-[26px] font-bold leading-[1.16] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
+                  {celebration.headline}
+                </h1>
+
+                <p className="mt-3 max-w-[48ch] text-base leading-[1.6] text-[var(--kws-muted)] sm:text-lg">
+                  {celebration.supportingLine}
+                </p>
+
+                {transitionAfterSection === 'profile_next_steps' && submitError && (
+                  <div
+                    role="alert"
+                    className="mt-5 flex items-start gap-3 rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-tint-bg)] p-3.5 text-xs text-[var(--kws-ink)] sm:text-sm"
+                  >
+                    <AlertCircle
+                      className="mt-0.5 h-4 w-4 shrink-0 text-[var(--kws-accent)]"
                       aria-hidden="true"
                     />
-                    <span>{MILESTONE_ORDER[transitionAfterSection]}</span>
-                  </div>
-                  <span className="font-mono-tabular text-xs font-medium text-[var(--kws-muted)]">
-                    {overallPct}% overall
-                  </span>
-                </div>
-
-                {/* Main Personalised Headline + Insight + Circular Visual Metric */}
-                <div className="mt-4 grid grid-cols-1 items-center gap-5 sm:mt-6 md:grid-cols-12 md:gap-6">
-                  <div className="md:col-span-7">
-                    <h1 className="font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-[28px] [text-wrap:balance]">
-                      {activeRevealInsight.headline}
-                    </h1>
-
-                    <p className="mt-2.5 text-sm leading-relaxed text-[var(--kws-ink)] sm:mt-3 sm:text-base">
-                      {activeRevealInsight.message}
-                    </p>
-
-                    {activeRevealInsight.secondaryObservation && (
-                      <p className="mt-2.5 rounded-lg border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-3 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
-                        {activeRevealInsight.secondaryObservation}
+                    <div>
+                      <p className="font-semibold">
+                        That didn’t go through, but your answers are safe.
                       </p>
-                    )}
-
-                    {loadingInsightSection === transitionAfterSection && (
-                      <p className="mt-2 font-mono-tabular text-[11px] text-[var(--kws-muted)]">
-                        Refining insight from your responses...
+                      <p className="mt-0.5 text-[var(--kws-muted)]">
+                        {submitError}
                       </p>
-                    )}
-                  </div>
-
-                  {/* Circular Metric Representation */}
-                  <div
-                    className={`flex items-start justify-center gap-4 rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4 md:col-span-5 ${
-                      activeRevealInsight.secondaryMetric
-                        ? 'grid grid-cols-2 md:gap-3'
-                        : 'flex-col items-center'
-                    }`}
-                  >
-                    <CircularProgressRing
-                      metric={activeRevealInsight.primaryMetric}
-                      size={activeRevealInsight.secondaryMetric ? 'sm' : 'lg'}
-                      className="mx-auto"
-                    />
-                    {activeRevealInsight.secondaryMetric && (
-                      <CircularProgressRing
-                        metric={activeRevealInsight.secondaryMetric}
-                        size="sm"
-                        className="mx-auto"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* Partially Obscured / Blurred Developing Report Preview */}
-                <div className="mt-5">
-                  <BlurredReportPreview
-                    stage={transitionAfterSection}
-                    insight={activeRevealInsight}
-                    unlockedHighlights={unlockedHighlightsForPreview}
-                    compact
-                  />
-                </div>
-
-                {/* Curiosity Hook & Next Pillar Teaser */}
-                {(activeRevealInsight.curiosityHook || nextSectionMeta) && (
-                  <div className="mt-4 border-t border-[var(--kws-border)] pt-4">
-                    {nextSectionMeta && (
-                      <p className="text-xs font-semibold text-[var(--kws-accent)]">
-                        {nextSectionMeta.label}
-                      </p>
-                    )}
-                    <p className="mt-1 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
-                      {activeRevealInsight.curiosityHook ?? nextSectionMeta?.teaser}
-                    </p>
+                    </div>
                   </div>
                 )}
 
-                {/* Navigation Controls */}
-                <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-[var(--kws-border)] pt-4 sm:mt-6 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
-                  <Button
-                    variant="secondary"
-                    onClick={handleBack}
-                    className="w-full sm:w-auto"
-                  >
-                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                    Back
-                  </Button>
-
+                <div className="mt-8">
                   <Button
                     variant="primary"
+                    size="lg"
+                    loading={
+                      transitionAfterSection === 'profile_next_steps' &&
+                      isSubmitting
+                    }
                     onClick={() => {
+                      if (transitionAfterSection === 'profile_next_steps') {
+                        onSubmit();
+                        return;
+                      }
                       directionRef.current = 1;
                       setTransitionAfterSection(null);
                       onStepChange(safeStepIndex + 1);
                     }}
-                    className="w-full sm:w-auto"
+                    className="w-full min-h-[56px] justify-center sm:w-auto sm:min-w-[210px]"
                   >
-                    <span className="truncate">
-                      {activeRevealInsight.ctaLabel}
-                    </span>
-                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span>{celebration.ctaLabel}</span>
+                    {!(
+                      transitionAfterSection === 'profile_next_steps' &&
+                      isSubmitting
+                    ) && (
+                      <ArrowRight
+                        className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                        aria-hidden="true"
+                      />
+                    )}
                   </Button>
                 </div>
               </Surface>
+
+              <div className="mt-4 sm:mt-5">
+                <Button
+                  variant="secondary"
+                  allowWrap
+                  onClick={handleBack}
+                  disabled={isSubmitting}
+                  className="w-full min-h-[48px] px-6 sm:w-auto"
+                >
+                  <ArrowLeft
+                    className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+                    aria-hidden="true"
+                  />
+                  <span>Back</span>
+                </Button>
+              </div>
             </motion.div>
           ) : (
             <motion.div
@@ -774,7 +712,7 @@ export function AssessmentQuestionView({
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: KWS_DURATIONS.base, ease: KWS_EASE }}
             >
               {currentStep.kind === 'capability_card' ? (
                 <CapabilityCardView
@@ -794,9 +732,10 @@ export function AssessmentQuestionView({
                       ]);
                       if (
                         nextStepObj &&
-                        MILESTONE_ORDER[currentStep.sectionId]
+                        BREAK_SCREEN_COPY[currentStep.sectionId]
                       ) {
-                        triggerPillarReveal(currentStep.sectionId);
+                        setTransitionAfterSection(currentStep.sectionId);
+                        scrollTopSmoothly();
                         return;
                       }
                     }
@@ -814,369 +753,377 @@ export function AssessmentQuestionView({
                   );
 
                   return (
-                    <Surface className="p-3.5 sm:p-7">
-                      <h1 className="font-display text-[15px] font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]">
-                        {question.prompt}
-                      </h1>
+                    <div>
+                      <Surface className="rounded-[24px] p-6 sm:p-8">
+                        <h1 className="font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]">
+                          {question.prompt}
+                        </h1>
 
-                      {question.kind === 'contact_details' ? (
-                        <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
-                          <p className="rounded-lg border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-3 text-xs leading-relaxed text-[var(--kws-muted)] sm:p-3.5 sm:text-sm">
-                            We ask for your contact and location details so KWS
-                            Academy can keep a record of your discovery report,
-                            understand regional demand across cities and states,
-                            and reach out if you requested a consultation. Your
-                            personalized results are shown immediately on screen
-                            regardless of whether you request a consultation.
-                          </p>
+                        {question.kind === 'contact_details' ? (
+                          <div className="mt-5 space-y-4 sm:space-y-5">
+                            <p className="border-l-2 border-[var(--kws-accent)]/40 pl-3.5 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
+                              This just saves a copy of your profile for you and
+                              lets us reach out if you ask for a chat. You’ll
+                              see your full results right away either way.
+                            </p>
 
-                          <div>
+                            <div>
+                              <label
+                                htmlFor="kws-full-name"
+                                className="block text-sm font-semibold text-[var(--kws-ink)]"
+                              >
+                                Full name{' '}
+                                <span className="text-[var(--kws-accent)]">*</span>
+                              </label>
+                              <input
+                                id="kws-full-name"
+                                type="text"
+                                autoComplete="name"
+                                required
+                                value={answers.contact.fullName}
+                                onChange={(e) =>
+                                  onUpdateContact({ fullName: e.target.value })
+                                }
+                                placeholder="Enter your full name"
+                                className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                              />
+                              {showContactErrors &&
+                                contactValidation.errors.fullName && (
+                                  <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
+                                    {contactValidation.errors.fullName}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                              <div>
+                                <label
+                                  htmlFor="kws-whatsapp"
+                                  className="block text-sm font-semibold text-[var(--kws-ink)]"
+                                >
+                                  WhatsApp number (with country code){' '}
+                                  <span className="text-[var(--kws-accent)]">*</span>
+                                </label>
+                                <input
+                                  id="kws-whatsapp"
+                                  type="tel"
+                                  autoComplete="tel"
+                                  required
+                                  value={answers.contact.whatsappNumber}
+                                  onChange={(e) =>
+                                    onUpdateContact({
+                                      whatsappNumber: e.target.value,
+                                    })
+                                  }
+                                  placeholder="+234..."
+                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                />
+                                {showContactErrors &&
+                                  contactValidation.errors.whatsappNumber && (
+                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
+                                      {contactValidation.errors.whatsappNumber}
+                                    </p>
+                                  )}
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor="kws-email"
+                                  className="block text-sm font-semibold text-[var(--kws-ink)]"
+                                >
+                                  Email address{' '}
+                                  <span className="text-[var(--kws-accent)]">*</span>
+                                </label>
+                                <input
+                                  id="kws-email"
+                                  type="email"
+                                  autoComplete="email"
+                                  required
+                                  value={answers.contact.email}
+                                  onChange={(e) =>
+                                    onUpdateContact({ email: e.target.value })
+                                  }
+                                  placeholder="you@example.com"
+                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                />
+                                {showContactErrors &&
+                                  contactValidation.errors.email && (
+                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
+                                      {contactValidation.errors.email}
+                                    </p>
+                                  )}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                              <div>
+                                <label
+                                  htmlFor="kws-city"
+                                  className="block text-sm font-semibold text-[var(--kws-ink)]"
+                                >
+                                  City{' '}
+                                  <span className="text-[var(--kws-accent)]">*</span>
+                                </label>
+                                <input
+                                  id="kws-city"
+                                  type="text"
+                                  autoComplete="address-level2"
+                                  required
+                                  value={answers.contact.city}
+                                  onChange={(e) =>
+                                    onUpdateContact({ city: e.target.value })
+                                  }
+                                  placeholder="e.g. Ikeja"
+                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                />
+                                {showContactErrors &&
+                                  contactValidation.errors.city && (
+                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
+                                      {contactValidation.errors.city}
+                                    </p>
+                                  )}
+                              </div>
+
+                              <div>
+                                <label
+                                  htmlFor="kws-state"
+                                  className="block text-sm font-semibold text-[var(--kws-ink)]"
+                                >
+                                  State{' '}
+                                  <span className="text-[var(--kws-accent)]">*</span>
+                                </label>
+                                <input
+                                  id="kws-state"
+                                  type="text"
+                                  autoComplete="address-level1"
+                                  required
+                                  value={answers.contact.state}
+                                  onChange={(e) =>
+                                    onUpdateContact({ state: e.target.value })
+                                  }
+                                  placeholder="e.g. Lagos"
+                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                />
+                                {showContactErrors &&
+                                  contactValidation.errors.state && (
+                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
+                                      {contactValidation.errors.state}
+                                    </p>
+                                  )}
+                              </div>
+                            </div>
+
+                            <div className="pt-1">
+                              <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--kws-ink)]">
+                                <input
+                                  type="checkbox"
+                                  checked={answers.contact.whatsappConsent}
+                                  onChange={(e) =>
+                                    onUpdateContact({
+                                      whatsappConsent: e.target.checked,
+                                    })
+                                  }
+                                  className="mt-1 h-4 w-4 rounded border-[var(--kws-border-strong)] accent-[var(--kws-accent)]"
+                                />
+                                <span>
+                                  Send me my profile and occasional KWS Academy
+                                  updates on WhatsApp.
+                                </span>
+                              </label>
+                              <p className="mt-2 text-xs text-[var(--kws-muted)]">
+                                Totally optional. Your full profile opens
+                                either way.
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div
+                            role="radiogroup"
+                            aria-label={question.prompt}
+                            className="mt-5 space-y-3"
+                          >
+                            {question.options.map((opt, idx) => {
+                              const isSelected = selectedOptionId === opt.id;
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={isSelected}
+                                  onClick={() =>
+                                    onSelectOption(
+                                      question.id,
+                                      opt.id,
+                                      currentStep.sectionId
+                                    )
+                                  }
+                                  className={`group flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[20px] border px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[60px] sm:gap-4 sm:px-5 sm:py-4 ${
+                                    isSelected
+                                      ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-xs'
+                                      : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/40 hover:shadow-xs'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3 text-sm leading-relaxed sm:gap-3.5 sm:text-base">
+                                    <span
+                                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] sm:text-sm ${
+                                        isSelected
+                                          ? 'scale-105 bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs'
+                                          : 'bg-[var(--kws-surface-subtle)] text-[var(--kws-muted)] group-hover:scale-105 group-hover:text-[var(--kws-ink)]'
+                                      }`}
+                                    >
+                                      {OPTION_LETTERS[idx]}
+                                    </span>
+                                    <span className="font-medium text-[var(--kws-ink)]">
+                                      {opt.label}
+                                    </span>
+                                  </div>
+
+                                  {isSelected && (
+                                    <motion.span
+                                      initial={
+                                        prefersReducedMotion
+                                          ? false
+                                          : { scale: 0.65, opacity: 0 }
+                                      }
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      transition={
+                                        prefersReducedMotion
+                                          ? { duration: 0 }
+                                          : KWS_SPRING
+                                      }
+                                      className="shrink-0"
+                                    >
+                                      <CheckCircle2
+                                        className="h-5 w-5 text-[var(--kws-accent)]"
+                                        aria-hidden="true"
+                                      />
+                                    </motion.span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Conditional "Other (please specify)" input */}
+                        {selectedOption?.requiresOtherText && (
+                          <div className="mt-4">
                             <label
-                              htmlFor="kws-full-name"
+                              htmlFor="kws-other-text"
                               className="block text-sm font-semibold text-[var(--kws-ink)]"
                             >
-                              Full name{' '}
-                              <span className="text-[var(--kws-danger)]">*</span>
+                              Please specify{' '}
+                              <span className="text-[var(--kws-accent)]">*</span>
                             </label>
                             <input
-                              id="kws-full-name"
+                              id="kws-other-text"
                               type="text"
-                              autoComplete="name"
-                              required
-                              value={answers.contact.fullName}
+                              value={answers.otherText[question.id] ?? ''}
                               onChange={(e) =>
-                                onUpdateContact({ fullName: e.target.value })
+                                onChangeOtherText(question.id, e.target.value)
                               }
-                              placeholder="Enter your full name"
-                              className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                              placeholder="Enter your response"
+                              className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
                             />
-                            {showContactErrors &&
-                              contactValidation.errors.fullName && (
-                                <p className="mt-1 text-xs text-[var(--kws-danger)]">
-                                  {contactValidation.errors.fullName}
-                                </p>
-                              )}
                           </div>
+                        )}
 
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                              <label
-                                htmlFor="kws-whatsapp"
-                                className="block text-sm font-semibold text-[var(--kws-ink)]"
-                              >
-                                WhatsApp number (with country code){' '}
-                                <span className="text-[var(--kws-danger)]">*</span>
-                              </label>
-                              <input
-                                id="kws-whatsapp"
-                                type="tel"
-                                autoComplete="tel"
-                                required
-                                value={answers.contact.whatsappNumber}
-                                onChange={(e) =>
-                                  onUpdateContact({
-                                    whatsappNumber: e.target.value,
-                                  })
-                                }
-                                placeholder="+234..."
-                                className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
-                              />
-                              {showContactErrors &&
-                                contactValidation.errors.whatsappNumber && (
-                                  <p className="mt-1 text-xs text-[var(--kws-danger)]">
-                                    {contactValidation.errors.whatsappNumber}
-                                  </p>
-                                )}
-                            </div>
-
-                            <div>
-                              <label
-                                htmlFor="kws-email"
-                                className="block text-sm font-semibold text-[var(--kws-ink)]"
-                              >
-                                Email address{' '}
-                                <span className="text-[var(--kws-danger)]">*</span>
-                              </label>
-                              <input
-                                id="kws-email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                value={answers.contact.email}
-                                onChange={(e) =>
-                                  onUpdateContact({ email: e.target.value })
-                                }
-                                placeholder="you@example.com"
-                                className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
-                              />
-                              {showContactErrors &&
-                                contactValidation.errors.email && (
-                                  <p className="mt-1 text-xs text-[var(--kws-danger)]">
-                                    {contactValidation.errors.email}
-                                  </p>
-                                )}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <div>
-                              <label
-                                htmlFor="kws-city"
-                                className="block text-sm font-semibold text-[var(--kws-ink)]"
-                              >
-                                City{' '}
-                                <span className="text-[var(--kws-danger)]">*</span>
-                              </label>
-                              <input
-                                id="kws-city"
-                                type="text"
-                                autoComplete="address-level2"
-                                required
-                                value={answers.contact.city}
-                                onChange={(e) =>
-                                  onUpdateContact({ city: e.target.value })
-                                }
-                                placeholder="e.g. Ikeja"
-                                className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
-                              />
-                              {showContactErrors &&
-                                contactValidation.errors.city && (
-                                  <p className="mt-1 text-xs text-[var(--kws-danger)]">
-                                    {contactValidation.errors.city}
-                                  </p>
-                                )}
-                            </div>
-
-                            <div>
-                              <label
-                                htmlFor="kws-state"
-                                className="block text-sm font-semibold text-[var(--kws-ink)]"
-                              >
-                                State{' '}
-                                <span className="text-[var(--kws-danger)]">*</span>
-                              </label>
-                              <input
-                                id="kws-state"
-                                type="text"
-                                autoComplete="address-level1"
-                                required
-                                value={answers.contact.state}
-                                onChange={(e) =>
-                                  onUpdateContact({ state: e.target.value })
-                                }
-                                placeholder="e.g. Lagos"
-                                className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
-                              />
-                              {showContactErrors &&
-                                contactValidation.errors.state && (
-                                  <p className="mt-1 text-xs text-[var(--kws-danger)]">
-                                    {contactValidation.errors.state}
-                                  </p>
-                                )}
-                            </div>
-                          </div>
-
-                          <div className="pt-1">
-                            <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--kws-ink)]">
-                              <input
-                                type="checkbox"
-                                checked={answers.contact.whatsappConsent}
-                                onChange={(e) =>
-                                  onUpdateContact({
-                                    whatsappConsent: e.target.checked,
-                                  })
-                                }
-                                className="mt-1 h-4 w-4 rounded border-[var(--kws-border-strong)] accent-[var(--kws-accent)]"
-                              />
-                              <span>
-                                I agree to receive my assessment report and
-                                relevant KWS Academy follow-up through WhatsApp.
-                              </span>
+                        {/* Conditional Institution input */}
+                        {selectedOption?.requiresInstitution && (
+                          <div className="mt-4">
+                            <label
+                              htmlFor="kws-institution"
+                              className="block text-sm font-semibold text-[var(--kws-ink)]"
+                            >
+                              Exact name of the institution you attend or most
+                              recently attended{' '}
+                              <span className="text-[var(--kws-accent)]">*</span>
                             </label>
-                            <p className="mt-2 text-xs text-[var(--kws-muted)]">
-                              Your results are shown immediately on screen
-                              whether or not you tick this box.
-                            </p>
+                            <input
+                              id="kws-institution"
+                              type="text"
+                              value={answers.contact.institution}
+                              onChange={(e) =>
+                                onUpdateContact({ institution: e.target.value })
+                              }
+                              placeholder="e.g. University of Lagos"
+                              className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
+                            />
                           </div>
-                        </div>
-                      ) : (
-                        <div
-                          role="radiogroup"
-                          aria-label={question.prompt}
-                          className="mt-3 space-y-1.5 sm:mt-5 sm:space-y-2.5"
-                        >
-                          {question.options.map((opt, idx) => {
-                            const isSelected = selectedOptionId === opt.id;
-                            return (
-                              <button
-                                key={opt.id}
-                                type="button"
-                                role="radio"
-                                aria-checked={isSelected}
-                                onClick={() =>
-                                  onSelectOption(
-                                    question.id,
-                                    opt.id,
-                                    currentStep.sectionId
-                                  )
-                                }
-                                className={`group flex w-full min-h-[42px] items-start justify-between gap-2.5 rounded-xl border px-3 py-2 text-left transition-all duration-150 ease-out cursor-pointer active:scale-[0.995] sm:min-h-[52px] sm:gap-3 sm:px-4 sm:py-3.5 ${
-                                  isSelected
-                                    ? 'border-[var(--kws-accent)] bg-[var(--kws-surface-subtle)] ring-1 ring-[var(--kws-accent)]'
-                                    : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/50'
-                                }`}
-                              >
-                                <div className="flex items-start gap-2 text-[13px] leading-snug sm:gap-3 sm:text-base sm:leading-relaxed">
-                                  <span
-                                    className={`mt-0.5 inline-flex min-w-[1.25rem] font-mono-tabular text-xs font-semibold sm:min-w-[1.5rem] sm:text-sm ${
-                                      isSelected
-                                        ? 'text-[var(--kws-accent)]'
-                                        : 'text-[var(--kws-muted)] group-hover:text-[var(--kws-ink)]'
-                                    }`}
-                                  >
-                                    {OPTION_LETTERS[idx]}.
-                                  </span>
-                                  <span className="text-[var(--kws-ink)]">
-                                    {opt.label}
-                                  </span>
-                                </div>
+                        )}
 
-                                {isSelected && (
-                                  <motion.span
-                                    initial={
-                                      prefersReducedMotion
-                                        ? false
-                                        : { scale: 0.7, opacity: 0 }
-                                    }
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    transition={{
-                                      duration: 0.16,
-                                      ease: [0.16, 1, 0.3, 1],
-                                    }}
-                                    className="mt-0.5 shrink-0"
-                                  >
-                                    <CheckCircle2
-                                      className="h-4 w-4 text-[var(--kws-accent)] sm:h-5 sm:w-5"
-                                      aria-hidden="true"
-                                    />
-                                  </motion.span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Conditional "Other (please specify)" input */}
-                      {selectedOption?.requiresOtherText && (
-                        <div className="mt-3 sm:mt-4">
-                          <label
-                            htmlFor="kws-other-text"
-                            className="block text-xs font-semibold text-[var(--kws-ink)] sm:text-sm"
+                        {/* Friendly Missing Selection Hint */}
+                        {showMissingHint && !canProceed && question.kind !== 'contact_details' && (
+                          <p
+                            role="status"
+                            className="mt-4 text-sm font-medium text-[var(--kws-accent)]"
                           >
-                            Please specify{' '}
-                            <span className="text-[var(--kws-danger)]">*</span>
-                          </label>
-                          <input
-                            id="kws-other-text"
-                            type="text"
-                            value={answers.otherText[question.id] ?? ''}
-                            onChange={(e) =>
-                              onChangeOtherText(question.id, e.target.value)
-                            }
-                            placeholder="Enter your response"
-                            className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2 text-sm text-[var(--kws-ink)] focus:border-[var(--kws-accent)] sm:py-2.5 sm:text-base"
-                          />
-                        </div>
-                      )}
+                            {!selectedOption
+                              ? 'Pick an answer to keep going.'
+                              : selectedOption.requiresOtherText &&
+                                  !(answers.otherText[question.id] ?? '').trim()
+                                ? 'Please add a short note above so we know what you meant.'
+                                : 'Please add your school or institution above to keep going.'}
+                          </p>
+                        )}
 
-                      {/* Conditional Institution input */}
-                      {selectedOption?.requiresInstitution && (
-                        <div className="mt-3 sm:mt-4">
-                          <label
-                            htmlFor="kws-institution"
-                            className="block text-xs font-semibold text-[var(--kws-ink)] sm:text-sm"
+                        {/* Submission Error Alert */}
+                        {submitError && (
+                          <div
+                            role="alert"
+                            className="mt-5 flex items-start gap-3 rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-tint-bg)] p-3.5 text-xs text-[var(--kws-ink)] sm:text-sm"
                           >
-                            Exact name of the institution you attend or most
-                            recently attended{' '}
-                            <span className="text-[var(--kws-danger)]">*</span>
-                          </label>
-                          <input
-                            id="kws-institution"
-                            type="text"
-                            value={answers.contact.institution}
-                            onChange={(e) =>
-                              onUpdateContact({ institution: e.target.value })
-                            }
-                            placeholder="e.g. University of Lagos"
-                            className="mt-1.5 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2 text-sm text-[var(--kws-ink)] focus:border-[var(--kws-accent)] sm:py-2.5 sm:text-base"
-                          />
-                        </div>
-                      )}
-
-                      {/* Submission Error Alert */}
-                      {submitError && (
-                        <div
-                          role="alert"
-                          className="mt-4 flex items-start gap-3 rounded-lg border border-[var(--kws-danger)]/40 bg-[var(--kws-danger-surface)] p-3 text-xs text-[var(--kws-danger)] sm:mt-5 sm:p-3.5 sm:text-sm"
-                        >
-                          <AlertCircle
-                            className="mt-0.5 h-4 w-4 shrink-0"
-                            aria-hidden="true"
-                          />
-                          <div>
-                            <p className="font-semibold">
-                              Unable to submit assessment
-                            </p>
-                            <p className="mt-0.5">{submitError}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Navigation Controls (side-by-side on mobile to eliminate scroll) */}
-                      <div className="mt-4 grid grid-cols-2 gap-2.5 border-t border-[var(--kws-border)] pt-3 sm:mt-7 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
-                        <Button
-                          variant="secondary"
-                          onClick={handleBack}
-                          disabled={isSubmitting}
-                          className="w-full sm:w-auto"
-                        >
-                          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                          {safeStepIndex === 0 ? 'Overview' : 'Back'}
-                        </Button>
-
-                        <Button
-                          variant="primary"
-                          onClick={handleNextQuestion}
-                          disabled={
-                            question.kind !== 'contact_details' && !canProceed
-                          }
-                          loading={isSubmitting}
-                          className="w-full sm:w-auto"
-                        >
-                          {isLastStep ? (
-                            isSubmitting ? (
-                              'Submitting...'
-                            ) : (
-                              <>
-                                <span className="sm:hidden">Finish</span>
-                                <span className="hidden sm:inline">
-                                  Submit &amp; Continue
-                                </span>
-                              </>
-                            )
-                          ) : (
-                            'Continue'
-                          )}
-                          {!isSubmitting && (
-                            <ArrowRight
-                              className="h-4 w-4"
+                            <AlertCircle
+                              className="mt-0.5 h-4 w-4 shrink-0 text-[var(--kws-accent)]"
                               aria-hidden="true"
                             />
-                          )}
-                        </Button>
+                            <div>
+                              <p className="font-semibold">
+                                That didn’t go through, but your answers are safe.
+                              </p>
+                              <p className="mt-0.5 text-[var(--kws-muted)]">
+                                {submitError}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </Surface>
+
+                      {/* Sticky Bottom Mobile Action Bar */}
+                      <div className="sticky bottom-0 z-20 -mx-4 mt-4 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-6 sm:bg-none sm:p-0">
+                        <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
+                          <Button
+                            variant="primary"
+                            allowWrap
+                            onClick={handleNextQuestion}
+                            loading={isSubmitting}
+                            className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[190px] sm:justify-center"
+                          >
+                            <span>Continue</span>
+                            {!isSubmitting && (
+                              <ArrowRight
+                                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </Button>
+
+                          <Button
+                            variant="secondary"
+                            allowWrap
+                            onClick={handleBack}
+                            disabled={isSubmitting}
+                            className="w-full min-h-[48px] px-6 sm:w-auto"
+                          >
+                            <ArrowLeft
+                              className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+                              aria-hidden="true"
+                            />
+                            <span>{safeStepIndex === 0 ? 'Overview' : 'Back'}</span>
+                          </Button>
+                        </div>
                       </div>
-                    </Surface>
+                    </div>
                   );
                 })()
               )}

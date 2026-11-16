@@ -188,44 +188,45 @@ export const ASSESSMENT_SECTIONS: AssessmentSectionMeta[] = [
   {
     id: 'professional_style',
     code: 'A',
-    partLabel: 'Section A · Your Professional Style',
+    partLabel: 'Part A · Your Working Style',
     title: 'Your Professional Style',
-    navLabel: 'Professional Style',
+    navLabel: 'Style',
     instructions:
-      'For each situation, choose the response that feels most natural to you. There are no right or wrong answers. Choose what you would genuinely be inclined to do, not what sounds most impressive.',
+      'Pick whatever feels most natural to you. No right or wrong answers here—go with what you would genuinely do.',
   },
   {
     id: 'growth_journey',
     code: 'B',
-    partLabel: 'Section B · Your Growth Journey',
+    partLabel: 'Part B · Your Growth Path',
     title: 'Your Growth Journey',
-    navLabel: 'Growth Journey',
+    navLabel: 'Path',
     instructions:
-      'Choose the answer that best reflects your current situation and experience. Answer based on what you have actually done, not only what you hope to do. Every stage has its own focus—none is better than another.',
+      'Pick the option that best matches where things actually stand for you right now. Every stage has its own focus—none is better than another.',
   },
   {
     id: 'strengths_growth',
     code: 'C',
-    partLabel: 'Section C · Your Strengths & Growth Areas',
+    partLabel: 'Part C · Strengths & Growth',
     title: 'Your Strengths & Growth Areas',
-    navLabel: 'Strengths & Growth',
+    navLabel: 'Strengths',
     instructions:
-      'These six capability cards explore two different dimensions: your Understanding (how you reason through a scenario) and your Practical Experience (what you have actually applied). Answer honestly; this helps identify where you can grow next.',
+      'Six quick pairs ahead. Each card looks at two separate things: how you think through a scenario, and what you have actually tried in practice.',
   },
   {
     id: 'profile_next_steps',
     code: 'D',
-    partLabel: 'Section D · Your Profile & Next Steps',
+    partLabel: 'Part D · About You',
     title: 'Your Profile & Next Steps',
-    navLabel: 'Profile & Next Steps',
+    navLabel: 'About You',
     instructions:
-      'These final questions help KWS Academy understand who is taking the assessment and what kind of support or follow-up would be most useful.',
+      'Just a few quick questions about you so KWS Academy knows who is taking part and whether a follow-up would be helpful.',
   },
 ];
 
 export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   // SECTION A: YOUR PROFESSIONAL STYLE
   // Note: Option-to-style scoring mappings live strictly in scoringConfig.ts (not embedded here).
+  // Exactly 4 verbatim options per question (A-D) aligned to the KWS draft mapping.
   {
     id: 'style_q01',
     sectionId: 'professional_style',
@@ -234,12 +235,9 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'You join a team with an exciting but loosely defined campaign idea. What do you focus on first?',
     options: [
       {
-        id: 'style_q01_opt_1',
-        label: 'How to express the idea so it captures attention.',
-      },
-      {
-        id: 'style_q01_opt_2',
-        label: 'What the team is trying to achieve and the best direction.',
+        id: 'style_q01_opt_6',
+        label:
+          'What opportunity the idea could create and how it could become valuable.',
       },
       {
         id: 'style_q01_opt_3',
@@ -253,11 +251,6 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
         id: 'style_q01_opt_5',
         label: 'What needs to happen first and how to organize the work.',
       },
-      {
-        id: 'style_q01_opt_6',
-        label:
-          'What opportunity the idea could create and how it could become valuable.',
-      },
     ],
   },
   {
@@ -268,30 +261,22 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'A team faces a difficult challenge and nobody knows where to begin. What would you naturally contribute?',
     options: [
       {
-        id: 'style_q02_opt_1',
-        label: 'Help the team explain the problem clearly.',
+        id: 'style_q02_opt_4',
+        label: 'Bring the right people into the conversation.',
+      },
+      {
+        id: 'style_q02_opt_6',
+        label:
+          'Look for an unmet need or opportunity the solution could address.',
       },
       {
         id: 'style_q02_opt_2',
         label: 'Break down the situation and recommend a direction.',
       },
       {
-        id: 'style_q02_opt_3',
-        label: 'Explore an original way to demonstrate a solution.',
-      },
-      {
-        id: 'style_q02_opt_4',
-        label: 'Bring the right people into the conversation.',
-      },
-      {
         id: 'style_q02_opt_5',
         label:
           'Turn the challenge into tasks, responsibilities, and an action plan.',
-      },
-      {
-        id: 'style_q02_opt_6',
-        label:
-          'Look for an unmet need or opportunity the solution could address.',
       },
     ],
   },
@@ -303,29 +288,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'You have a month for a personal professional project. Which part would excite you most?',
     options: [
       {
-        id: 'style_q03_opt_1',
-        label: 'Developing the message and story.',
-      },
-      {
-        id: 'style_q03_opt_2',
-        label: 'Researching the problem and deciding the strongest approach.',
-      },
-      {
         id: 'style_q03_opt_3',
         label: 'Designing and producing the creative output.',
       },
       {
-        id: 'style_q03_opt_4',
-        label: 'Finding collaborators or an audience.',
+        id: 'style_q03_opt_6',
+        label:
+          'Identifying how the project could create value or commercial opportunity.',
       },
       {
         id: 'style_q03_opt_5',
         label: 'Planning the work and ensuring completion.',
       },
       {
-        id: 'style_q03_opt_6',
-        label:
-          'Identifying how the project could create value or commercial opportunity.',
+        id: 'style_q03_opt_2',
+        label: 'Researching the problem and deciding the strongest approach.',
       },
     ],
   },
@@ -337,28 +314,20 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'You attend an industry event. What would make it especially worthwhile?',
     options: [
       {
-        id: 'style_q04_opt_1',
-        label: 'Hearing ideas and stories that improve communication.',
-      },
-      {
-        id: 'style_q04_opt_2',
-        label: 'Gaining insight into industry trends and change.',
-      },
-      {
-        id: 'style_q04_opt_3',
-        label: 'Seeing creative work, tools, and production techniques.',
-      },
-      {
         id: 'style_q04_opt_4',
         label: 'Meeting people and building relationships.',
       },
       {
-        id: 'style_q04_opt_5',
-        label: 'Learning practical project-delivery methods.',
+        id: 'style_q04_opt_1',
+        label: 'Hearing ideas and stories that improve communication.',
       },
       {
         id: 'style_q04_opt_6',
         label: 'Discovering business models and ways to create value.',
+      },
+      {
+        id: 'style_q04_opt_3',
+        label: 'Seeing creative work, tools, and production techniques.',
       },
     ],
   },
@@ -370,29 +339,20 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'A campaign has disappointing results. What would you investigate first?',
     options: [
       {
+        id: 'style_q05_opt_5',
+        label: 'Whether the campaign was properly coordinated and delivered.',
+      },
+      {
         id: 'style_q05_opt_1',
         label: 'Whether the message connected with the audience.',
-      },
-      {
-        id: 'style_q05_opt_2',
-        label:
-          'Whether the strategy, audience assumptions, or direction were right.',
-      },
-      {
-        id: 'style_q05_opt_3',
-        label: 'Whether the creative execution was compelling.',
       },
       {
         id: 'style_q05_opt_4',
         label: 'Whether the right people and relationships were involved.',
       },
       {
-        id: 'style_q05_opt_5',
-        label: 'Whether the campaign was properly coordinated and delivered.',
-      },
-      {
-        id: 'style_q05_opt_6',
-        label: 'Whether the offer created a strong reason to respond.',
+        id: 'style_q05_opt_3',
+        label: 'Whether the creative execution was compelling.',
       },
     ],
   },
@@ -404,29 +364,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'You lead a project from beginning to end. Which responsibility would you most enjoy?',
     options: [
       {
-        id: 'style_q06_opt_1',
-        label: 'Shaping the message and telling the project story.',
+        id: 'style_q06_opt_4',
+        label: 'Building relationships and coordinating people.',
       },
       {
         id: 'style_q06_opt_2',
         label: 'Setting direction and making decisions about the approach.',
       },
       {
-        id: 'style_q06_opt_3',
-        label: 'Developing the creative work.',
-      },
-      {
-        id: 'style_q06_opt_4',
-        label: 'Building relationships and coordinating people.',
-      },
-      {
-        id: 'style_q06_opt_5',
-        label: 'Organizing the work and ensuring delivery.',
-      },
-      {
         id: 'style_q06_opt_6',
         label:
           'Finding ways for the project to generate value and opportunities.',
+      },
+      {
+        id: 'style_q06_opt_1',
+        label: 'Shaping the message and telling the project story.',
       },
     ],
   },
@@ -438,30 +390,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'A team project is going well, but you notice something important has been overlooked. What do you do?',
     options: [
       {
-        id: 'style_q07_opt_1',
-        label: 'Clarify how the oversight affects the message or understanding.',
-      },
-      {
         id: 'style_q07_opt_2',
         label: 'Examine the implications and reconsider the approach.',
-      },
-      {
-        id: 'style_q07_opt_3',
-        label:
-          'Suggest a creative adjustment or develop something to address the gap.',
-      },
-      {
-        id: 'style_q07_opt_4',
-        label:
-          'Bring the people involved together and gather missing perspectives.',
       },
       {
         id: 'style_q07_opt_5',
         label: 'Make sure the gap is assigned, addressed, and followed through.',
       },
       {
-        id: 'style_q07_opt_6',
-        label: 'Consider whether the issue reveals a larger opportunity.',
+        id: 'style_q07_opt_1',
+        label: 'Clarify how the oversight affects the message or understanding.',
+      },
+      {
+        id: 'style_q07_opt_4',
+        label:
+          'Bring the people involved together and gather missing perspectives.',
       },
     ],
   },
@@ -473,30 +416,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'A supervisor gives you an important but unclear assignment, and the deadline is approaching. What is your first move?',
     options: [
       {
-        id: 'style_q08_opt_1',
-        label: 'Clarify the message, audience, and communication outcome.',
-      },
-      {
-        id: 'style_q08_opt_2',
-        label: 'Understand the objective and define what success looks like.',
-      },
-      {
         id: 'style_q08_opt_3',
         label: 'Explore possible ways to create the required output.',
       },
       {
-        id: 'style_q08_opt_4',
-        label:
-          'Speak with relevant people to gather context and align expectations.',
-      },
-      {
-        id: 'style_q08_opt_5',
-        label: 'Break the assignment into steps and deadlines.',
+        id: 'style_q08_opt_1',
+        label: 'Clarify the message, audience, and communication outcome.',
       },
       {
         id: 'style_q08_opt_6',
         label:
           'Clarify the value expected and whether there is a larger opportunity.',
+      },
+      {
+        id: 'style_q08_opt_2',
+        label: 'Understand the objective and define what success looks like.',
       },
     ],
   },
@@ -508,30 +442,21 @@ export const ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       'A friend has a good product but struggles to attract customers. Where does your attention go first?',
     options: [
       {
-        id: 'style_q09_opt_1',
-        label: 'How the product is described and the story communicated.',
-      },
-      {
-        id: 'style_q09_opt_2',
-        label: 'Who the right customers are and how to position the product.',
+        id: 'style_q09_opt_5',
+        label:
+          'What practical marketing activities should be organized and carried out.',
       },
       {
         id: 'style_q09_opt_3',
         label: 'What visual or content assets could make it appealing.',
       },
       {
-        id: 'style_q09_opt_4',
-        label: 'Who could help the business reach customers.',
+        id: 'style_q09_opt_1',
+        label: 'How the product is described and the story communicated.',
       },
       {
-        id: 'style_q09_opt_5',
-        label:
-          'What practical marketing activities should be organized and carried out.',
-      },
-      {
-        id: 'style_q09_opt_6',
-        label:
-          'How the product could be packaged, priced, or presented to create value.',
+        id: 'style_q09_opt_2',
+        label: 'Who the right customers are and how to position the product.',
       },
     ],
   },

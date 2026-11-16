@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react';
+import { KWS_SPRING } from './motionPrimitives.tsx';
 
 interface ProgressBarProps {
   value: number;
@@ -34,14 +35,12 @@ export function ProgressBar({
       className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--kws-border)]"
     >
       <motion.div
-        className={`h-full w-full origin-left rounded-full ${fillColor}`}
+        className={`h-full w-full origin-left rounded-full ${fillColor} ${
+          ratio > 0 && !prefersReducedMotion ? 'kws-progress-sheen' : ''
+        }`}
         initial={false}
         animate={{ scaleX: ratio }}
-        transition={
-          prefersReducedMotion
-            ? { duration: 0 }
-            : { type: 'spring', stiffness: 260, damping: 28, mass: 0.8 }
-        }
+        transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
       />
     </div>
   );

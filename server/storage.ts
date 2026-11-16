@@ -550,27 +550,35 @@ export class SqliteAssessmentRepository {
     } else if (verCount === 1) {
       const seedRow = this.db
         .prepare(
-          "SELECT version_id, created_by, questions_json FROM assessment_versions WHERE version_id = ? AND created_by = 'system'"
+          "SELECT version_id, created_by, questions_json, sections_json, part_a_config_version FROM assessment_versions WHERE version_id = ? AND created_by = 'system'"
         )
         .get(ASSESSMENT_VERSION) as
-        | { version_id?: string; created_by?: string; questions_json?: string }
+        | {
+            version_id?: string;
+            created_by?: string;
+            questions_json?: string;
+            sections_json?: string;
+            part_a_config_version?: string;
+          }
         | undefined;
       if (seedRow?.questions_json) {
-        try {
-          const parsedQuestions = JSON.parse(seedRow.questions_json) as AssessmentQuestion[];
-          if (parsedQuestions.length !== ASSESSMENT_QUESTIONS.length) {
-            this.db
-              .prepare(
-                'UPDATE assessment_versions SET questions_json = ?, sections_json = ? WHERE version_id = ?'
-              )
-              .run(
-                JSON.stringify(ASSESSMENT_QUESTIONS),
-                JSON.stringify(ASSESSMENT_SECTIONS),
-                ASSESSMENT_VERSION
-              );
-          }
-        } catch {
-          // Ignore malformed row
+        const expectedQuestionsJson = JSON.stringify(ASSESSMENT_QUESTIONS);
+        const expectedSectionsJson = JSON.stringify(ASSESSMENT_SECTIONS);
+        if (
+          seedRow.questions_json !== expectedQuestionsJson ||
+          seedRow.sections_json !== expectedSectionsJson ||
+          seedRow.part_a_config_version !== PART_A_CONFIG_VERSION
+        ) {
+          this.db
+            .prepare(
+              'UPDATE assessment_versions SET questions_json = ?, sections_json = ?, part_a_config_version = ? WHERE version_id = ?'
+            )
+            .run(
+              expectedQuestionsJson,
+              expectedSectionsJson,
+              PART_A_CONFIG_VERSION,
+              ASSESSMENT_VERSION
+            );
         }
       }
     }
@@ -3081,8 +3089,14 @@ export class SqliteAssessmentRepository {
     }
     try {
       const parsed = JSON.parse(row.value_json) as Partial<PartAScoringConfig>;
+      const rawThreshold =
+        typeof parsed.closeScoreThreshold === 'number' &&
+        Number.isFinite(parsed.closeScoreThreshold)
+          ? Math.max(0, Math.min(9, Math.round(parsed.closeScoreThreshold)))
+          : DEFAULT_PART_A_SCORING_CONFIG.closeScoreThreshold;
       return {
         approved: Boolean(parsed.approved),
+        closeScoreThreshold: rawThreshold,
         notes: typeof parsed.notes === 'string' ? parsed.notes : '',
         optionToStyle: {
           ...DEFAULT_PART_A_SCORING_CONFIG.optionToStyle,
@@ -3103,8 +3117,14 @@ export class SqliteAssessmentRepository {
     actorLabel = 'Admin'
   ): PartAScoringConfig {
     const activeVersion = this.getActiveAssessmentVersionSync();
+    const rawThreshold =
+      typeof input.closeScoreThreshold === 'number' &&
+      Number.isFinite(input.closeScoreThreshold)
+        ? Math.max(0, Math.min(9, Math.round(input.closeScoreThreshold)))
+        : DEFAULT_PART_A_SCORING_CONFIG.closeScoreThreshold;
     const normalized: PartAScoringConfig = {
       approved: Boolean(input.approved),
+      closeScoreThreshold: rawThreshold,
       notes: sanitizeMultiline(input.notes ?? '', 800),
       optionToStyle: { ...(input.optionToStyle ?? {}) },
     };

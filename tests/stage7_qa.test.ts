@@ -26,7 +26,7 @@ function buildCompleteAnswers(
 ): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
+      style_q01: 'style_q01_opt_6',
       style_q02: 'style_q02_opt_2',
       style_q03: 'style_q03_opt_3',
       style_q04: 'style_q04_opt_4',
@@ -216,7 +216,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
 
         // Start progressive draft with partial answers
         const partial = {
-          selections: { style_q01: 'style_q01_opt_1' },
+          selections: { style_q01: 'style_q01_opt_6' },
           otherText: {},
           contact: {
             fullName: '',
@@ -328,7 +328,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         assert.equal(okJson.record.consultationSummary.status, 'requested');
         assert.equal(
           okJson.record.result.professionalStyle.status,
-          'incomplete_configuration'
+          'complete'
         );
 
         // Retry with same submitNonce returns deduplicated cleanly

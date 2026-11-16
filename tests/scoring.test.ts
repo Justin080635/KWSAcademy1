@@ -19,9 +19,9 @@ import type { RespondentAnswers, StyleId } from '../src/domain/types.ts';
 function buildBaseAnswers(): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
-      style_q02: 'style_q02_opt_1',
-      style_q03: 'style_q03_opt_1',
+      style_q01: 'style_q01_opt_6',
+      style_q02: 'style_q02_opt_2',
+      style_q03: 'style_q03_opt_2',
       style_q04: 'style_q04_opt_1',
       style_q05: 'style_q05_opt_1',
       style_q06: 'style_q06_opt_1',
@@ -68,48 +68,41 @@ function buildBaseAnswers(): RespondentAnswers {
   };
 }
 
-function buildApprovedTestPartAConfig(): PartAScoringConfig {
-  const optionStyles: StyleId[] = [
-    'STORYTELLER',
-    'STRATEGIST',
-    'CREATOR',
-    'CONNECTOR',
-    'EXECUTOR',
-    'OPPORTUNITY_BUILDER',
-  ];
-
-  const optionToStyle: Record<string, StyleId | null> = {};
-  for (const q of ASSESSMENT_QUESTIONS.filter((item) => item.kind === 'orientation')) {
-    q.options.forEach((opt, index) => {
-      optionToStyle[opt.id] = optionStyles[index] ?? null;
-    });
-  }
-
+function cloneApprovedConfig(
+  overrides?: Partial<PartAScoringConfig>
+): PartAScoringConfig {
   return {
-    approved: true,
-    notes: 'Explicitly approved synthetic test fixture matrix',
-    optionToStyle,
+    ...DEFAULT_PART_A_SCORING_CONFIG,
+    ...overrides,
+    optionToStyle: {
+      ...DEFAULT_PART_A_SCORING_CONFIG.optionToStyle,
+      ...(overrides?.optionToStyle ?? {}),
+    },
   };
 }
 
-test('Part A configuration defaults to incomplete and never fabricates style results', () => {
+test('Default Part A config is complete, approved, and unapproved configs never fabricate style results', () => {
   const validation = validatePartAScoringConfig(DEFAULT_PART_A_SCORING_CONFIG);
-  assert.equal(validation.valid, false);
-  assert.equal(validation.approved, false);
-  assert.ok(validation.missingOptionIds.length > 0);
+  assert.equal(validation.valid, true);
+  assert.equal(validation.approved, true);
+  assert.equal(DEFAULT_PART_A_SCORING_CONFIG.closeScoreThreshold, 1);
+  assert.deepEqual(validation.missingOptionIds, []);
 
-  const answers = buildBaseAnswers();
-  const result = scorePartAProfessionalStyle(answers);
-  assert.equal(result.status, 'incomplete_configuration');
-  assert.equal(result.pattern, null);
-  assert.deepEqual(result.leadingStyles, []);
-  assert.equal(result.secondaryStyle, null);
-  assert.deepEqual(result.styleScores, []);
-  assert.ok(result.missingOptionIds.length > 0);
+  // Explicitly unapproved config stays neutral without fabricating scores
+  const unapproved = cloneApprovedConfig({ approved: false });
+  const unapprovedResult = scorePartAProfessionalStyle(
+    buildBaseAnswers(),
+    unapproved
+  );
+  assert.equal(unapprovedResult.status, 'incomplete_configuration');
+  assert.equal(unapprovedResult.pattern, null);
+  assert.deepEqual(unapprovedResult.leadingStyles, []);
+  assert.equal(unapprovedResult.secondaryStyle, null);
+  assert.deepEqual(unapprovedResult.styleScores, []);
 });
 
 test('Part A configuration rejects partial mapping missing even a single option', () => {
-  const partial = buildApprovedTestPartAConfig();
+  const partial = cloneApprovedConfig();
   const firstKey = Object.keys(partial.optionToStyle)[0];
   partial.optionToStyle[firstKey] = null;
 
@@ -122,80 +115,75 @@ test('Part A configuration rejects partial mapping missing even a single option'
   assert.deepEqual(result.styleScores, []);
 });
 
-test('Part A handles ties (co-leading 2-way tie and 3-way broad tie)', () => {
-  const config = buildApprovedTestPartAConfig();
-
-  // 2-way tie across 9 questions: 4 Storyteller (q01-q04 opt_1), 4 Strategist (q05-q08 opt_2), 1 Creator (q09 opt_3)
-  const twoWayTie = buildBaseAnswers();
-  for (let i = 5; i <= 8; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    twoWayTie.selections[qId] = `${qId}_opt_2`;
-  }
-  twoWayTie.selections.style_q09 = 'style_q09_opt_3';
-  const tieResult = scorePartAProfessionalStyle(twoWayTie, config);
-  assert.equal(tieResult.status, 'complete');
-  assert.equal(tieResult.pattern, 'co_leading');
-  assert.equal(tieResult.leadingStyles.length, 2);
-  assert.deepEqual(
-    tieResult.leadingStyles.map((s) => s.styleId),
-    ['STORYTELLER', 'STRATEGIST']
-  );
-
-  // 3-way tie across 9 questions: 3 Storyteller, 3 Strategist, 3 Creator
-  const threeWayTie = buildBaseAnswers();
-  for (let i = 4; i <= 6; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    threeWayTie.selections[qId] = `${qId}_opt_2`;
-  }
-  for (let i = 7; i <= 9; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    threeWayTie.selections[qId] = `${qId}_opt_3`;
-  }
-  const broadResult = scorePartAProfessionalStyle(threeWayTie, config);
-  assert.equal(broadResult.status, 'complete');
-  assert.equal(broadResult.pattern, 'broad');
-  assert.equal(broadResult.leadingStyles.length, 3);
-  assert.equal(broadResult.secondaryStyle, null);
-});
-
-test('Part A handles dominant, blend, and closely clustered profiles', () => {
-  const config = buildApprovedTestPartAConfig();
-
-  // Dominant across 9 questions: 7 Storyteller, 2 Strategist
-  const dominant = buildBaseAnswers();
-  dominant.selections.style_q08 = 'style_q08_opt_2';
-  dominant.selections.style_q09 = 'style_q09_opt_2';
-  const dominantResult = scorePartAProfessionalStyle(dominant, config);
+test('Part A handles dominant, co-leading 2-way tie, 3-way broad tie, and close-score broad profiles', () => {
+  // 1. Dominant: 6 Storyteller, 2 Strategist, 1 Opportunity Builder
+  const dominantResult = scorePartAProfessionalStyle(buildBaseAnswers());
+  assert.equal(dominantResult.status, 'complete');
   assert.equal(dominantResult.pattern, 'dominant');
   assert.equal(dominantResult.leadingStyles[0]?.styleId, 'STORYTELLER');
   assert.equal(dominantResult.secondaryStyle?.styleId, 'STRATEGIST');
 
-  // Blend across 9 questions: 5 Storyteller, 4 Strategist
-  const blend = buildBaseAnswers();
-  for (let i = 6; i <= 9; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    blend.selections[qId] = `${qId}_opt_2`;
-  }
-  const blendResult = scorePartAProfessionalStyle(blend, config);
-  assert.equal(blendResult.pattern, 'blend');
-  assert.equal(blendResult.leadingStyles[0]?.styleId, 'STORYTELLER');
-  assert.equal(blendResult.secondaryStyle?.styleId, 'STRATEGIST');
+  // 2. Clear 2-way tie: 4 Storyteller, 4 Creator, 1 Connector -> co_leading
+  const twoWayTie = buildBaseAnswers();
+  twoWayTie.selections.style_q01 = 'style_q01_opt_3'; // Creator
+  twoWayTie.selections.style_q02 = 'style_q02_opt_4'; // Connector
+  twoWayTie.selections.style_q03 = 'style_q03_opt_3'; // Creator
+  twoWayTie.selections.style_q04 = 'style_q04_opt_1'; // Storyteller
+  twoWayTie.selections.style_q05 = 'style_q05_opt_1'; // Storyteller
+  twoWayTie.selections.style_q06 = 'style_q06_opt_1'; // Storyteller
+  twoWayTie.selections.style_q07 = 'style_q07_opt_1'; // Storyteller
+  twoWayTie.selections.style_q08 = 'style_q08_opt_3'; // Creator
+  twoWayTie.selections.style_q09 = 'style_q09_opt_3'; // Creator
+  const tieResult = scorePartAProfessionalStyle(twoWayTie);
+  assert.equal(tieResult.pattern, 'co_leading');
+  assert.deepEqual(
+    tieResult.leadingStyles.map((s) => s.styleId),
+    ['STORYTELLER', 'CREATOR']
+  );
+  assert.equal(tieResult.secondaryStyle?.styleId, 'CONNECTOR');
 
-  // Clustered across 9 questions: 3 Storyteller, 2 Strategist, 2 Creator, 2 Connector (4 styles within 1 point of top)
-  const clustered = buildBaseAnswers();
-  for (let i = 4; i <= 5; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    clustered.selections[qId] = `${qId}_opt_2`;
-  }
-  for (let i = 6; i <= 7; i += 1) {
-    const qId = `style_q${String(i).padStart(2, '0')}`;
-    clustered.selections[qId] = `${qId}_opt_3`;
-  }
-  clustered.selections.style_q08 = 'style_q08_opt_4';
-  clustered.selections.style_q09 = 'style_q09_opt_4';
-  const clusteredResult = scorePartAProfessionalStyle(clustered, config);
-  assert.equal(clusteredResult.pattern, 'clustered');
-  assert.equal(clusteredResult.leadingStyles[0]?.styleId, 'STORYTELLER');
+  // 3. Even 3-way tie: 3 Storyteller, 3 Strategist, 3 Creator -> broad
+  const threeWayTie = buildBaseAnswers();
+  threeWayTie.selections.style_q01 = 'style_q01_opt_3'; // Creator
+  threeWayTie.selections.style_q02 = 'style_q02_opt_2'; // Strategist
+  threeWayTie.selections.style_q03 = 'style_q03_opt_2'; // Strategist
+  threeWayTie.selections.style_q04 = 'style_q04_opt_1'; // Storyteller
+  threeWayTie.selections.style_q05 = 'style_q05_opt_1'; // Storyteller
+  threeWayTie.selections.style_q06 = 'style_q06_opt_1'; // Storyteller
+  threeWayTie.selections.style_q07 = 'style_q07_opt_2'; // Strategist
+  threeWayTie.selections.style_q08 = 'style_q08_opt_3'; // Creator
+  threeWayTie.selections.style_q09 = 'style_q09_opt_3'; // Creator
+  const threeWayResult = scorePartAProfessionalStyle(threeWayTie);
+  assert.equal(threeWayResult.pattern, 'broad');
+  assert.equal(threeWayResult.leadingStyles.length, 3);
+  assert.equal(threeWayResult.secondaryStyle, null);
+
+  // 4. Close cluster (top two within default closeScoreThreshold=1): 4 Opportunity Builder, 3 Strategist, 2 Executor -> broad
+  const closeCluster = buildBaseAnswers();
+  closeCluster.selections.style_q01 = 'style_q01_opt_6'; // Opportunity Builder
+  closeCluster.selections.style_q02 = 'style_q02_opt_6'; // Opportunity Builder
+  closeCluster.selections.style_q03 = 'style_q03_opt_6'; // Opportunity Builder
+  closeCluster.selections.style_q04 = 'style_q04_opt_6'; // Opportunity Builder
+  closeCluster.selections.style_q05 = 'style_q05_opt_5'; // Executor
+  closeCluster.selections.style_q06 = 'style_q06_opt_2'; // Strategist
+  closeCluster.selections.style_q07 = 'style_q07_opt_2'; // Strategist
+  closeCluster.selections.style_q08 = 'style_q08_opt_2'; // Strategist
+  closeCluster.selections.style_q09 = 'style_q09_opt_5'; // Executor
+  const closeResult = scorePartAProfessionalStyle(closeCluster);
+  assert.equal(closeResult.pattern, 'broad');
+  assert.equal(closeResult.leadTitle, 'A broad profile');
+  assert.deepEqual(
+    closeResult.leadingStyles.map((s) => s.styleId),
+    ['OPPORTUNITY_BUILDER', 'STRATEGIST']
+  );
+
+  // Raising/lowering closeScoreThreshold to 0 treats 4 vs 3 as dominant
+  const strictThresholdResult = scorePartAProfessionalStyle(
+    closeCluster,
+    cloneApprovedConfig({ closeScoreThreshold: 0 })
+  );
+  assert.equal(strictThresholdResult.pattern, 'dominant');
+  assert.equal(strictThresholdResult.leadingStyles[0]?.styleId, 'OPPORTUNITY_BUILDER');
 });
 
 test('Part B scores all 5 growth stages, half-up rounding, raw responses, and ignores Q5/Q6', () => {
@@ -336,14 +324,74 @@ test('Part C scores experience values A=0 through E=4 separately from understand
   }
 });
 
-test('Full scoreAssessment returns complete backend-ready structure with disclaimer and no fabricated Part A styles', () => {
+test('Full scoreAssessment returns instant style & stage profile and verifies 9 combinations', () => {
   const full = scoreAssessment(buildBaseAnswers());
   assert.ok(full.scoringVersion);
   assert.ok(full.generatedAt);
-  assert.ok(full.disclaimer.includes('reflective indicators'));
-  assert.equal(full.professionalStyle.status, 'incomplete_configuration');
+  assert.ok(full.disclaimer.includes('These results reflect your answers today'));
+  assert.equal(full.professionalStyle.status, 'complete');
+  assert.equal(full.professionalStyle.leadingStyles[0]?.styleId, 'STORYTELLER');
   assert.equal(full.growthJourney.roundedStageLevel, 2);
   assert.equal(full.capabilities.length, 6);
   assert.equal(full.developmentPriorities.length, 3);
   assert.equal(full.nextStep.wantsConsultation, false);
+
+  const partAQuestions = ASSESSMENT_QUESTIONS.filter((q) => q.kind === 'orientation');
+
+  // Combo 1: All A's (index 0 on Q1-Q9) -> Connector 3, Creator 2, Executor 2 -> broad (gap 1)
+  const allA = buildBaseAnswers();
+  for (const q of partAQuestions) {
+    allA.selections[q.id] = q.options[0].id;
+  }
+  const allARes = scoreAssessment(allA);
+  assert.equal(allARes.professionalStyle.pattern, 'broad');
+  assert.equal(allARes.professionalStyle.styleScores[0]?.styleId, 'CONNECTOR');
+  assert.equal(allARes.professionalStyle.styleScores[0]?.count, 3);
+
+  // Combo 2: All B's (index 1 on Q1-Q9) -> Storyteller 3, Creator 2, Opportunity Builder 2 -> broad (gap 1)
+  const allB = buildBaseAnswers();
+  for (const q of partAQuestions) {
+    allB.selections[q.id] = q.options[1].id;
+  }
+  const allBRes = scoreAssessment(allB);
+  assert.equal(allBRes.professionalStyle.pattern, 'broad');
+  assert.equal(allBRes.professionalStyle.styleScores[0]?.styleId, 'STORYTELLER');
+  assert.equal(allBRes.professionalStyle.styleScores[0]?.count, 3);
+
+  // Combo 3: Early stage (Part B all 1, Part C all wrong + exp 0)
+  const early = buildBaseAnswers();
+  early.selections.growth_q01 = 'growth_q01_stage_1';
+  early.selections.growth_q02 = 'growth_q02_stage_1';
+  early.selections.growth_q03 = 'growth_q03_stage_1';
+  early.selections.growth_q04 = 'growth_q04_stage_1';
+  early.selections.cap_p1_knowledge = 'cap_p1_k_copy';
+  early.selections.cap_p1_experience = 'cap_p1_e_0';
+  const earlyRes = scoreAssessment(early);
+  assert.equal(earlyRes.growthJourney.roundedStageLevel, 1);
+  assert.equal(earlyRes.growthJourney.indicativeStage.name, 'Discovering');
+  assert.equal(earlyRes.growthJourney.mixedStageFlag, false);
+
+  // Combo 4: Advanced stage (Part B all 5, Part C all correct + exp 4)
+  const advanced = buildBaseAnswers();
+  advanced.selections.growth_q01 = 'growth_q01_stage_5';
+  advanced.selections.growth_q02 = 'growth_q02_stage_5';
+  advanced.selections.growth_q03 = 'growth_q03_stage_5';
+  advanced.selections.growth_q04 = 'growth_q04_stage_5';
+  advanced.selections.cap_p1_experience = 'cap_p1_e_4';
+  const advRes = scoreAssessment(advanced);
+  assert.equal(advRes.growthJourney.roundedStageLevel, 5);
+  assert.equal(advRes.growthJourney.indicativeStage.name, 'Advancing');
+  assert.equal(advRes.growthJourney.mixedStageFlag, false);
+
+  // Combo 5: Mixed stages (Part B [1, 2, 4, 5] -> avg 3.0 -> Stage 3 Applying, spread 4, mixedStageFlag true)
+  const mixed = buildBaseAnswers();
+  mixed.selections.growth_q01 = 'growth_q01_stage_1';
+  mixed.selections.growth_q02 = 'growth_q02_stage_2';
+  mixed.selections.growth_q03 = 'growth_q03_stage_4';
+  mixed.selections.growth_q04 = 'growth_q04_stage_5';
+  const mixedRes = scoreAssessment(mixed);
+  assert.equal(mixedRes.growthJourney.roundedStageLevel, 3);
+  assert.equal(mixedRes.growthJourney.indicativeStage.name, 'Applying');
+  assert.equal(mixedRes.growthJourney.spread, 4);
+  assert.equal(mixedRes.growthJourney.mixedStageFlag, true);
 });

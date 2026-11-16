@@ -18,7 +18,7 @@ function buildCompleteAnswers(overrides?: {
 }): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
+      style_q01: 'style_q01_opt_6',
       style_q02: 'style_q02_opt_2',
       style_q03: 'style_q03_opt_3',
       style_q04: 'style_q04_opt_4',
@@ -220,7 +220,7 @@ test('Stage 5 Administrative Dashboard Acceptance Suite', async (t) => {
         mode: 'draft',
         idempotencyKey: 'stage5_draft_001',
         answers: {
-          selections: { style_q01: 'style_q01_opt_1' },
+          selections: { style_q01: 'style_q01_opt_6' },
           otherText: {},
           contact: { fullName: 'Draft Starter', city: 'Ikeja', state: 'Lagos' },
         },
@@ -308,8 +308,8 @@ test('Stage 5 Administrative Dashboard Acceptance Suite', async (t) => {
     assert.equal(summary.completionRatePct, 67);
     assert.equal(summary.consultationRequests, 1);
     assert.equal(summary.averageDurationMinutes, 8);
-    assert.equal(summary.partAConfigApproved, false);
-    assert.equal(summary.incompleteStyleCount, 2);
+    assert.equal(summary.partAConfigApproved, true);
+    assert.equal(summary.incompleteStyleCount, 0);
     assert.equal(summary.stageDistribution.length, 5);
     assert.equal(summary.pillarAverages.length, 6);
     assert.equal(summary.pillarAverages[0].experienceDistribution.length, 5);

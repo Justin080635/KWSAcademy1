@@ -16,8 +16,10 @@ export function Surface({
   return (
     <div
       id={id}
-      className={`rounded-xl border border-[var(--kws-border)] ${
-        subtle ? 'bg-[var(--kws-surface-subtle)]' : 'bg-[var(--kws-surface)]'
+      className={`rounded-[22px] border border-[var(--kws-border)] ${
+        subtle
+          ? 'bg-[var(--kws-surface-subtle)]'
+          : 'bg-[var(--kws-surface)] shadow-[var(--kws-shadow-card)]'
       } ${className}`}
     >
       {children}

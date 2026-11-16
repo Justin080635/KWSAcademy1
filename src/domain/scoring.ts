@@ -45,16 +45,16 @@ export const PART_A_CONFIG_VERSION = DEFAULT_PART_A_SCORING_CONFIG.approved
   : 'pending-approval-v1';
 
 export const REFLECTIVE_DISCLAIMER =
-  'These results are reflective indicators based on your self-reported responses. They are designed to support thoughtful self-discovery and conversation, not to serve as an exam grade, certification, psychometric diagnosis, or definitive judgment of ability.';
+  'These results reflect your answers today. They are here to spark honest reflection and conversation—never an exam score or final label.';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const EXPERIENCE_LABELS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'Beginning from scratch',
-  1: 'Early informal exploration',
-  2: 'Practice & collaborative projects',
-  3: 'Independent real-world application',
-  4: 'Consistent applied track record',
+  0: 'Haven’t started yet',
+  1: 'Just starting to explore',
+  2: 'Tried it on real or practice projects',
+  3: 'Done this on my own',
+  4: 'Part of my regular work',
 };
 
 function resolveSelectedOption(
@@ -81,18 +81,18 @@ export function validateContactDetails(contact: RespondentContact): {
   }
   if (!contact.whatsappNumber.trim()) {
     errors.whatsappNumber =
-      'Please enter your WhatsApp number including country code (e.g. +234...).';
+      'Please add your WhatsApp number with country code (e.g. +234...).';
   }
   if (!contact.email.trim()) {
-    errors.email = 'Please enter your email address.';
+    errors.email = 'Please add your email address.';
   } else if (!EMAIL_PATTERN.test(contact.email.trim())) {
-    errors.email = 'Please enter a valid email address.';
+    errors.email = 'That email doesn’t look quite right.';
   }
   if (!contact.city.trim()) {
-    errors.city = 'Please enter your current city.';
+    errors.city = 'Please add your city.';
   }
   if (!contact.state.trim()) {
-    errors.state = 'Please enter your current state.';
+    errors.state = 'Please add your state.';
   }
 
   return {
@@ -226,16 +226,16 @@ export function scorePartAProfessionalStyle(
     return {
       status: 'incomplete_configuration',
       configurationMessage:
-        'Professional Style scoring is pending KWS Academy’s final approved mapping of Section A options to the six professional styles. Your Section A responses have been saved intact.',
+        'Working style mapping is currently being updated. Your responses are saved intact.',
       missingOptionIds: validation.missingOptionIds,
       pattern: null,
-      leadTitle: 'Pending configuration',
+      leadTitle: 'Profile in progress',
       summary:
-        'Your responses for Section A are recorded. Style interpretation will become available once KWS Academy supplies and approves the final option-to-style mapping.',
+        'Your responses for Part A are saved and will be reflected in your style breakdown.',
       leadingStyles: [],
       secondaryStyle: null,
       reflectionPrompt:
-        'While the final style mapping is being confirmed, consider which scenarios in Section A felt most energising to you.',
+        'Notice which situations in Part A felt most energizing to step into.',
       styleScores: [],
     };
   }
@@ -271,52 +271,53 @@ export function scorePartAProfessionalStyle(
   const topCount = sorted[0]?.count ?? 0;
   const secondCount = sorted[1]?.count ?? 0;
   const tiedAtTop = sorted.filter((s) => s.count === topCount);
-  const clusteredNearTop = sorted.filter((s) => s.count >= topCount - 1);
+  const closeThreshold = Math.max(0, config.closeScoreThreshold ?? 1);
+  const isCloseProfile =
+    tiedAtTop.length >= 3 ||
+    (tiedAtTop.length === 1 && topCount - secondCount <= closeThreshold);
 
   let pattern: ArchetypePattern;
-  if (tiedAtTop.length >= 3) {
-    pattern = 'broad';
-  } else if (tiedAtTop.length === 2) {
+  if (tiedAtTop.length === 2) {
     pattern = 'co_leading';
-  } else if (clusteredNearTop.length >= 3) {
-    pattern = 'clustered';
-  } else if (topCount - secondCount >= 2) {
-    pattern = 'dominant';
+  } else if (isCloseProfile) {
+    pattern = 'broad';
   } else {
-    pattern = 'blend';
+    pattern = 'dominant';
   }
 
   const first = toStyleDetail(sorted[0].styleId);
   const second = toStyleDetail(sorted[1].styleId);
 
   let leadTitle = first.name;
-  let summary = `Your responses lean most strongly towards ${first.name}.`;
+  let summary =
+    sorted[1].count > 0
+      ? `You lean most toward ${first.name}, with a helpful streak of ${second.name}.`
+      : `You lean most toward ${first.name}.`;
   let leadingStyles: StyleDetailPayload[] = [first];
   let secondaryStyle: StyleDetailPayload | null =
     sorted[1].count > 0 ? second : null;
 
   if (pattern === 'co_leading') {
     leadTitle = `${first.name} & ${second.name}`;
-    summary = `Your responses place ${first.name} and ${second.name} evenly as co-leading orientations.`;
+    summary = `Your answers put ${first.name} and ${second.name} neck and neck. You switch naturally between both.`;
     leadingStyles = [first, second];
     secondaryStyle = sorted[2].count > 0 ? toStyleDetail(sorted[2].styleId) : null;
-  } else if (pattern === 'blend') {
-    leadTitle = `${first.name} (with ${second.name})`;
-    summary = `Your responses show a close blend of ${first.name} and ${second.name}. Both orientations are active in how you approach work.`;
-    leadingStyles = [first];
-    secondaryStyle = second;
-  } else if (pattern === 'clustered') {
-    const clusterNames = clusteredNearTop.map((c) => c.name);
-    leadTitle = `${first.name} within a balanced cluster`;
-    summary = `Your responses cluster closely across ${clusterNames.join(', ')}, with ${first.name} slightly ahead.`;
-    leadingStyles = [first];
-    secondaryStyle = second;
   } else if (pattern === 'broad') {
-    leadTitle = 'A broad, multi-oriented profile';
+    const closeList =
+      tiedAtTop.length >= 3
+        ? tiedAtTop.slice(0, 3)
+        : sorted
+            .filter((s) => s.count >= topCount - closeThreshold && s.count > 0)
+            .slice(0, 3);
+    const closeNames = closeList.map((s) => s.name);
+    leadTitle = 'A broad profile';
     summary =
-      'Your responses are distributed evenly across multiple orientations, suggesting adaptability across different roles rather than one narrow preference.';
-    leadingStyles = tiedAtTop.slice(0, 3).map((t) => toStyleDetail(t.styleId));
-    secondaryStyle = null;
+      closeNames.length >= 2
+        ? `Your scores sit close together across ${closeNames.join(', ')}—meaning you bring range across different kinds of work rather than sticking to one lane.`
+        : 'Your answers spread naturally across different ways of working, giving you plenty of range.';
+    leadingStyles = closeList.map((t) => toStyleDetail(t.styleId));
+    secondaryStyle =
+      tiedAtTop.length === 1 && sorted[1].count > 0 ? second : null;
   }
 
   return {
@@ -364,8 +365,8 @@ export function scorePartBGrowthJourney(
   const mixedStageFlag = spread >= 2;
 
   const supportingPatternSummary = mixedStageFlag
-    ? `Your responses across the four growth questions span ${spread} stage points (ranging from ${Math.min(...values)} to ${Math.max(...values)}), indicating that some areas of your experience are further along than others.`
-    : `Your responses across the four growth questions are closely aligned around the ${indicativeStage.name} stage.`;
+    ? `You’re between stages—some parts of your work feel well ahead while others are still warming up (spanning ${Math.min(...values)} to ${Math.max(...values)} across the path).`
+    : `Your answers sit closely together around the ${indicativeStage.name} stage.`;
 
   const challengeOption = resolveSelectedOption('growth_q05', answers, questions);
   const progressOption = resolveSelectedOption('growth_q06', answers, questions);
@@ -390,15 +391,15 @@ function buildCapabilityInterpretation(
   experienceScore: 0 | 1 | 2 | 3 | 4
 ): string {
   if (understandingScore === 1 && experienceScore >= 3) {
-    return `You selected the sound situational approach for ${name} and report independent practical experience. Continuing to reflect on real outcomes and edge cases can help sharpen your judgment further.`;
+    return `You spotted the smart move in ${name} and you already have real hands-on mileage here. Sharing how you make decisions on real projects will sharpen your edge even more.`;
   }
   if (understandingScore === 1 && experienceScore <= 2) {
-    return `Your situational choice aligns with sound practice in ${name}, while your practical exposure is still growing. Guided projects or real briefs are a natural next way to turn that clarity into hands-on confidence.`;
+    return `Your instincts on ${name} are right on the mark—now it’s just about getting more reps in. A real brief or small side project will help build proof behind what you know.`;
   }
   if (understandingScore === 0 && experienceScore >= 3) {
-    return `You report meaningful hands-on experience in ${name}, while the scenario prompt points to a strategic nuance worth revisiting. Stepping back to connect day-to-day execution with underlying principles can deepen your impact.`;
+    return `You’ve clearly done real work in ${name}, and the scenario offers a handy new angle to pair with it. Stepping back to look at the why behind the work can unlock another gear.`;
   }
-  return `Both foundational principles and practical exposure in ${name} represent open space to explore. Starting with a clear core concept and one small practical exercise is a constructive way to build momentum.`;
+  return `You have a fresh stretch ahead in ${name}, both in how you think about it and what you’ve tried. Picking up one core idea and trying one small exercise is a great way in.`;
 }
 
 export function scorePartCCapabilities(
@@ -456,8 +457,8 @@ function buildDevelopmentPriorities(
 ): DevelopmentPriorityItem[] {
   const stagePriority: DevelopmentPriorityItem = {
     id: 'priority_stage_focus',
-    title: `Growth Stage Focus: ${growthJourney.indicativeStage.name}`,
-    explanation: `At the ${growthJourney.indicativeStage.name} stage, your typical priority is ${growthJourney.indicativeStage.typicalPriority.toLowerCase()}`,
+    title: `Right now: ${growthJourney.indicativeStage.name}`,
+    explanation: `At this stage, it helps most to focus on ${growthJourney.indicativeStage.typicalPriority.toLowerCase()}`,
     practicalNextStep: growthJourney.suggestedProgressDirection,
   };
 
@@ -473,12 +474,12 @@ function buildDevelopmentPriorities(
   const capabilityPriorities: DevelopmentPriorityItem[] = focusCapabilities.map(
     (cap, idx) => ({
       id: `priority_cap_${idx + 1}_${cap.pillarId}`,
-      title: `Build practical depth in ${cap.name}`,
+      title: `Build momentum in ${cap.name}`,
       explanation: cap.constructiveInterpretation,
       practicalNextStep:
         cap.experienceScore <= 1
-          ? `Start with one focused learning brief or guided exercise in ${cap.name} over the next month.`
-          : `Document or test one real-world piece of work in ${cap.name} and seek feedback from a peer or mentor.`,
+          ? `Pick one small practice brief or short study in ${cap.name} this month.`
+          : `Take one real piece of work in ${cap.name}, put it in front of a peer, and note what lands.`,
     })
   );
 
@@ -502,11 +503,11 @@ export function buildNextStep(
     return {
       wantsConsultation: true,
       consultationIntent,
-      headline: 'Consultation requested',
+      headline: 'You asked to talk it through',
       description:
-        'You indicated that you would like to book a conversation with KWS Academy to talk through your results and possible next steps.',
+        'We’ve noted that you’d like a conversation with KWS Academy about your profile and next steps.',
       invitationNote:
-        'In the meantime, choose one priority above and take one practical step on it this month.',
+        'Meanwhile, pick one idea above that excites you and try one small step on it this month.',
     };
   }
 
@@ -514,22 +515,22 @@ export function buildNextStep(
     return {
       wantsConsultation: true,
       consultationIntent,
-      headline: 'Exploring next steps with KWS Academy',
+      headline: 'Happy to share more',
       description:
-        'You indicated that you would like more information before deciding on a consultation or programme.',
+        'We’ve noted that you’d like more information as you weigh up what’s next.',
       invitationNote:
-        'Review your capability focus areas above and take one small practical step this month while KWS Academy shares relevant information.',
+        'Take a look at your focus areas above and test one small idea over the next couple of weeks.',
     };
   }
 
   return {
     wantsConsultation: false,
     consultationIntent: 'none',
-    headline: 'Self-directed next step',
+    headline: 'Want to talk it through? Totally optional.',
     description:
-      'Choose one development priority above and take one small, concrete step on it over the next four weeks.',
+      'Pick one focus area above and give yourself one small, real project on it this month.',
     invitationNote:
-      'If you later decide you would like a human-led conversation with KWS Academy about these reflections, you are always welcome to reach out.',
+      'If you ever feel like talking through your results with someone at KWS Academy, the door is open below.',
   };
 }
 
@@ -584,7 +585,7 @@ export function formatPlainTextSummary(record: SubmissionRecord): string {
   const styleLine =
     result.professionalStyle.status === 'complete'
       ? result.professionalStyle.leadTitle
-      : 'Pending final style mapping configuration';
+      : 'Style profile in progress';
 
   return [
     'KWS ACADEMY DISCOVERY SUMMARY',
@@ -593,15 +594,15 @@ export function formatPlainTextSummary(record: SubmissionRecord): string {
     `City & State: ${cityState}`,
     `Minutes taken: ${durationMinutes}`,
     `Professional Style: ${styleLine}`,
-    `Growth Stage (provisional): ${result.growthJourney.indicativeStage.name}${
-      result.growthJourney.mixedStageFlag ? ' (mixed-stage pattern)' : ''
+    `Growth Stage: ${result.growthJourney.indicativeStage.name}${
+      result.growthJourney.mixedStageFlag ? ' (between stages)' : ''
     }`,
-    'Capabilities (Understanding 0-1 / Experience 0-4):',
+    'Strengths (What you know 0-1 / What you have done 0-4):',
     ...result.capabilities.map(
       (c) =>
-        `- ${c.name}: Understanding ${c.understandingScore}/1, Experience ${c.experienceScore}/4 (${c.experienceLabel})`
+        `- ${c.name}: What you know ${c.understandingScore}/1, What you have done ${c.experienceScore}/4 (${c.experienceLabel})`
     ),
-    'Development Priorities:',
+    'Focus Areas:',
     ...result.developmentPriorities.map((p, i) => `${i + 1}. ${p.title}`),
     `FEEDBACK – style fits: ${feedback.archetypeFits || '-'} | stage fits: ${
       feedback.stageFits || '-'

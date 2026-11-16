@@ -75,7 +75,6 @@ export function toPublicRespondentRecord(record: SubmissionRecord) {
     ...record.result,
     professionalStyle: {
       ...record.result.professionalStyle,
-      styleScores: [],
       missingOptionIds: [],
     },
   };
@@ -1594,8 +1593,29 @@ export async function createApp(options?: {
   if (enableFrontend) {
     if (process.env.NODE_ENV !== 'production') {
       const { createServer: createViteServer } = await import('vite');
+      const hmrEnabled = process.env.ENABLE_HMR === 'true';
       const vite = await createViteServer({
-        server: { middlewareMode: true },
+        plugins: hmrEnabled
+          ? []
+          : [
+              {
+                name: 'kws-disable-hmr-ws-client',
+                transform(code, id) {
+                  if (id.replace(/\\/g, '/').endsWith('vite/dist/client/client.mjs')) {
+                    return code.replace(
+                      'transport.connect(createHMRHandler(handleMessage));',
+                      '/* HMR WebSocket disabled in AI Studio preview */'
+                    );
+                  }
+                  return null;
+                },
+              },
+            ],
+        server: {
+          middlewareMode: true,
+          hmr: hmrEnabled ? undefined : false,
+          ws: hmrEnabled ? undefined : false,
+        },
         appType: 'spa',
       });
       app.use(vite.middlewares);

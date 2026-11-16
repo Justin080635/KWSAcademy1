@@ -944,23 +944,51 @@ export function AdminVersionsView({ staffRole }: AdminVersionsViewProps) {
             </p>
           ) : (
             <div className="space-y-5">
-              <div>
-                <label
-                  htmlFor="parta-notes"
-                  className="block text-xs font-semibold text-[var(--kws-muted)]"
-                >
-                  Approval / audit notes
-                </label>
-                <input
-                  id="parta-notes"
-                  type="text"
-                  disabled={!isAdmin}
-                  value={partAConfig.notes}
-                  onChange={(e) =>
-                    setPartAConfig({ ...partAConfig, notes: e.target.value })
-                  }
-                  className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3 py-2 text-sm text-[var(--kws-ink)] disabled:opacity-60"
-                />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="parta-notes"
+                    className="block text-xs font-semibold text-[var(--kws-muted)]"
+                  >
+                    Approval / audit notes
+                  </label>
+                  <input
+                    id="parta-notes"
+                    type="text"
+                    disabled={!isAdmin}
+                    value={partAConfig.notes}
+                    onChange={(e) =>
+                      setPartAConfig({ ...partAConfig, notes: e.target.value })
+                    }
+                    className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3 py-2 text-sm text-[var(--kws-ink)] disabled:opacity-60"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="parta-close-threshold"
+                    className="block text-xs font-semibold text-[var(--kws-muted)]"
+                  >
+                    Broad profile threshold (pts)
+                  </label>
+                  <input
+                    id="parta-close-threshold"
+                    type="number"
+                    min={0}
+                    max={9}
+                    disabled={!isAdmin}
+                    value={partAConfig.closeScoreThreshold ?? 1}
+                    onChange={(e) => {
+                      const val = Number.parseInt(e.target.value, 10);
+                      setPartAConfig({
+                        ...partAConfig,
+                        closeScoreThreshold: Number.isNaN(val)
+                          ? 1
+                          : Math.max(0, Math.min(9, val)),
+                      });
+                    }}
+                    className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3 py-2 text-sm text-[var(--kws-ink)] disabled:opacity-60"
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">

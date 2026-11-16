@@ -13,44 +13,35 @@ import {
 } from '../src/domain/pillarInsights.ts';
 import { getInsightForPillar } from '../src/domain/pillarInsightEngine.ts';
 import { scoreAssessment } from '../src/domain/scoring.ts';
-import type { PartAScoringConfig } from '../src/domain/scoringConfig.ts';
-import type { RespondentAnswers, StyleId } from '../src/domain/types.ts';
+import {
+  DEFAULT_PART_A_SCORING_CONFIG,
+  type PartAScoringConfig,
+} from '../src/domain/scoringConfig.ts';
+import type { RespondentAnswers } from '../src/domain/types.ts';
 import { formatPublicShareSummary } from '../src/components/respondent/ResultsView.tsx';
 
 function buildApprovedPartAConfig(): PartAScoringConfig {
-  const styles: StyleId[] = [
-    'STORYTELLER',
-    'STRATEGIST',
-    'CREATOR',
-    'CONNECTOR',
-    'EXECUTOR',
-    'OPPORTUNITY_BUILDER',
-  ];
-  const optionToStyle: Record<string, StyleId | null> = {};
-  for (const q of ASSESSMENT_QUESTIONS.filter((item) => item.kind === 'orientation')) {
-    q.options.forEach((opt, idx) => {
-      optionToStyle[opt.id] = styles[idx] ?? null;
-    });
-  }
   return {
+    ...DEFAULT_PART_A_SCORING_CONFIG,
     approved: true,
-    notes: 'Synthetic approved Part A config for pillar insight tests',
-    optionToStyle,
+    closeScoreThreshold: 1,
+    notes: 'Approved Part A config for pillar insight tests',
+    optionToStyle: { ...DEFAULT_PART_A_SCORING_CONFIG.optionToStyle },
   };
 }
 
 function buildBaseAnswers(overrides?: Partial<RespondentAnswers>): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
-      style_q02: 'style_q02_opt_1',
-      style_q03: 'style_q03_opt_1',
+      style_q01: 'style_q01_opt_6',
+      style_q02: 'style_q02_opt_2',
+      style_q03: 'style_q03_opt_2',
       style_q04: 'style_q04_opt_1',
       style_q05: 'style_q05_opt_1',
-      style_q06: 'style_q06_opt_2',
-      style_q07: 'style_q07_opt_2',
-      style_q08: 'style_q08_opt_3',
-      style_q09: 'style_q09_opt_4',
+      style_q06: 'style_q06_opt_1',
+      style_q07: 'style_q07_opt_1',
+      style_q08: 'style_q08_opt_1',
+      style_q09: 'style_q09_opt_3',
       growth_q01: 'growth_q01_stage_2',
       growth_q02: 'growth_q02_stage_2',
       growth_q03: 'growth_q03_stage_2',
@@ -95,7 +86,9 @@ function buildBaseAnswers(overrides?: Partial<RespondentAnswers>): RespondentAns
 
 test('Pillar 1: unapproved Part A mapping produces neutral insight with zero fabricated style claims', () => {
   const answers = buildBaseAnswers();
-  const out = getInsightForPillar('professional_style', answers);
+  const out = getInsightForPillar('professional_style', answers, {
+    partAConfig: { ...DEFAULT_PART_A_SCORING_CONFIG, approved: false },
+  });
   assert.equal(out.insight.insightId, 'part_a_unapproved_neutral');
   assert.equal(out.insight.previewSummary.partAConfigApproved, false);
   assert.equal(out.insight.primaryMetric.isPending, true);
@@ -118,20 +111,20 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
   assert.equal(concentrated.insight.previewSummary.partAConfigApproved, true);
   assert.equal(concentrated.insight.primaryMetric.label, 'Storyteller');
 
-  // 2. Two closely matched / tied: 3 Storyteller, 3 Strategist, 2 Creator, 1 Connector
+  // 2. Two closely matched / tied: 3 Storyteller, 3 Strategist, 2 Creator, 1 Opportunity Builder
   const paired = getInsightForPillar(
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_1',
-        style_q02: 'style_q02_opt_1',
-        style_q03: 'style_q03_opt_1',
-        style_q04: 'style_q04_opt_2',
-        style_q05: 'style_q05_opt_2',
-        style_q06: 'style_q06_opt_2',
-        style_q07: 'style_q07_opt_3',
+        style_q01: 'style_q01_opt_6',
+        style_q02: 'style_q02_opt_2',
+        style_q03: 'style_q03_opt_2',
+        style_q04: 'style_q04_opt_1',
+        style_q05: 'style_q05_opt_1',
+        style_q06: 'style_q06_opt_1',
+        style_q07: 'style_q07_opt_2',
         style_q08: 'style_q08_opt_3',
-        style_q09: 'style_q09_opt_4',
+        style_q09: 'style_q09_opt_3',
       },
     }),
     { partAConfig }
@@ -146,13 +139,13 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_1',
-        style_q02: 'style_q02_opt_1',
-        style_q03: 'style_q03_opt_1',
-        style_q04: 'style_q04_opt_2',
-        style_q05: 'style_q05_opt_2',
-        style_q06: 'style_q06_opt_2',
-        style_q07: 'style_q07_opt_3',
+        style_q01: 'style_q01_opt_3',
+        style_q02: 'style_q02_opt_2',
+        style_q03: 'style_q03_opt_2',
+        style_q04: 'style_q04_opt_1',
+        style_q05: 'style_q05_opt_1',
+        style_q06: 'style_q06_opt_1',
+        style_q07: 'style_q07_opt_2',
         style_q08: 'style_q08_opt_3',
         style_q09: 'style_q09_opt_3',
       },
@@ -160,37 +153,37 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
     { partAConfig }
   );
   assert.equal(broad.insight.insightId, 'part_a_broadly_distributed');
-  assert.ok(broad.insight.message.includes('not easily boxed into one approach'));
+  assert.ok(broad.insight.message.includes('not boxed into one lane'));
 
-  // 4. Emerging style: single leader ahead across clustered mid-tier (3 Storyteller, 2 Strategist, 2 Creator, 1 Connector, 1 Executor)
+  // 4. Emerging style: single leader ahead across clustered mid-tier (3 Storyteller, 2 Strategist, 2 Creator, 1 Opportunity Builder, 1 Executor)
   const emerging = getInsightForPillar(
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_1',
-        style_q02: 'style_q02_opt_1',
-        style_q03: 'style_q03_opt_1',
-        style_q04: 'style_q04_opt_2',
-        style_q05: 'style_q05_opt_2',
-        style_q06: 'style_q06_opt_3',
-        style_q07: 'style_q07_opt_3',
-        style_q08: 'style_q08_opt_4',
-        style_q09: 'style_q09_opt_5',
+        style_q01: 'style_q01_opt_6',
+        style_q02: 'style_q02_opt_2',
+        style_q03: 'style_q03_opt_2',
+        style_q04: 'style_q04_opt_1',
+        style_q05: 'style_q05_opt_1',
+        style_q06: 'style_q06_opt_1',
+        style_q07: 'style_q07_opt_5',
+        style_q08: 'style_q08_opt_3',
+        style_q09: 'style_q09_opt_3',
       },
     }),
     { partAConfig }
   );
   assert.equal(emerging.insight.insightId, 'part_a_emerging_style');
-  assert.ok(emerging.insight.message.includes('emerging around Storyteller'));
+  assert.ok(emerging.insight.message.includes('Storyteller came through again and again'));
 });
 
 test('Pillar 2: evaluates all 5 growth stages, boundaries, and mixed-stage observation', () => {
   const stageExpectations: Array<{ level: 1 | 2 | 3 | 4 | 5; phrase: string }> = [
-    { level: 1, phrase: 'starts with discovery' },
-    { level: 2, phrase: 'building your professional foundation' },
-    { level: 3, phrase: 'moving beyond learning' },
-    { level: 4, phrase: 'building evidence of what you can do' },
-    { level: 5, phrase: 'thinking beyond the basics' },
+    { level: 1, phrase: 'starts with curiosity' },
+    { level: 2, phrase: 'building your footing' },
+    { level: 3, phrase: 'moving from learning into doing' },
+    { level: 4, phrase: 'building real proof' },
+    { level: 5, phrase: 'pushing past the basics' },
   ];
 
   for (const spec of stageExpectations) {
@@ -225,7 +218,7 @@ test('Pillar 2: evaluates all 5 growth stages, boundaries, and mixed-stage obser
   );
   assert.equal(mixed.insight.insightId, 'part_b_mixed_stage');
   assert.equal(mixed.insight.primaryMetric.value, 3);
-  assert.ok(mixed.insight.headline.includes('moving beyond learning'));
+  assert.ok(mixed.insight.headline.includes('moving from learning into doing'));
   assert.equal(mixed.insight.secondaryObservation, MIXED_STAGE_OBSERVATION);
 });
 
@@ -234,8 +227,8 @@ test('Pillar 3: capability pattern priority & strict separation of Understanding
   const strong = getInsightForPillar('strengths_growth', buildBaseAnswers());
   assert.equal(strong.insight.insightId, 'part_c_strong_both');
   assert.ok(strong.insight.message.includes('Media & Industry Intelligence'));
-  assert.equal(strong.insight.primaryMetric.label, 'Understanding');
-  assert.equal(strong.insight.secondaryMetric?.label, 'Practical experience');
+  assert.equal(strong.insight.primaryMetric.label, 'What you know');
+  assert.equal(strong.insight.secondaryMetric?.label, 'What you’ve done');
   assert.equal(strong.insight.primaryMetric.max, 6);
   assert.equal(strong.insight.secondaryMetric?.max, 24);
 
@@ -336,8 +329,8 @@ test('Pillar 4 & Fallbacks: consultation vs self-directed and missing metrics re
     buildBaseAnswers({ selections: { profile_q07: 'profile_q07_yes' } })
   );
   assert.equal(book.insight.insightId, 'part_d_consultation_requested');
-  assert.equal(book.insight.headline, 'Your discovery is ready.');
-  assert.equal(book.insight.ctaLabel, 'Reveal My Professional Discovery Report');
+  assert.equal(book.insight.headline, 'Your profile is in.');
+  assert.equal(book.insight.ctaLabel, 'Reveal my profile');
 
   const moreInfo = getInsightForPillar(
     'profile_next_steps',
@@ -350,7 +343,7 @@ test('Pillar 4 & Fallbacks: consultation vs self-directed and missing metrics re
     buildBaseAnswers({ selections: { profile_q07: 'profile_q07_no' } })
   );
   assert.equal(selfDir.insight.insightId, 'part_d_self_directed');
-  assert.equal(selfDir.insight.headline, 'Your discovery is ready.');
+  assert.equal(selfDir.insight.headline, 'Your profile is in.');
 
   // Missing metrics gracefully fall back for every pillar without throwing
   for (const pillarId of [
@@ -380,7 +373,27 @@ test('HTTP & Report Consistency: /api/assessment/pillar-insight, admin Part A ap
   try {
     const answers = buildBaseAnswers();
 
-    // 1. Before Part A approval: endpoint returns unapproved neutral insight without style leak
+    const loginRes = await fetch(`${baseUrl}/api/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: 'pillar-admin-pass-123' }),
+    });
+    assert.equal(loginRes.status, 200);
+    const cookie = (loginRes.headers.get('set-cookie') ?? '').split(';')[0];
+
+    // 1. Temporarily set Part A unapproved -> endpoint returns neutral insight without style leak
+    const unapproveRes = await fetch(`${baseUrl}/api/admin/configs/scoring`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Cookie: cookie },
+      body: JSON.stringify({
+        approved: false,
+        closeScoreThreshold: 1,
+        notes: 'Paused for matrix edit',
+        optionToStyle: {},
+      }),
+    });
+    assert.equal(unapproveRes.status, 200);
+
     const preApprovalRes = await fetch(`${baseUrl}/api/assessment/pillar-insight`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -395,14 +408,6 @@ test('HTTP & Report Consistency: /api/assessment/pillar-insight, admin Part A ap
     assert.equal(preApprovalJson.insight.insightId, 'part_a_unapproved_neutral');
 
     // 2. Admin approves Part A scoring config
-    const loginRes = await fetch(`${baseUrl}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: 'pillar-admin-pass-123' }),
-    });
-    assert.equal(loginRes.status, 200);
-    const cookie = (loginRes.headers.get('set-cookie') ?? '').split(';')[0];
-
     const approveRes = await fetch(`${baseUrl}/api/admin/configs/scoring`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Cookie: cookie },

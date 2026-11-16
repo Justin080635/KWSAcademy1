@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { buildAllPillarInsightsFromResults } from '../../domain/pillarInsights.ts';
 import type { PillarInsightResult } from '../../domain/types.ts';
 import {
@@ -123,101 +123,117 @@ export function SubmissionConfirmationView({
   }, [insights]);
 
   return (
-    <div className="mx-auto max-w-[780px] px-4 py-8 sm:px-6 sm:py-12">
+    <div className="mx-auto max-w-[820px] px-4 pt-6 pb-8 sm:px-6 sm:py-12">
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       >
-        <Surface className="overflow-hidden p-5 sm:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--kws-border)] pb-3">
-            <div className="flex items-center gap-2 font-mono-tabular text-xs font-semibold text-[var(--kws-success)]">
-              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Pillar 4 · All Discovery Sections Complete</span>
-            </div>
-            <span className="font-mono-tabular text-xs text-[var(--kws-muted)]">
+        <Surface className="rounded-[24px] p-6 sm:p-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--kws-border)] pb-4">
+            <span className="text-xs font-normal text-[var(--kws-muted)]">
+              Pillar 4 · All Discovery Sections Complete
+            </span>
+            <span className="text-xs font-normal tabular-nums text-[var(--kws-muted)]">
               Ref {submissionId}
             </span>
           </div>
 
-          <h1 className="mt-4 font-display text-2xl font-bold leading-tight text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
-            {partDInsight.headline}
-          </h1>
+          <div className="mt-6">
+            <div
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_10px_28px_-6px_rgba(43,59,196,0.45)] ring-4 ring-[var(--kws-accent)]/12"
+              aria-hidden="true"
+            >
+              <Check className="h-6 w-6 stroke-[2.5]" />
+            </div>
 
-          {fullName && (
-            <p className="mt-1.5 text-sm font-medium text-[var(--kws-accent)]">
-              Prepared for {fullName}
+            <h1 className="mt-4 text-left font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
+              {partDInsight.headline}
+            </h1>
+
+            {fullName && (
+              <p className="mt-2 text-sm font-medium text-[var(--kws-accent)]">
+                Prepared for {fullName}
+              </p>
+            )}
+
+            <p className="mt-3 max-w-[54ch] text-base leading-[1.6] text-[var(--kws-muted)] sm:text-[17px]">
+              {partDInsight.message}
             </p>
-          )}
-
-          <p className="mt-2.5 text-sm leading-relaxed text-[var(--kws-ink)] sm:text-base">
-            {partDInsight.message}
-          </p>
+          </div>
 
           {/* Circular Metric Summary Strip (strictly circular visuals; Part C scores kept separate) */}
-          {insights ? (
-            <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4 sm:grid-cols-4 sm:gap-4">
-              <CircularProgressRing
-                metric={insights.professionalStyle.primaryMetric}
-                size="sm"
-                className="mx-auto"
-              />
-              <CircularProgressRing
-                metric={insights.growthJourney.primaryMetric}
-                size="sm"
-                className="mx-auto"
-              />
-              <CircularProgressRing
-                metric={insights.strengthsGrowth.primaryMetric}
-                size="sm"
-                className="mx-auto"
-              />
-              {insights.strengthsGrowth.secondaryMetric && (
+          <div className="mt-6 border-t border-[var(--kws-border)] pt-6">
+            {insights ? (
+              <div className="grid grid-cols-2 gap-5 sm:grid-cols-4 sm:gap-4">
                 <CircularProgressRing
-                  metric={insights.strengthsGrowth.secondaryMetric}
+                  metric={insights.professionalStyle.primaryMetric}
                   size="sm"
                   className="mx-auto"
                 />
-              )}
-            </div>
-          ) : (
-            <div className="mt-5 flex justify-center rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4">
-              <CircularProgressRing
-                metric={partDInsight.primaryMetric}
-                size="md"
-              />
-            </div>
-          )}
+                <CircularProgressRing
+                  metric={insights.growthJourney.primaryMetric}
+                  size="sm"
+                  className="mx-auto"
+                />
+                <CircularProgressRing
+                  metric={insights.strengthsGrowth.primaryMetric}
+                  size="sm"
+                  className="mx-auto"
+                />
+                {insights.strengthsGrowth.secondaryMetric && (
+                  <CircularProgressRing
+                    metric={insights.strengthsGrowth.secondaryMetric}
+                    size="sm"
+                    className="mx-auto"
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <CircularProgressRing
+                  metric={partDInsight.primaryMetric}
+                  size="lg"
+                />
+              </div>
+            )}
+          </div>
 
-          {/* Partially Blurred Preview Invitation */}
-          <div className="mt-5">
+          {/* Preview Invitation */}
+          <div className="mt-6">
             <BlurredReportPreview
               stage="profile_next_steps"
               insight={partDInsight}
               unlockedHighlights={unlockedHighlights}
+              compact
             />
           </div>
 
           {partDInsight.curiosityHook && (
-            <p className="mt-4 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
+            <p className="mt-5 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
               {partDInsight.curiosityHook}
             </p>
           )}
+        </Surface>
 
-          <div className="mt-6 flex flex-col gap-3 border-t border-[var(--kws-border)] pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="sticky bottom-0 z-20 -mx-4 mt-4 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-6 sm:bg-none sm:p-0">
+          <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
             <Button
               size="lg"
+              allowWrap
               onClick={onViewResults}
-              className="w-full sm:w-auto"
+              className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:justify-center"
             >
-              {partDInsight.ctaLabel}
+              <span className="text-left sm:text-center">
+                {partDInsight.ctaLabel}
+              </span>
               <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
             </Button>
-            <p className="text-xs text-[var(--kws-muted)]">
+            <p className="text-center text-xs text-[var(--kws-muted)] sm:text-left">
               Immediate access—independent of any consultation preference
             </p>
           </div>
-        </Surface>
+        </div>
       </motion.div>
     </div>
   );

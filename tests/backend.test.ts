@@ -12,7 +12,7 @@ import type { RespondentAnswers } from '../src/domain/types.ts';
 function buildCompleteAnswers(overrides?: Partial<RespondentAnswers>): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
+      style_q01: 'style_q01_opt_6',
       style_q02: 'style_q02_opt_2',
       style_q03: 'style_q03_opt_3',
       style_q04: 'style_q04_opt_4',
@@ -124,7 +124,7 @@ test('Stage 4 Backend Acceptance Suite', async (t) => {
         mode: 'draft',
         idempotencyKey: 'idem_progress_flow_001',
         answers: {
-          selections: { style_q01: 'style_q01_opt_1' },
+          selections: { style_q01: 'style_q01_opt_6' },
           otherText: {},
           contact: { fullName: 'Draft User <script>alert(1)</script>' },
         },
@@ -275,7 +275,8 @@ test('Stage 4 Backend Acceptance Suite', async (t) => {
     const validJson = await validRes.json();
     assert.equal(validJson.record.id, draftId);
     assert.equal('staffNotes' in validJson.record, false);
-    assert.equal(validJson.record.result.professionalStyle.styleScores.length, 0);
+    assert.equal(validJson.record.result.professionalStyle.status, 'complete');
+    assert.equal(validJson.record.result.professionalStyle.styleScores.length, 6);
 
     // Respondent can request a consultation post-results using their private token
     const consRes = await fetch(

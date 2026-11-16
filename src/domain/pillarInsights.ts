@@ -56,269 +56,268 @@ export interface InsightTemplateDefinition {
 }
 
 export const insightTemplates: Record<string, InsightTemplateDefinition> = {
-  // Pillar 1 — Your Professional Style
+  // Part A — Your Professional Style
   part_a_unapproved_neutral: {
     insightId: 'part_a_unapproved_neutral',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 100,
-    ctaLabel: 'Discover Your Growth Journey',
-    headlineTemplate: 'Your {answeredCount} working-style instincts are captured.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Round one done. Your instincts are in.',
     messageTemplate:
-      'You responded across {answeredCount} real workplace scenarios in Section A. Because KWS Academy’s final style mapping is awaiting configuration approval, no specific style label is assigned yet—your responses are safely preserved.',
+      'You responded across {answeredCount} everyday work scenarios in Part A. Your choices are saved and ready for your final profile.',
     curiosityHook:
-      'Next, Part B locates where your current momentum sits across five stages of professional growth.',
+      'Up next: where you are on your path.',
   },
   part_a_concentrated_lead: {
     insightId: 'part_a_concentrated_lead',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 90,
-    ctaLabel: 'Discover Your Growth Journey',
+    ctaLabel: 'Continue',
     headlineTemplate: 'Strong pull toward {leadStyle}.',
     messageTemplate:
-      'Wow! Your responses show a strong preference for {leadStyle}. You consistently gravitated towards this way of contributing across different situations.',
+      'Your choices lean steadily toward {leadStyle} across different situations.',
     curiosityHook:
-      'Next, Part B reveals which stage of the five-step professional growth journey matches your current focus.',
+      'Up next: where you are on your path.',
   },
   part_a_two_closely_matched: {
     insightId: 'part_a_two_closely_matched',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 80,
-    ctaLabel: 'Discover Your Growth Journey',
-    headlineTemplate: 'A natural combination of {leadStyle} and {secondaryStyle}.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'A natural mix of {leadStyle} and {secondaryStyle}.',
     messageTemplate:
-      'Interesting! Your responses suggest a combination of {leadStyle} and {secondaryStyle}. You seem to draw on two different ways of approaching professional situations.',
+      'Your answers blend {leadStyle} and {secondaryStyle}. You pull from two strong ways of tackling work.',
     curiosityHook:
-      'Next, see how your current growth stage shapes where these two orientations have the highest leverage.',
+      'Up next: where you are on your path.',
   },
   part_a_broadly_distributed: {
     insightId: 'part_a_broadly_distributed',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 70,
-    ctaLabel: 'Discover Your Growth Journey',
-    headlineTemplate: 'You draw across several ways of contributing.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You bring range across different ways of working.',
     messageTemplate:
-      'You’re not easily boxed into one approach. Your responses show interest across several ways of contributing, suggesting a versatile professional orientation.',
+      'You’re not boxed into one lane. Your answers move comfortably across several styles.',
     curiosityHook:
-      'Next, Part B uncovers which growth stage best reflects your current priorities and challenges.',
+      'Up next: where you are on your path.',
   },
   part_a_emerging_style: {
     insightId: 'part_a_emerging_style',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 60,
-    ctaLabel: 'Discover Your Growth Journey',
+    ctaLabel: 'Continue',
     headlineTemplate: 'An emerging pattern around {leadStyle}.',
     messageTemplate:
-      'There’s an interesting pattern emerging around {leadStyle}. It appeared repeatedly in your choices, even across different situations.',
+      '{leadStyle} came through again and again in how you answered these moments.',
     curiosityHook:
-      'Up next, Part B maps where you currently stand on your professional growth journey.',
+      'Up next: where you are on your path.',
   },
   part_a_fallback: {
     insightId: 'part_a_fallback',
     pillarId: 'professional_style',
     sectionCode: 'A',
     priority: 10,
-    ctaLabel: 'Discover Your Growth Journey',
-    headlineTemplate: 'Your Section A preferences are recorded.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Round one done. Your instincts are in.',
     messageTemplate:
-      'Your scenario responses in Section A are saved and will feed into your final discovery profile.',
+      'Your choices from Part A are saved and will feed straight into your final profile.',
     curiosityHook:
-      'Continue to Section B to explore where you currently sit across five stages of growth.',
+      'Up next: where you are on your path.',
   },
 
-  // Pillar 2 — Your Growth Journey
+  // Part B — Your Growth Journey
   part_b_stage_1: {
     insightId: 'part_b_stage_1',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 70,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'Every great professional journey starts with discovery.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Every great journey starts with curiosity.',
     messageTemplate:
-      'Your answers show that you’re actively exploring your interests and possibilities. You’re at a point where clarity about your direction can make a meaningful difference.',
+      'You’re actively exploring your interests and options right now. Finding clear direction here goes a long way.',
     curiosityHook:
-      'Next, Section C separates what you understand conceptually from what you’ve practiced hands-on across six capabilities.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_stage_2: {
     insightId: 'part_b_stage_2',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 70,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'You’re building your professional foundation.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’re building your footing.',
     messageTemplate:
-      'You’re investing in the knowledge and capabilities that can help turn your interests into something practical. That’s an important part of your journey.',
+      'You’re putting time into core habits and know-how that turn curiosity into real skill.',
     curiosityHook:
-      'Next, Section C examines where your understanding and practical exposure already align—or diverge.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_stage_3: {
     insightId: 'part_b_stage_3',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 70,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'You’re moving beyond learning.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’re moving from learning into doing.',
     messageTemplate:
-      'Your responses suggest that you’re beginning to put what you know into practice. This is where experience starts turning knowledge into something you can demonstrate.',
+      'You’re starting to put ideas to work on real briefs—where know-how turns into work you can point to.',
     curiosityHook:
-      'Next, see which of the six media and marketing pillars show your strongest hands-on momentum.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_stage_4: {
     insightId: 'part_b_stage_4',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 70,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'You’re building evidence of what you can do.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’re building real proof of what you can do.',
     messageTemplate:
-      'Your answers reflect a focus on experience, credibility and professional visibility. You’re working towards having something tangible that speaks for your capabilities.',
+      'Your focus is on track record, craft, and work that speaks for itself.',
     curiosityHook:
-      'Next, discover where your situational judgment and practical repetition stand across all six pillars.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_stage_5: {
     insightId: 'part_b_stage_5',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 70,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'You’re thinking beyond the basics.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’re pushing past the basics.',
     messageTemplate:
-      'Your responses suggest that you’re looking to deepen your expertise, expand your opportunities and increase the value you create.',
+      'You’re sharpening your edge, taking on bigger calls, and growing the impact of your work.',
     curiosityHook:
-      'Next, pinpoint which pillars offer the sharpest leverage for your next phase of growth.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_mixed_stage: {
     insightId: 'part_b_mixed_stage',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 90,
-    ctaLabel: 'Explore My Strengths',
+    ctaLabel: 'Continue',
     headlineTemplate: '{stageHeadline}',
     messageTemplate: '{stageMessage}',
     curiosityHook:
-      'Section C reveals how that uneven momentum shows up across six specific capability areas.',
+      'Next: what you know and what you’ve done.',
   },
   part_b_fallback: {
     insightId: 'part_b_fallback',
     pillarId: 'growth_journey',
     sectionCode: 'B',
     priority: 10,
-    ctaLabel: 'Explore My Strengths',
-    headlineTemplate: 'Your growth reflections are saved.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Nice. Your path is mapped.',
     messageTemplate:
-      'Your Part B reflections have been recorded and will shape the priorities in your final discovery report.',
+      'Your Part B answers are saved and will help shape your focus areas.',
     curiosityHook:
-      'Continue to Section C to map your strengths and practical exposure.',
+      'Next: what you know and what you’ve done.',
   },
 
-  // Pillar 3 — Your Strengths & Growth Areas
+  // Part C — Your Strengths & Growth Areas
   part_c_strong_both: {
     insightId: 'part_c_strong_both',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 95,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate: 'Now that’s an interesting combination!',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Now that’s a strong combination.',
     messageTemplate:
-      'You’re showing encouraging signs of both understanding and practical application in {capabilityName}. This is an area worth continuing to develop.',
+      'You showed both sharp instincts and real mileage in {capabilityName}. That’s a genuine anchor you can build on.',
     curiosityHook:
-      'One brief section remains before your complete discovery report opens with tailored next-step priorities.',
+      'Just a few quick questions about you left.',
   },
   part_c_understanding_ahead: {
     insightId: 'part_c_understanding_ahead',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 86,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate:
-      'You may know more than you’ve had the chance to demonstrate.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You know more than you’ve had the chance to show.',
     messageTemplate:
-      'Your responses show encouraging understanding in {capabilityName}, while your practical experience is still developing. Putting that knowledge into practice could be your next big opportunity.',
+      'Your instincts on {capabilityName} are ahead of your mileage so far. Putting that know-how onto a real project is a great next move.',
     curiosityHook:
-      'Complete Section D next to unlock your tailored priority roadmap alongside these scores.',
+      'Just a few quick questions about you left.',
   },
   part_c_experience_ahead: {
     insightId: 'part_c_experience_ahead',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 85,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate: 'You’ve been learning by doing.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’ve been learning on your feet.',
     messageTemplate:
-      'Your experience in {capabilityName} appears stronger than your current understanding score. Strengthening the foundations behind what you already do could help you progress further.',
+      'Your hands-on mileage in {capabilityName} runs ahead of the scenario angle here. Stepping back into the principles behind what you do can sharpen it further.',
     curiosityHook:
-      'Finish Section D to bring your practical track record together with your working style and growth stage.',
+      'Just a few quick questions about you left.',
   },
   part_c_balanced_spread: {
     insightId: 'part_c_balanced_spread',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 70,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate: 'Your interests stretch across more than one area.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'You’re steady across more than one area.',
     messageTemplate:
-      'Your responses show a relatively balanced pattern across several capabilities, including {capabilityName}. You may enjoy exploring how these areas work together.',
+      'Your answers sit in an even groove across several strengths, including {capabilityName}. Seeing how they pair up will help you choose your focus.',
     curiosityHook:
-      'Section D connects this breadth to your current goals and opens your complete report.',
+      'Just a few quick questions about you left.',
   },
   part_c_development_opportunity: {
     insightId: 'part_c_development_opportunity',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 60,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate: 'Here’s an area worth exploring.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Here’s a fresh space worth exploring.',
     messageTemplate:
-      '{capabilityName} currently appears to offer room for further development in both understanding and experience. This gives you a useful starting point for your next steps.',
+      '{capabilityName} has plenty of open room for both know-how and practice—a great place to start building new range.',
     curiosityHook:
-      'Finish Section D next to reveal concrete ways to build momentum here immediately.',
+      'Just a few quick questions about you left.',
   },
   part_c_fallback: {
     insightId: 'part_c_fallback',
     pillarId: 'strengths_growth',
     sectionCode: 'C',
     priority: 10,
-    ctaLabel: 'See What’s Next for Me',
-    headlineTemplate: 'Your six capability snapshots are captured.',
+    ctaLabel: 'Continue',
+    headlineTemplate: 'Strengths done. One last stretch.',
     messageTemplate:
-      'Your understanding and practical experience responses across Section C are saved for your final discovery report.',
+      'Your answers from Part C are saved and ready for your final profile.',
     curiosityHook:
-      'Continue to the final section to open your complete report.',
+      'Just a few quick questions about you left.',
   },
 
-  // Pillar 4 — Profile & Next Steps
+  // Part D — Profile & Next Steps
   part_d_consultation_requested: {
     insightId: 'part_d_consultation_requested',
     pillarId: 'profile_next_steps',
     sectionCode: 'D',
     priority: 90,
-    ctaLabel: 'Reveal My Professional Discovery Report',
-    headlineTemplate: 'Your discovery is ready.',
+    ctaLabel: 'Reveal my profile',
+    headlineTemplate: 'Your profile is in.',
     messageTemplate:
-      'You’ve explored how you contribute, reflected on your professional journey and identified areas where you can grow. We’ve brought your responses together into a personal discovery report.',
+      'You’ve mapped how you work, where you are on your path, and where to build next. Everything is ready below.',
     curiosityHook:
-      'Your consultation request is recorded—and your full report is ready to explore immediately below.',
+      'Your full profile is open right below.',
   },
   part_d_self_directed: {
     insightId: 'part_d_self_directed',
     pillarId: 'profile_next_steps',
     sectionCode: 'D',
     priority: 80,
-    ctaLabel: 'Reveal My Professional Discovery Report',
-    headlineTemplate: 'Your discovery is ready.',
+    ctaLabel: 'Reveal my profile',
+    headlineTemplate: 'Your profile is in.',
     messageTemplate:
-      'You’ve explored how you contribute, reflected on your professional journey and identified areas where you can grow. We’ve brought your responses together into a personal discovery report.',
+      'You’ve mapped how you work, where you are on your path, and where to build next. Everything is ready below.',
     curiosityHook:
-      'Open your full report below for your complete style breakdown, growth map, and self-directed priorities.',
+      'Your full profile is open right below.',
   },
 };
 
 export const MIXED_STAGE_OBSERVATION =
-  'There’s an interesting difference between the stages of your journey. Some areas appear further developed than others, which gives us a more useful picture of where your next growth opportunity may lie.';
+  'You’re between stages—some parts of your work feel well ahead while others are still warming up. That contrast makes it clearer where to focus next.';
 
 export interface PartAMetricsSummary {
   partAConfigApproved: boolean;
@@ -434,19 +433,19 @@ export const pillarInsightRules: PillarInsightRule[] = [
         ctaLabel: tmpl.ctaLabel,
         primaryMetric: {
           id: 'part_a_responses_captured',
-          label: 'Section A scenarios',
+          label: 'Part A scenarios',
           value: a.answeredCount,
           max: Math.max(1, a.totalQuestions),
           displayValue: `${a.answeredCount} / ${Math.max(1, a.totalQuestions)}`,
-          sublabel: 'Awaiting style mapping approval',
+          sublabel: 'Responses saved',
           tone: 'muted',
           isPending: true,
         },
         previewSummary: {
-          unlockedLabel: 'Part A choices captured',
-          unlockedDetail: `${a.answeredCount} of ${a.totalQuestions} scenario preferences recorded`,
+          unlockedLabel: 'Part A choices saved',
+          unlockedDetail: `${a.answeredCount} of ${a.totalQuestions} scenario instincts recorded`,
           obscuredHint:
-            'Style classification remains hidden until KWS Academy approves the final option mapping.',
+            'Your working style profile opens right after Part D.',
           partAConfigApproved: false,
         },
         isFallback: false,
@@ -782,15 +781,15 @@ export const pillarInsightRules: PillarInsightRule[] = [
           value: b.roundedStageLevel,
           max: GROWTH_STAGES.length,
           displayValue: `Stage ${b.roundedStageLevel} / ${GROWTH_STAGES.length}`,
-          sublabel: 'Reflects development focus, not personal worth',
+          sublabel: 'Where you are focused right now',
           tone: 'accent',
           segments: GROWTH_STAGES.length,
         },
         previewSummary: {
-          unlockedLabel: `Provisional stage: ${b.stageName}`,
-          unlockedDetail: `Mean ${b.unroundedAverage.toFixed(2)} across four scored reflections (spread ${b.spread})`,
+          unlockedLabel: `Your stage: ${b.stageName}`,
+          unlockedDetail: `Average ${b.unroundedAverage.toFixed(2)} across your four path reflections`,
           obscuredHint:
-            'Your stage progression direction and 12-month priority unlock in the full report.',
+            'Your full path map and next focus areas open at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -825,15 +824,15 @@ export const pillarInsightRules: PillarInsightRule[] = [
             value: b.roundedStageLevel,
             max: GROWTH_STAGES.length,
             displayValue: `Stage ${b.roundedStageLevel} / ${GROWTH_STAGES.length}`,
-            sublabel: 'Reflects development focus, not personal worth',
+            sublabel: 'Where you are focused right now',
             tone: 'accent',
             segments: GROWTH_STAGES.length,
           },
           previewSummary: {
-            unlockedLabel: `Provisional stage: ${b.stageName}`,
-            unlockedDetail: `Closely aligned around Stage ${b.roundedStageLevel} (${b.stageName})`,
+            unlockedLabel: `Your stage: ${b.stageName}`,
+            unlockedDetail: `Seated steadily around Stage ${b.roundedStageLevel} (${b.stageName})`,
             obscuredHint:
-              'Your suggested progress direction and challenge alignment unlock in the full report.',
+              'Your full path map and focus areas open at the end.',
             partAConfigApproved: true,
           },
           isFallback: false,
@@ -868,14 +867,14 @@ export const pillarInsightRules: PillarInsightRule[] = [
           value: level,
           max: 5,
           displayValue: `Stage ${level} / 5`,
-          sublabel: 'Reflects development focus, not personal worth',
+          sublabel: 'Where you are focused right now',
           tone: 'muted',
           segments: 5,
         },
         previewSummary: {
-          unlockedLabel: 'Growth reflections saved',
-          unlockedDetail: `Indicative stage: ${name}`,
-          obscuredHint: 'Full progression insight unlocks at completion.',
+          unlockedLabel: 'Path reflections saved',
+          unlockedDetail: `Current stage: ${name}`,
+          obscuredHint: 'Full discovery insights open at completion.',
           partAConfigApproved: true,
         },
         isFallback: true,
@@ -909,27 +908,27 @@ export const pillarInsightRules: PillarInsightRule[] = [
         spotlightLabel: leader.name,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: c.understandingTotal,
           max: c.maxUnderstanding,
           displayValue: `${c.understandingTotal} / ${c.maxUnderstanding}`,
-          sublabel: 'Situational alignment across 6 pillars',
-          tone: 'success',
+          sublabel: 'Scenario instincts across six areas',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: c.experienceTotal,
           max: c.maxExperience,
           displayValue: `${c.experienceTotal} / ${c.maxExperience}`,
-          sublabel: 'Self-reported hands-on track record',
+          sublabel: 'Hands-on mileage so far',
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: `Highlighted pillar: ${leader.name}`,
-          unlockedDetail: `Understanding ${c.understandingTotal}/${c.maxUnderstanding} · Practical experience ${c.experienceTotal}/${c.maxExperience}`,
+          unlockedLabel: `Highlighted strength: ${leader.name}`,
+          unlockedDetail: `What you know ${c.understandingTotal}/${c.maxUnderstanding} · What you’ve done ${c.experienceTotal}/${c.maxExperience}`,
           obscuredHint:
-            'Pillar-by-pillar constructive interpretations and priorities unlock in the full report.',
+            'Your area-by-area notes and focus steps unlock at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -971,27 +970,27 @@ export const pillarInsightRules: PillarInsightRule[] = [
         spotlightLabel: target.name,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: c.understandingTotal,
           max: c.maxUnderstanding,
           displayValue: `${c.understandingTotal} / ${c.maxUnderstanding}`,
-          sublabel: 'Situational alignment across 6 pillars',
-          tone: 'success',
+          sublabel: 'Scenario instincts across six areas',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: c.experienceTotal,
           max: c.maxExperience,
           displayValue: `${c.experienceTotal} / ${c.maxExperience}`,
-          sublabel: 'Hands-on application opportunity',
+          sublabel: 'Room to add more practice',
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: `Opportunity gap: ${target.name}`,
-          unlockedDetail: `Understanding ${c.understandingTotal}/${c.maxUnderstanding} · Practical experience ${c.experienceTotal}/${c.maxExperience}`,
+          unlockedLabel: `Ready for practice: ${target.name}`,
+          unlockedDetail: `What you know ${c.understandingTotal}/${c.maxUnderstanding} · What you’ve done ${c.experienceTotal}/${c.maxExperience}`,
           obscuredHint:
-            'Actionable ways to translate conceptual clarity into hands-on practice unlock at the end.',
+            'Practical ways to turn your instincts into real work unlock at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -1023,16 +1022,16 @@ export const pillarInsightRules: PillarInsightRule[] = [
         spotlightLabel: target.name,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: c.understandingTotal,
           max: c.maxUnderstanding,
           displayValue: `${c.understandingTotal} / ${c.maxUnderstanding}`,
-          sublabel: 'Situational alignment across 6 pillars',
-          tone: 'success',
+          sublabel: 'Scenario instincts across six areas',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: c.experienceTotal,
           max: c.maxExperience,
           displayValue: `${c.experienceTotal} / ${c.maxExperience}`,
@@ -1040,10 +1039,10 @@ export const pillarInsightRules: PillarInsightRule[] = [
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: `Hands-on pillar: ${target.name}`,
-          unlockedDetail: `Understanding ${c.understandingTotal}/${c.maxUnderstanding} · Practical experience ${c.experienceTotal}/${c.maxExperience}`,
+          unlockedLabel: `Hands-on area: ${target.name}`,
+          unlockedDetail: `What you know ${c.understandingTotal}/${c.maxUnderstanding} · What you’ve done ${c.experienceTotal}/${c.maxExperience}`,
           obscuredHint:
-            'Core strategic principles paired with your practical experience unlock at the end.',
+            'Fresh strategic angles to pair with your mileage unlock at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -1068,7 +1067,7 @@ export const pillarInsightRules: PillarInsightRule[] = [
     resolve: (m) => {
       const c = m.partC!;
       const tmpl = insightTemplates.part_c_balanced_spread;
-      const pairLabel = c.balancedPairLabel ?? 'your core media pillars';
+      const pairLabel = c.balancedPairLabel ?? 'your core media areas';
       return {
         insightId: tmpl.insightId,
         pillarId: tmpl.pillarId,
@@ -1084,27 +1083,27 @@ export const pillarInsightRules: PillarInsightRule[] = [
         spotlightLabel: pairLabel,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: c.understandingTotal,
           max: c.maxUnderstanding,
           displayValue: `${c.understandingTotal} / ${c.maxUnderstanding}`,
-          sublabel: 'Situational alignment across 6 pillars',
-          tone: 'success',
+          sublabel: 'Scenario instincts across six areas',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: c.experienceTotal,
           max: c.maxExperience,
           displayValue: `${c.experienceTotal} / ${c.maxExperience}`,
-          sublabel: 'Consistent spread across capabilities',
+          sublabel: 'Steady footing across areas',
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: 'Balanced capability foundation',
-          unlockedDetail: `Understanding ${c.understandingTotal}/${c.maxUnderstanding} · Practical experience ${c.experienceTotal}/${c.maxExperience}`,
+          unlockedLabel: 'Balanced strength footing',
+          unlockedDetail: `What you know ${c.understandingTotal}/${c.maxUnderstanding} · What you’ve done ${c.experienceTotal}/${c.maxExperience}`,
           obscuredHint:
-            'Side-by-side capability comparison and priority recommendations unlock at the end.',
+            'Side-by-side strengths and focus ideas unlock at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -1136,27 +1135,27 @@ export const pillarInsightRules: PillarInsightRule[] = [
         spotlightLabel: target.name,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: c.understandingTotal,
           max: c.maxUnderstanding,
           displayValue: `${c.understandingTotal} / ${c.maxUnderstanding}`,
-          sublabel: 'Situational alignment across 6 pillars',
-          tone: 'success',
+          sublabel: 'Scenario instincts across six areas',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: c.experienceTotal,
           max: c.maxExperience,
           displayValue: `${c.experienceTotal} / ${c.maxExperience}`,
-          sublabel: 'Early starting foundation',
+          sublabel: 'Fresh room to grow',
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: `Starting focus: ${target.name}`,
-          unlockedDetail: `Understanding ${c.understandingTotal}/${c.maxUnderstanding} · Practical experience ${c.experienceTotal}/${c.maxExperience}`,
+          unlockedLabel: `Fresh focus: ${target.name}`,
+          unlockedDetail: `What you know ${c.understandingTotal}/${c.maxUnderstanding} · What you’ve done ${c.experienceTotal}/${c.maxExperience}`,
           obscuredHint:
-            'Practical starting steps for your priority areas unlock in the final report.',
+            'Simple first steps for your focus areas unlock at the end.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -1188,26 +1187,26 @@ export const pillarInsightRules: PillarInsightRule[] = [
         ctaLabel: tmpl.ctaLabel,
         primaryMetric: {
           id: 'part_c_understanding',
-          label: 'Understanding',
+          label: 'What you know',
           value: u,
           max: maxU,
           displayValue: `${u} / ${maxU}`,
-          sublabel: 'Situational alignment',
-          tone: 'success',
+          sublabel: 'Scenario instincts',
+          tone: 'accent',
         },
         secondaryMetric: {
           id: 'part_c_experience',
-          label: 'Practical experience',
+          label: 'What you’ve done',
           value: e,
           max: maxE,
           displayValue: `${e} / ${maxE}`,
-          sublabel: 'Hands-on exposure',
+          sublabel: 'Hands-on mileage',
           tone: 'gold',
         },
         previewSummary: {
-          unlockedLabel: 'Capabilities recorded',
-          unlockedDetail: `Understanding ${u}/${maxU} · Experience ${e}/${maxE}`,
-          obscuredHint: 'Detailed capability map unlocks in your final report.',
+          unlockedLabel: 'Strengths saved',
+          unlockedDetail: `What you know ${u}/${maxU} · What you’ve done ${e}/${maxE}`,
+          obscuredHint: 'Your full profile unlocks at the end.',
           partAConfigApproved: true,
         },
         isFallback: true,
@@ -1215,7 +1214,7 @@ export const pillarInsightRules: PillarInsightRule[] = [
     },
   },
 
-  // ================= PILLAR 4: PROFILE & NEXT STEPS =================
+  // Part D — Profile & Next Steps
   {
     insightId: 'part_d_consultation_requested',
     pillarId: 'profile_next_steps',
@@ -1235,25 +1234,25 @@ export const pillarInsightRules: PillarInsightRule[] = [
         message: tmpl.messageTemplate,
         curiosityHook:
           d.consultationIntent === 'book'
-            ? 'Your consultation request is saved—and your complete discovery report opens immediately below.'
-            : 'Your information preference is noted—and your complete discovery report opens immediately below.',
+            ? 'We’ve noted you’d like a chat—and your full profile is ready right below.'
+            : 'We’ve noted you’d like more info—and your full profile is ready right below.',
         ctaLabel: tmpl.ctaLabel,
         primaryMetric: {
           id: 'part_d_completion',
-          label: 'Assessment sections',
+          label: 'Discovery parts',
           value: 4,
           max: 4,
           displayValue: '4 / 4',
-          sublabel: 'All discovery pillars completed',
-          tone: 'success',
+          sublabel: 'All four parts complete',
+          tone: 'accent',
           segments: 4,
         },
         previewSummary: {
-          unlockedLabel: 'Complete discovery synthesized',
+          unlockedLabel: 'Profile ready',
           unlockedDetail:
-            'Your working style, growth stage, six capabilities, and priorities are assembled.',
+            'Your working style, path stage, six strengths, and focus ideas are ready.',
           obscuredHint:
-            'Click below to reveal your complete interactive report immediately.',
+            'Click below to reveal your full profile.',
           partAConfigApproved: true,
         },
         isFallback: false,
@@ -1280,20 +1279,20 @@ export const pillarInsightRules: PillarInsightRule[] = [
         ctaLabel: tmpl.ctaLabel,
         primaryMetric: {
           id: 'part_d_completion',
-          label: 'Assessment sections',
+          label: 'Discovery parts',
           value: 4,
           max: 4,
           displayValue: '4 / 4',
-          sublabel: 'All discovery pillars completed',
-          tone: 'success',
+          sublabel: 'All four parts complete',
+          tone: 'accent',
           segments: 4,
         },
         previewSummary: {
-          unlockedLabel: 'Complete discovery synthesized',
+          unlockedLabel: 'Profile ready',
           unlockedDetail:
-            'Your working style, growth stage, six capabilities, and priorities are assembled.',
+            'Your working style, path stage, six strengths, and focus ideas are ready.',
           obscuredHint:
-            'Click below to reveal your complete interactive report immediately.',
+            'Click below to reveal your full profile.',
           partAConfigApproved: true,
         },
         isFallback: false,

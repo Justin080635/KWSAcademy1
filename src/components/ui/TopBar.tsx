@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Menu, X } from 'lucide-react';
 import type { AppRoute } from '../../state/useAssessmentSession.ts';
 import { Button } from './Button.tsx';
+import { KWS_DURATIONS, KWS_EASE } from './motionPrimitives.tsx';
 
 interface TopBarProps {
   route: AppRoute;
@@ -54,7 +55,7 @@ export function TopBar({
       return (
         <>
           <span className="sm:hidden">Home</span>
-          <span className="hidden sm:inline">Assessment Home</span>
+          <span className="hidden sm:inline">Discovery Home</span>
         </>
       );
     }
@@ -62,32 +63,32 @@ export function TopBar({
       return (
         <>
           <span className="sm:hidden">Overview</span>
-          <span className="hidden sm:inline">Assessment Overview</span>
+          <span className="hidden sm:inline">Discovery Overview</span>
         </>
       );
     }
     if (lastSubmissionId && route.view !== 'results') {
-      return 'View Results';
+      return 'See My Profile';
     }
     if (hasStarted) {
       return (
         <>
           <span>Continue</span>
-          <span className="hidden min-[380px]:inline"> Assessment</span>
+          <span className="hidden min-[380px]:inline"> discovery</span>
         </>
       );
     }
     return (
       <>
         <span>Start</span>
-        <span className="hidden min-[380px]:inline"> Assessment</span>
+        <span className="hidden min-[380px]:inline"> discovering</span>
       </>
     );
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--kws-border)] bg-[var(--kws-surface)]/95 backdrop-blur-md">
-      <div className="mx-auto flex min-h-[56px] max-w-[1200px] items-center justify-between gap-3 px-4 py-2.5 sm:gap-4 sm:px-6 sm:py-3 lg:gap-8 lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-[var(--kws-border)]/75 bg-[var(--kws-surface)]/85 backdrop-blur-md">
+      <div className="mx-auto flex min-h-[52px] max-w-[1200px] items-center justify-between gap-3 px-4 py-2 sm:px-6 sm:py-2.5 lg:gap-8 lg:px-8">
         {/* Zone 1: Single-line Brand Wordmark */}
         <a
           href="/"
@@ -123,17 +124,17 @@ export function TopBar({
             }}
             className="hover:text-[var(--kws-ink)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Four Sections
+            What You’ll Discover
           </a>
           <a
-            href="/#archetypes"
+            href="/#faq"
             onClick={(e) => {
               e.preventDefault();
-              navigateAndClose({ area: 'respondent', view: 'welcome' }, 'archetypes');
+              navigateAndClose({ area: 'respondent', view: 'welcome' }, 'faq');
             }}
             className="hover:text-[var(--kws-ink)] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
-            Professional Styles
+            Good to Know
           </a>
         </nav>
 
@@ -143,7 +144,7 @@ export function TopBar({
             variant="primary"
             size="md"
             onClick={handlePrimaryAction}
-            className="px-3.5 text-xs sm:px-4 sm:text-sm"
+            className="min-h-[38px] px-4 py-1.5 text-xs sm:min-h-[40px] sm:px-4 sm:text-sm"
           >
             {renderCtaContent()}
           </Button>
@@ -152,7 +153,7 @@ export function TopBar({
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((prev) => !prev)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] text-[var(--kws-ink)] hover:bg-[var(--kws-surface-subtle)] cursor-pointer lg:hidden"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] text-[var(--kws-ink)] transition-colors hover:bg-[var(--kws-surface-subtle)] cursor-pointer lg:hidden"
           >
             {menuOpen ? (
               <X className="h-4 w-4" aria-hidden="true" />
@@ -171,7 +172,7 @@ export function TopBar({
             initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: KWS_DURATIONS.fast, ease: KWS_EASE }}
             className="border-t border-[var(--kws-border)] bg-[var(--kws-surface)] px-4 py-3 sm:px-6 lg:hidden"
           >
             <div className="mx-auto flex max-w-[1200px] flex-col gap-1 text-sm font-medium">
@@ -193,17 +194,17 @@ export function TopBar({
                 }}
                 className="flex min-h-[44px] items-center rounded-lg px-3 py-2 text-[var(--kws-muted)] hover:bg-[var(--kws-surface-subtle)] hover:text-[var(--kws-ink)]"
               >
-                Four Sections
+                What You’ll Discover
               </a>
               <a
-                href="/#archetypes"
+                href="/#faq"
                 onClick={(e) => {
                   e.preventDefault();
-                  navigateAndClose({ area: 'respondent', view: 'welcome' }, 'archetypes');
+                  navigateAndClose({ area: 'respondent', view: 'welcome' }, 'faq');
                 }}
                 className="flex min-h-[44px] items-center rounded-lg px-3 py-2 text-[var(--kws-muted)] hover:bg-[var(--kws-surface-subtle)] hover:text-[var(--kws-ink)]"
               >
-                Professional Styles
+                Good to Know
               </a>
             </div>
           </motion.nav>

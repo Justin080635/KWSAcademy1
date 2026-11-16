@@ -2,8 +2,9 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
+  allowWrap?: boolean;
   children: ReactNode;
 }
 
@@ -11,25 +12,29 @@ export function Button({
   variant = 'primary',
   size = 'md',
   loading = false,
+  allowWrap = false,
   disabled,
   className = '',
   children,
   type = 'button',
   ...rest
 }: ButtonProps) {
-  const base =
-    'inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap shrink-0 rounded-lg transition-all duration-150 ease-out cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed active:scale-[0.99]';
+  const base = `group inline-flex items-center justify-center gap-2 font-semibold ${
+    allowWrap ? 'whitespace-normal text-center leading-snug' : 'whitespace-nowrap'
+  } shrink-0 rounded-full transition-[transform,box-shadow,background-color,border-color,color,opacity,filter] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed disabled:transform-none active:scale-[0.975]`;
 
   const sizing =
     size === 'lg'
-      ? 'px-6 py-3 text-base min-h-[46px]'
-      : 'px-4 py-2 text-sm min-h-[40px]';
+      ? 'px-7 py-3.5 text-base min-h-[48px]'
+      : size === 'sm'
+        ? 'px-4 py-2 text-xs min-h-[36px]'
+        : 'px-5 py-2.5 text-sm min-h-[42px]';
 
   const variants = {
     primary:
-      'bg-[var(--kws-accent)] text-[var(--kws-accent-fg)] hover:bg-[var(--kws-accent-hover)] shadow-xs',
+      'bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-[0_10px_24px_-8px_rgba(43,59,196,0.45)] hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_14px_28px_-8px_rgba(43,59,196,0.55)]',
     secondary:
-      'bg-[var(--kws-surface)] text-[var(--kws-ink)] border border-[var(--kws-border-strong)] hover:border-[var(--kws-accent)] hover:bg-[var(--kws-surface-subtle)]',
+      'bg-[var(--kws-surface)] text-[var(--kws-ink)] border border-[var(--kws-border-strong)] hover:-translate-y-0.5 hover:border-[var(--kws-accent)] hover:bg-[var(--kws-surface-subtle)] hover:shadow-xs',
     ghost:
       'bg-transparent text-[var(--kws-muted)] hover:text-[var(--kws-ink)] hover:bg-[var(--kws-surface-subtle)]',
   };

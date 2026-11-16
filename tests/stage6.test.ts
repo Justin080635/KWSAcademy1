@@ -17,7 +17,7 @@ function buildCompleteAnswers(overrides?: {
 }): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_1',
+      style_q01: 'style_q01_opt_6',
       style_q02: 'style_q02_opt_2',
       style_q03: 'style_q03_opt_3',
       style_q04: 'style_q04_opt_4',
@@ -168,14 +168,14 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
               eventType: 'answer_selected',
               sectionId: 'professional_style',
               questionId: 'style_q01',
-              optionId: 'style_q01_opt_1',
+              optionId: 'style_q01_opt_6',
             },
             {
               eventType: 'answer_changed',
               sectionId: 'professional_style',
               questionId: 'style_q01',
-              optionId: 'style_q01_opt_2',
-              previousOptionId: 'style_q01_opt_1',
+              optionId: 'style_q01_opt_3',
+              previousOptionId: 'style_q01_opt_6',
             },
             {
               eventType: 'continue_clicked',
@@ -254,7 +254,7 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
       body: JSON.stringify({
         mode: 'draft',
         answers: {
-          selections: { style_q01: 'style_q01_opt_1' },
+          selections: { style_q01: 'style_q01_opt_6' },
           otherText: {},
           contact: {
             fullName: '',
@@ -1013,7 +1013,14 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
         'Content-Type': 'application/json',
         Cookie: adminCookie,
       },
-      body: JSON.stringify({ ...currentScoring, approved: true }),
+      body: JSON.stringify({
+        ...currentScoring,
+        approved: true,
+        optionToStyle: {
+          ...currentScoring.optionToStyle,
+          style_q01_opt_6: null,
+        },
+      }),
     });
     assert.equal(badApprove.status, 400);
 
@@ -1062,9 +1069,9 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
     const manualSubData = (await manualSubRes.json()) as {
       record: { id: string; result: { professionalStyle: { status: string; styleScores: unknown[] } } };
     };
-    // Part A matrix is now approved -> complete style calculated, but public record strips styleScores
+    // Part A matrix is now approved -> complete style calculated with 6 aggregate style counts
     assert.equal(manualSubData.record.result.professionalStyle.status, 'complete');
-    assert.equal(manualSubData.record.result.professionalStyle.styleScores.length, 0);
+    assert.equal(manualSubData.record.result.professionalStyle.styleScores.length, 6);
 
     await fetch(
       `${ctx.baseUrl}/api/admin/consultations/${manualSubData.record.id}`,

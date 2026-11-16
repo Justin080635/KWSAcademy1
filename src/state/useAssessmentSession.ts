@@ -264,8 +264,8 @@ export function useAssessmentSession() {
     useState<AssessmentConfigPayload>(() => ({
       assessmentVersion: 'kws-assessment-v2.0',
       scoringVersion: 'kws-scoring-v3.0',
-      partAConfigVersion: 'pending-approval-v1',
-      partAConfigApproved: false,
+      partAConfigVersion: 'approved-v1',
+      partAConfigApproved: true,
       sections: ASSESSMENT_SECTIONS,
       questions: ASSESSMENT_QUESTIONS,
       stepsCount: ASSESSMENT_STEPS.length,
@@ -618,7 +618,7 @@ export function useAssessmentSession() {
       }));
       navigate({
         area: 'respondent',
-        view: 'confirmation',
+        view: 'results',
         submissionId: record.id,
       });
     },

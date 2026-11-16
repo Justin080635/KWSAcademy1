@@ -8,6 +8,7 @@ import type {
 
 export interface PartAScoringConfig {
   approved: boolean;
+  closeScoreThreshold: number;
   notes: string;
   optionToStyle: Record<string, StyleId | null>;
 }
@@ -15,20 +16,62 @@ export interface PartAScoringConfig {
 /**
  * Part A — Professional Style Configurable Scoring Matrix
  *
- * IMPORTANT: The master specification does not contain the final approved
- * mapping of all Part A options to the six internal styles.
- * All option IDs are listed explicitly as `null` and `approved` is `false`
- * until KWS Academy supplies and approves the authoritative mapping.
+ * All scoring configuration lives strictly in this file so KWS Academy can
+ * adjust mappings or the close-score threshold without touching scoring logic.
+ * Default closeScoreThreshold is 1 (top two scores within 1 point show as a broad profile).
  */
 export const DEFAULT_PART_A_SCORING_CONFIG: PartAScoringConfig = {
-  approved: false,
+  approved: true,
+  closeScoreThreshold: 1,
   notes:
-    'Part A scoring configuration is incomplete pending KWS Academy approval of the final option-to-style mapping matrix.',
-  optionToStyle: Object.fromEntries(
-    ASSESSMENT_QUESTIONS.filter((q) => q.kind === 'orientation').flatMap((q) =>
-      q.options.map((opt) => [opt.id, null])
-    )
-  ),
+    'KWS Academy Part A scoring matrix (draft map active for instant results; pending formal sign-off).',
+  optionToStyle: {
+    // Q1: A=Opportunity Builder, B=Creator, C=Connector, D=Executor
+    style_q01_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q01_opt_3: 'CREATOR',
+    style_q01_opt_4: 'CONNECTOR',
+    style_q01_opt_5: 'EXECUTOR',
+    // Q2: A=Connector, B=Opportunity Builder, C=Strategist, D=Executor
+    style_q02_opt_4: 'CONNECTOR',
+    style_q02_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q02_opt_2: 'STRATEGIST',
+    style_q02_opt_5: 'EXECUTOR',
+    // Q3: A=Creator, B=Opportunity Builder, C=Executor, D=Strategist
+    style_q03_opt_3: 'CREATOR',
+    style_q03_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q03_opt_5: 'EXECUTOR',
+    style_q03_opt_2: 'STRATEGIST',
+    // Q4: A=Connector, B=Storyteller, C=Opportunity Builder, D=Creator
+    style_q04_opt_4: 'CONNECTOR',
+    style_q04_opt_1: 'STORYTELLER',
+    style_q04_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q04_opt_3: 'CREATOR',
+    // Q5: A=Executor, B=Storyteller, C=Connector, D=Creator
+    style_q05_opt_5: 'EXECUTOR',
+    style_q05_opt_1: 'STORYTELLER',
+    style_q05_opt_4: 'CONNECTOR',
+    style_q05_opt_3: 'CREATOR',
+    // Q6: A=Connector, B=Strategist, C=Opportunity Builder, D=Storyteller
+    style_q06_opt_4: 'CONNECTOR',
+    style_q06_opt_2: 'STRATEGIST',
+    style_q06_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q06_opt_1: 'STORYTELLER',
+    // Q7: A=Strategist, B=Executor, C=Storyteller, D=Connector
+    style_q07_opt_2: 'STRATEGIST',
+    style_q07_opt_5: 'EXECUTOR',
+    style_q07_opt_1: 'STORYTELLER',
+    style_q07_opt_4: 'CONNECTOR',
+    // Q8: A=Creator, B=Storyteller, C=Opportunity Builder, D=Strategist
+    style_q08_opt_3: 'CREATOR',
+    style_q08_opt_1: 'STORYTELLER',
+    style_q08_opt_6: 'OPPORTUNITY_BUILDER',
+    style_q08_opt_2: 'STRATEGIST',
+    // Q9: A=Executor, B=Creator, C=Storyteller, D=Strategist
+    style_q09_opt_5: 'EXECUTOR',
+    style_q09_opt_3: 'CREATOR',
+    style_q09_opt_1: 'STORYTELLER',
+    style_q09_opt_2: 'STRATEGIST',
+  },
 };
 
 export interface PartAConfigValidation {

@@ -11,6 +11,11 @@ import type {
 import { useQuestionTiming } from '../../state/useQuestionTiming.ts';
 import { Button } from '../ui/Button.tsx';
 import { Surface } from '../ui/Surface.tsx';
+import {
+  KWS_DURATIONS,
+  KWS_EASE,
+  KWS_SPRING,
+} from '../ui/motionPrimitives.tsx';
 
 interface CapabilityCardViewProps {
   card: CapabilityCardDefinition;
@@ -50,10 +55,12 @@ export function CapabilityCardView({
       ? 'experience'
       : 'understanding'
   );
+  const [showMissingHint, setShowMissingHint] = useState(false);
   const subDirectionRef = useRef<1 | -1>(1);
 
   useEffect(() => {
     subDirectionRef.current = 1;
+    setShowMissingHint(false);
     setSubStep(
       selectedUnderstanding && selectedExperience
         ? 'experience'
@@ -66,6 +73,12 @@ export function CapabilityCardView({
       ? card.understandingQuestion
       : card.experienceQuestion;
   const activeSelection = answers.selections[activeQuestion.id];
+
+  useEffect(() => {
+    if (activeSelection) {
+      setShowMissingHint(false);
+    }
+  }, [activeSelection]);
 
   const handleLeaveAbandon = useCallback(
     (payload: {
@@ -102,6 +115,7 @@ export function CapabilityCardView({
   }, [activeQuestion.id, onEmitTelemetry]);
 
   const handleBack = () => {
+    setShowMissingHint(false);
     const timing = getTimingSnapshot();
     markProgressed();
     onEmitTelemetry?.([
@@ -125,7 +139,11 @@ export function CapabilityCardView({
   const handleContinue = () => {
     const timing = getTimingSnapshot();
     if (subStep === 'understanding') {
-      if (!selectedUnderstanding) return;
+      if (!selectedUnderstanding) {
+        setShowMissingHint(true);
+        return;
+      }
+      setShowMissingHint(false);
       markProgressed();
       onEmitTelemetry?.([
         {
@@ -140,10 +158,19 @@ export function CapabilityCardView({
       ]);
       subDirectionRef.current = 1;
       setSubStep('experience');
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      if (typeof window !== 'undefined' && window.scrollY > 24) {
+        window.scrollTo({
+          top: 0,
+          behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        });
+      }
       return;
     }
-    if (!selectedUnderstanding || !selectedExperience) return;
+    if (!selectedUnderstanding || !selectedExperience) {
+      setShowMissingHint(true);
+      return;
+    }
+    setShowMissingHint(false);
     markProgressed();
     onEmitTelemetry?.([
       {
@@ -160,203 +187,224 @@ export function CapabilityCardView({
   };
 
   return (
-    <Surface className="p-3.5 sm:p-7">
-      {/* Capability Card Header */}
-      <div className="border-b border-[var(--kws-border)] pb-2.5 sm:pb-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-1.5 sm:gap-2">
-          <p className="font-mono-tabular text-[11px] font-semibold text-[var(--kws-accent)] sm:text-xs">
-            Capability {card.index} of {totalCards}
+    <div>
+      <Surface className="rounded-[24px] p-6 sm:p-8">
+        {/* Card Header with locked capability name */}
+        <div className="border-b border-[var(--kws-border)] pb-4 sm:pb-5">
+          <p className="text-xs font-medium tabular-nums text-[var(--kws-muted)]">
+            Part C · {card.index} of {totalCards}
           </p>
-          <p className="hidden text-xs text-[var(--kws-muted)] sm:block">
-            Understanding &amp; Practical Experience are distinct dimensions
-          </p>
-        </div>
 
-        <h2 className="mt-1 font-display text-base font-bold text-[var(--kws-ink)] sm:mt-1.5 sm:text-2xl">
-          {card.pillar.name}
-        </h2>
+          <h2 className="mt-1.5 font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl">
+            {card.pillar.name}
+          </h2>
 
-        {/* Sequential Two-Dimension Stepper inside Card */}
-        <div
-          role="tablist"
-          aria-label="Capability dimensions"
-          className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-lg bg-[var(--kws-bg)] p-1 sm:mt-4 sm:gap-2"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={subStep === 'understanding'}
-            onClick={() => {
-              subDirectionRef.current = -1;
-              setSubStep('understanding');
-            }}
-            className={`flex min-h-[36px] items-center justify-between gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[11px] font-semibold transition-colors cursor-pointer sm:min-h-[44px] sm:px-3 sm:py-2 sm:text-xs ${
-              subStep === 'understanding'
-                ? 'bg-[var(--kws-surface)] text-[var(--kws-ink)] shadow-xs'
-                : 'text-[var(--kws-muted)] hover:text-[var(--kws-ink)]'
-            }`}
+          {/* Sequential Two-Step Tabs (plain labels, gliding pill indicator) */}
+          <div
+            role="tablist"
+            aria-label="Strength card steps"
+            className="mt-4 grid grid-cols-2 gap-1.5 rounded-full border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-1"
           >
-            <span className="truncate">A. Understanding</span>
-            {selectedUnderstanding && (
-              <CheckCircle2
-                className="h-3.5 w-3.5 shrink-0 text-[var(--kws-success)]"
-                aria-hidden="true"
-              />
-            )}
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={subStep === 'experience'}
-            disabled={!selectedUnderstanding}
-            onClick={() => {
-              if (selectedUnderstanding) {
-                subDirectionRef.current = 1;
-                setSubStep('experience');
-              }
-            }}
-            className={`flex min-h-[36px] items-center justify-between gap-1.5 rounded-md px-2.5 py-1.5 text-left text-[11px] font-semibold transition-colors sm:min-h-[44px] sm:px-3 sm:py-2 sm:text-xs ${
-              !selectedUnderstanding
-                ? 'cursor-not-allowed text-[var(--kws-muted)]/50'
-                : subStep === 'experience'
-                  ? 'bg-[var(--kws-surface)] text-[var(--kws-ink)] shadow-xs cursor-pointer'
-                  : 'text-[var(--kws-muted)] hover:text-[var(--kws-ink)] cursor-pointer'
-            }`}
-          >
-            <span className="truncate">
-              <span className="sm:hidden">B. Experience</span>
-              <span className="hidden sm:inline">B. Practical Experience</span>
-            </span>
-            {selectedExperience && (
-              <CheckCircle2
-                className="h-3.5 w-3.5 shrink-0 text-[var(--kws-success)]"
-                aria-hidden="true"
-              />
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Active Dimension Prompt & Options */}
-      <div className="mt-3 overflow-hidden sm:mt-5">
-        <AnimatePresence mode="wait" initial={false} custom={subDirectionRef.current}>
-          <motion.div
-            key={activeQuestion.id}
-            custom={subDirectionRef.current}
-            initial={
-              prefersReducedMotion
-                ? { opacity: 1 }
-                : { opacity: 0, x: subDirectionRef.current * 24 }
-            }
-            animate={{ opacity: 1, x: 0 }}
-            exit={
-              prefersReducedMotion
-                ? { opacity: 1 }
-                : { opacity: 0, x: subDirectionRef.current * -20 }
-            }
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="text-[11px] font-semibold text-[var(--kws-muted)] sm:text-xs">
-              {subStep === 'understanding'
-                ? 'Part A · Understanding scenario'
-                : 'Part B · Your practical experience'}
-            </p>
-
-            <h1 className="mt-1 font-display text-[15px] font-bold leading-snug text-[var(--kws-ink)] sm:mt-1.5 sm:text-xl [text-wrap:balance]">
-              {activeQuestion.prompt}
-            </h1>
-
-            <div
-              role="radiogroup"
-              aria-label={activeQuestion.prompt}
-              className="mt-2.5 space-y-1.5 sm:mt-4 sm:space-y-2.5"
+            <button
+              type="button"
+              role="tab"
+              aria-selected={subStep === 'understanding'}
+              onClick={() => {
+                setShowMissingHint(false);
+                subDirectionRef.current = -1;
+                setSubStep('understanding');
+              }}
+              className={`relative flex min-h-[42px] items-center justify-center rounded-full px-3.5 py-2 text-center text-xs font-semibold transition-colors cursor-pointer sm:min-h-[44px] sm:px-4 ${
+                subStep === 'understanding'
+                  ? 'text-[var(--kws-ink)]'
+                  : 'text-[var(--kws-muted)] hover:text-[var(--kws-ink)]'
+              }`}
             >
-              {activeQuestion.options.map((opt, idx) => {
-                const isSelected = activeSelection === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    onClick={() =>
-                      onSelectOption(
-                        activeQuestion.id,
-                        opt.id,
-                        'strengths_growth'
-                      )
-                    }
-                    className={`group flex w-full min-h-[42px] items-start justify-between gap-2.5 rounded-xl border px-3 py-2 text-left transition-all duration-150 ease-out cursor-pointer active:scale-[0.995] sm:min-h-[52px] sm:gap-3 sm:px-4 sm:py-3.5 ${
-                      isSelected
-                        ? 'border-[var(--kws-accent)] bg-[var(--kws-surface-subtle)] ring-1 ring-[var(--kws-accent)]'
-                        : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2 text-[13px] leading-snug sm:gap-3 sm:text-base sm:leading-relaxed">
-                      <span
-                        className={`mt-0.5 inline-flex min-w-[1.25rem] font-mono-tabular text-xs font-semibold sm:min-w-[1.5rem] sm:text-sm ${
-                          isSelected
-                            ? 'text-[var(--kws-accent)]'
-                            : 'text-[var(--kws-muted)] group-hover:text-[var(--kws-ink)]'
-                        }`}
-                      >
-                        {OPTION_LETTERS[idx]}.
-                      </span>
-                      <span className="text-[var(--kws-ink)]">{opt.label}</span>
-                    </div>
-
-                    {isSelected && (
-                      <motion.span
-                        initial={prefersReducedMotion ? false : { scale: 0.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                        className="mt-0.5 shrink-0"
-                      >
-                        <CheckCircle2
-                          className="h-4 w-4 text-[var(--kws-accent)] sm:h-5 sm:w-5"
-                          aria-hidden="true"
-                        />
-                      </motion.span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Explicit Card Controls (side-by-side on mobile so cards fit above fold) */}
-      <div className="mt-4 grid grid-cols-2 gap-2.5 border-t border-[var(--kws-border)] pt-3 sm:mt-7 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:pt-5">
-        <Button
-          variant="secondary"
-          onClick={handleBack}
-          className="w-full sm:w-auto"
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back
-        </Button>
-
-        <Button
-          variant="primary"
-          onClick={handleContinue}
-          disabled={!activeSelection}
-          className="w-full sm:w-auto"
-        >
-          {subStep === 'understanding' ? (
-            <>
-              <span className="sm:hidden">Next part</span>
-              <span className="hidden sm:inline">
-                Continue to Practical Experience
+              {subStep === 'understanding' && (
+                <motion.span
+                  layoutId={`cap-tab-pill-${card.id}`}
+                  transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
+                  className="absolute inset-0 rounded-full bg-[var(--kws-surface)] shadow-xs"
+                  aria-hidden="true"
+                />
+              )}
+              <span className="relative z-10 truncate">
+                <span className="sm:hidden">What you know</span>
+                <span className="hidden sm:inline">
+                  Understanding · what you know
+                </span>
               </span>
-            </>
-          ) : (
-            'Continue'
-          )}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Button>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              aria-selected={subStep === 'experience'}
+              disabled={!selectedUnderstanding}
+              onClick={() => {
+                if (selectedUnderstanding) {
+                  setShowMissingHint(false);
+                  subDirectionRef.current = 1;
+                  setSubStep('experience');
+                }
+              }}
+              className={`relative flex min-h-[42px] items-center justify-center rounded-full px-3.5 py-2 text-center text-xs font-semibold transition-colors sm:min-h-[44px] sm:px-4 ${
+                !selectedUnderstanding
+                  ? 'cursor-not-allowed text-[var(--kws-muted)]/50'
+                  : subStep === 'experience'
+                    ? 'text-[var(--kws-ink)] cursor-pointer'
+                    : 'text-[var(--kws-muted)] hover:text-[var(--kws-ink)] cursor-pointer'
+              }`}
+            >
+              {subStep === 'experience' && (
+                <motion.span
+                  layoutId={`cap-tab-pill-${card.id}`}
+                  transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
+                  className="absolute inset-0 rounded-full bg-[var(--kws-surface)] shadow-xs"
+                  aria-hidden="true"
+                />
+              )}
+              <span className="relative z-10 truncate">
+                <span className="sm:hidden">What you’ve done</span>
+                <span className="hidden sm:inline">
+                  Experience · what you’ve done
+                </span>
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Active Step Prompt & Options */}
+        <div className="mt-5 overflow-hidden sm:mt-6">
+          <AnimatePresence mode="wait" initial={false} custom={subDirectionRef.current}>
+            <motion.div
+              key={activeQuestion.id}
+              custom={subDirectionRef.current}
+              initial={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 0, x: subDirectionRef.current * 20, scale: 0.988 }
+              }
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={
+                prefersReducedMotion
+                  ? { opacity: 1 }
+                  : { opacity: 0, x: subDirectionRef.current * -16, scale: 0.992 }
+              }
+              transition={{ duration: KWS_DURATIONS.base, ease: KWS_EASE }}
+            >
+              <p className="text-xs font-medium text-[var(--kws-muted)]">
+                {subStep === 'understanding'
+                  ? 'What you know'
+                  : 'What you’ve done'}
+              </p>
+
+              <h1 className="mt-2 font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]">
+                {activeQuestion.prompt}
+              </h1>
+
+              <div
+                role="radiogroup"
+                aria-label={activeQuestion.prompt}
+                className="mt-5 space-y-3"
+              >
+                {activeQuestion.options.map((opt, idx) => {
+                  const isSelected = activeSelection === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() =>
+                        onSelectOption(
+                          activeQuestion.id,
+                          opt.id,
+                          'strengths_growth'
+                        )
+                      }
+                      className={`group flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[20px] border px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[60px] sm:gap-4 sm:px-5 sm:py-4 ${
+                        isSelected
+                          ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-xs'
+                          : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-surface-subtle)]/40 hover:shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 text-sm leading-relaxed sm:gap-3.5 sm:text-base">
+                        <span
+                          className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums transition-[transform,background-color,color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] sm:text-sm ${
+                            isSelected
+                              ? 'scale-105 bg-[image:var(--kws-gradient-btn)] text-[var(--kws-accent-fg)] shadow-xs'
+                              : 'bg-[var(--kws-surface-subtle)] text-[var(--kws-muted)] group-hover:scale-105 group-hover:text-[var(--kws-ink)]'
+                          }`}
+                        >
+                          {OPTION_LETTERS[idx]}
+                        </span>
+                        <span className="font-medium text-[var(--kws-ink)]">
+                          {opt.label}
+                        </span>
+                      </div>
+
+                      {isSelected && (
+                        <motion.span
+                          initial={prefersReducedMotion ? false : { scale: 0.65, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
+                          className="shrink-0"
+                        >
+                          <CheckCircle2
+                            className="h-5 w-5 text-[var(--kws-accent)]"
+                            aria-hidden="true"
+                          />
+                        </motion.span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {showMissingHint && !activeSelection && (
+                <p
+                  role="status"
+                  className="mt-4 text-sm font-medium text-[var(--kws-accent)]"
+                >
+                  Pick an answer to keep going.
+                </p>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </Surface>
+
+      {/* Sticky Bottom Mobile Action Bar */}
+      <div className="sticky bottom-0 z-20 -mx-4 mt-4 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-6 sm:bg-none sm:p-0">
+        <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
+          <Button
+            variant="primary"
+            allowWrap
+            onClick={handleContinue}
+            className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[180px] sm:justify-center"
+          >
+            <span>Continue</span>
+            <ArrowRight
+              className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Button>
+
+          <Button
+            variant="secondary"
+            allowWrap
+            onClick={handleBack}
+            className="w-full min-h-[48px] px-6 sm:w-auto"
+          >
+            <ArrowLeft
+              className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
+              aria-hidden="true"
+            />
+            <span>Back</span>
+          </Button>
+        </div>
       </div>
-    </Surface>
+    </div>
   );
 }

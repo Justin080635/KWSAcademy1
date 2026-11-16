@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import { AdminPortal } from './components/admin/AdminPortal.tsx';
 import { AssessmentQuestionView } from './components/respondent/AssessmentQuestionView.tsx';
 import { ResultsView } from './components/respondent/ResultsView.tsx';
-import { SubmissionConfirmationView } from './components/respondent/SubmissionConfirmationView.tsx';
 import { WelcomeView } from './components/respondent/WelcomeView.tsx';
 import { Footer } from './components/ui/Footer.tsx';
 import { TopBar } from './components/ui/TopBar.tsx';
+import { KWS_DURATIONS, KWS_EASE } from './components/ui/motionPrimitives.tsx';
 import {
   ApiError,
   finalizeDraftSubmission,
@@ -89,92 +90,99 @@ export default function App() {
       setSubmitError(
         err instanceof ApiError
           ? err.message
-          : 'A network error prevented submission. Your answers are preserved—please try again.'
+          : 'That didn’t go through, but your answers are safe. Please try again.'
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const pageTransitionKey =
+    route.area === 'admin'
+      ? `admin-${route.view}`
+      : route.view === 'confirmation' || route.view === 'results'
+        ? `respondent-results-${route.submissionId}`
+        : `respondent-${route.view}`;
+
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--kws-bg)] text-[var(--kws-ink)]">
-      <TopBar
-        route={route}
-        hasStarted={hasStarted}
-        lastSubmissionId={draft.lastSubmissionId}
-        onNavigate={navigate}
-        onStartOrResume={startAssessment}
-      />
+    <MotionConfig reducedMotion="user">
+      <div className="flex min-h-screen flex-col bg-[var(--kws-bg)] text-[var(--kws-ink)]">
+        <TopBar
+          route={route}
+          hasStarted={hasStarted}
+          lastSubmissionId={draft.lastSubmissionId}
+          onNavigate={navigate}
+          onStartOrResume={startAssessment}
+        />
 
-      <main className="flex-1">
-        {route.area === 'admin' ? (
-          <AdminPortal route={route} onNavigate={navigate} />
-        ) : route.view === 'assessment' ? (
-          <AssessmentQuestionView
-            stepIndex={draft.stepIndex}
-            answers={draft.answers}
-            sections={activeSections}
-            steps={steps}
-            questions={activeQuestions}
-            isSubmitting={isSubmitting}
-            submitError={submitError}
-            onSelectOption={selectOption}
-            onChangeOtherText={setOtherText}
-            onUpdateContact={updateContact}
-            onStepChange={setStepIndex}
-            onSubmit={handleSubmitAssessment}
-            onExitToWelcome={() =>
-              navigate({ area: 'respondent', view: 'welcome' })
-            }
-            onEmitTelemetry={emitTelemetry}
-            onAbandonmentBeacon={emitAbandonmentBeacon}
-          />
-        ) : route.view === 'confirmation' ? (
-          <SubmissionConfirmationView
-            submissionId={route.submissionId}
-            record={activeSubmission}
-            onViewResults={() =>
-              navigate({
-                area: 'respondent',
-                view: 'results',
-                submissionId: route.submissionId,
-              })
-            }
-          />
-        ) : route.view === 'results' ? (
-          <ResultsView
-            submissionId={route.submissionId}
-            initialRecord={activeSubmission}
-            onRecordLoaded={setActiveSubmission}
-            onStartNew={restartAssessment}
-            onBackHome={() =>
-              navigate({ area: 'respondent', view: 'welcome' })
-            }
-          />
-        ) : (
-          <WelcomeView
-            hasStarted={hasStarted}
-            answeredCount={answeredCount}
-            lastSubmissionId={draft.lastSubmissionId}
-            sections={activeSections}
-            onStartOrResume={startAssessment}
-            onRestart={restartAssessment}
-            onViewLastResults={(id) =>
-              navigate({
-                area: 'respondent',
-                view: 'results',
-                submissionId: id,
-              })
-            }
-          />
-        )}
-      </main>
+        <main className="flex-1">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pageTransitionKey}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: KWS_DURATIONS.fast, ease: KWS_EASE }}
+            >
+              {route.area === 'admin' ? (
+                <AdminPortal route={route} onNavigate={navigate} />
+              ) : route.view === 'assessment' ? (
+                <AssessmentQuestionView
+                  stepIndex={draft.stepIndex}
+                  answers={draft.answers}
+                  sections={activeSections}
+                  steps={steps}
+                  questions={activeQuestions}
+                  isSubmitting={isSubmitting}
+                  submitError={submitError}
+                  onSelectOption={selectOption}
+                  onChangeOtherText={setOtherText}
+                  onUpdateContact={updateContact}
+                  onStepChange={setStepIndex}
+                  onSubmit={handleSubmitAssessment}
+                  onExitToWelcome={() =>
+                    navigate({ area: 'respondent', view: 'welcome' })
+                  }
+                  onEmitTelemetry={emitTelemetry}
+                  onAbandonmentBeacon={emitAbandonmentBeacon}
+                />
+              ) : route.view === 'confirmation' || route.view === 'results' ? (
+                <ResultsView
+                  submissionId={route.submissionId}
+                  initialRecord={activeSubmission}
+                  onRecordLoaded={setActiveSubmission}
+                  onStartNew={restartAssessment}
+                  onBackHome={() =>
+                    navigate({ area: 'respondent', view: 'welcome' })
+                  }
+                />
+              ) : (
+                <WelcomeView
+                  hasStarted={hasStarted}
+                  answeredCount={answeredCount}
+                  lastSubmissionId={draft.lastSubmissionId}
+                  sections={activeSections}
+                  onStartOrResume={startAssessment}
+                  onRestart={restartAssessment}
+                  onViewLastResults={(id) =>
+                    navigate({
+                      area: 'respondent',
+                      view: 'results',
+                      submissionId: id,
+                    })
+                  }
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      <Footer
-        theme={theme}
-        onThemeChange={setTheme}
-        onNavigate={navigate}
-      />
-    </div>
+        <Footer
+          theme={theme}
+          onThemeChange={setTheme}
+          onNavigate={navigate}
+        />
+      </div>
+    </MotionConfig>
   );
 }
