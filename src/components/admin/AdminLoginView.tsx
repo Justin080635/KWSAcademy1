@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { AlertCircle, KeyRound, Lock, Mail } from 'lucide-react';
-import type { StorageBoundaryStatus } from '../../domain/types.ts';
 import { ApiError, loginAdmin } from '../../services/api.ts';
 import { Button } from '../ui/Button.tsx';
 import { Surface } from '../ui/Surface.tsx';
@@ -9,7 +8,6 @@ interface AdminLoginViewProps {
   authConfigured: boolean;
   accountSignInEnabled: boolean;
   allowlistEnabled: boolean;
-  storageStatus: StorageBoundaryStatus | null;
   onAuthenticated: () => void;
   onReturnToAssessment: () => void;
 }
@@ -18,7 +16,6 @@ export function AdminLoginView({
   authConfigured,
   accountSignInEnabled,
   allowlistEnabled,
-  storageStatus,
   onAuthenticated,
   onReturnToAssessment,
 }: AdminLoginViewProps) {
@@ -73,12 +70,13 @@ export function AdminLoginView({
               className="rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface-subtle)] p-4 text-sm"
             >
               <p className="font-semibold text-[var(--kws-ink)]">
-                Staff authentication is not yet configured
+                Staff access is disabled until a passcode is configured
               </p>
               <p className="mt-1.5 leading-relaxed text-[var(--kws-muted)]">
-                To protect respondent data, staff login requires server-side
-                credentials or staff account entries in the runtime environment
-                rather than hardcoded frontend keys.
+                To keep respondent records private, staff sign-in requires a
+                server-side passcode configured in your environment variables
+                or Secrets (minimum 6 characters). No default password is
+                embedded in the application code.
               </p>
               <div className="mt-3 space-y-1 rounded-md border border-[var(--kws-border)] bg-[var(--kws-surface)] p-3 font-mono-tabular text-xs text-[var(--kws-ink)]">
                 <p>KWS_ADMIN_PASSCODE=your-admin-passcode</p>
@@ -87,11 +85,10 @@ export function AdminLoginView({
                 <p>KWS_STAFF_ALLOWLIST=staff1@kws.org,staff2@kws.org</p>
                 <p>KWS_SESSION_SECRET=random-signing-secret</p>
               </div>
-              {storageStatus && (
-                <p className="mt-3 text-xs text-[var(--kws-muted)]">
-                  Storage boundary: {storageStatus.description}
-                </p>
-              )}
+              <p className="mt-3 text-xs text-[var(--kws-muted)]">
+                Once set in your runtime environment and the server restarts,
+                refresh this page to sign in.
+              </p>
             </div>
 
             <Button variant="secondary" onClick={onReturnToAssessment}>

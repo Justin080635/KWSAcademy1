@@ -399,7 +399,6 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
         authConfigured={authConfigured}
         accountSignInEnabled={accountSignInEnabled}
         allowlistEnabled={allowlistEnabled}
-        storageStatus={storageStatus}
         onAuthenticated={() => {
           loadStatus();
         }}
@@ -710,7 +709,10 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               )}
             </div>
 
-            <nav aria-label="Admin sections" className="mt-3 space-y-1">
+            <nav
+              aria-label="Admin sections"
+              className="mt-3 flex gap-1.5 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0"
+            >
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeSection === item.view;
@@ -721,7 +723,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                     onClick={() =>
                       onNavigate({ area: 'admin', view: item.view })
                     }
-                    className={`flex min-h-[42px] w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    className={`flex min-h-[42px] shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors cursor-pointer whitespace-nowrap lg:w-full ${
                       isActive
                         ? 'bg-[var(--kws-accent)] text-[var(--kws-accent-fg)]'
                         : 'text-[var(--kws-muted)] hover:bg-[var(--kws-surface-subtle)] hover:text-[var(--kws-ink)]'
@@ -734,7 +736,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               })}
             </nav>
 
-            <div className="mt-6 border-t border-[var(--kws-border)] pt-3">
+            <div className="mt-4 border-t border-[var(--kws-border)] pt-3 lg:mt-6">
               <button
                 type="button"
                 onClick={handleLogout}

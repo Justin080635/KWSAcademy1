@@ -307,24 +307,44 @@ export function getRequestSessionAuthenticated(req: Request): boolean {
   return getRequestStaffSession(req).authenticated;
 }
 
-export function setSessionCookie(res: Response, token: string): void {
-  const isProd = process.env.NODE_ENV === 'production';
+function isHttpsRequest(req?: Request): boolean {
+  if (!req) return process.env.NODE_ENV === 'production';
+  if (req.secure) return true;
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  if (typeof forwardedProto === 'string') {
+    return forwardedProto.split(',')[0].trim().toLowerCase() === 'https';
+  }
+  return false;
+}
+
+export function setSessionCookie(
+  res: Response,
+  token: string,
+  req?: Request
+): void {
+  const https = isHttpsRequest(req);
   const flags = [
     `${COOKIE_NAME}=${encodeURIComponent(token)}`,
     'HttpOnly',
     'Path=/',
-    'SameSite=Lax',
+    https ? 'SameSite=None' : 'SameSite=Lax',
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
   ];
-  if (isProd) flags.push('Secure');
+  if (https) flags.push('Secure');
   res.setHeader('Set-Cookie', flags.join('; '));
 }
 
-export function clearSessionCookie(res: Response): void {
-  res.setHeader(
-    'Set-Cookie',
-    `${COOKIE_NAME}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`
-  );
+export function clearSessionCookie(res: Response, req?: Request): void {
+  const https = isHttpsRequest(req);
+  const flags = [
+    `${COOKIE_NAME}=`,
+    'HttpOnly',
+    'Path=/',
+    https ? 'SameSite=None' : 'SameSite=Lax',
+    'Max-Age=0',
+  ];
+  if (https) flags.push('Secure');
+  res.setHeader('Set-Cookie', flags.join('; '));
 }
 
 export function requireStaffAuth(

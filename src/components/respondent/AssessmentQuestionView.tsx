@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Sparkles,
 } from 'lucide-react';
 import {
   ASSESSMENT_QUESTIONS,
@@ -58,37 +57,59 @@ const SECTION_TRANSITION_COPY: Partial<
   Record<
     AssessmentSectionId,
     {
+      stepLabel: string;
       headline: string;
+      insightNote: string;
       capturedNote: string;
+      nextSectionLabel: string;
       anticipationNote: string;
       ctaLabel: string;
     }
   >
 > = {
   professional_style: {
-    headline: 'Your working preferences are captured',
+    stepLabel: 'Milestone 01 of 03 · Section A complete',
+    headline: 'You’ve mapped how you naturally think and decide',
+    insightNote:
+      'Nine quick scenarios reveal more than work habits—they show what you gravitate toward when deadlines compress, briefs stay ambiguous, and teams need direction.',
     capturedNote:
-      'You have completed Section A. Every scenario choice has been saved toward your Professional Style profile.',
+      'Your Part A scenario responses are saved toward your Professional Style profile.',
+    nextSectionLabel: 'Up next · Section B — Your Growth Journey',
     anticipationNote:
-      'Next up is Section B — Your Growth Journey: six brief reflections on what currently matters most in your professional development, challenges, and 12-month goals.',
+      'Six brief reflections on where you stand right now—your learning momentum, what feels stretched today, and what you want the next 12 months to build.',
     ctaLabel: 'Continue to Section B',
   },
   growth_journey: {
-    headline: 'Your growth reflections are saved',
+    stepLabel: 'Milestone 02 of 03 · Section B complete',
+    headline: 'Your direction and 12-month priorities are in focus',
+    insightNote:
+      'Naming what currently slows your growth—alongside what you want most from the year ahead—turns broad ambition into clear criteria for choosing your next step.',
     capturedNote:
-      'Sections A and B are complete. Your current direction, momentum patterns, and 12-month priorities have been recorded.',
+      'Both your working style (Part A) and growth journey reflections (Part B) are saved.',
+    nextSectionLabel: 'Up next · Section C — Your Strengths & Growth Areas',
     anticipationNote:
-      'Next up is Section C — Your Strengths & Growth Areas: six short capability cards pairing real-world scenarios with your hands-on experience.',
+      'Six concise capability cards pairing real-world media and marketing judgment with your hands-on practical experience.',
     ctaLabel: 'Continue to Section C',
   },
   strengths_growth: {
-    headline: 'Your six capability snapshots are ready',
+    stepLabel: 'Milestone 03 of 03 · Section C complete',
+    headline: 'All six capability pillars are captured',
+    insightNote:
+      'Looking at situational judgment alongside hands-on repetition surfaces where your instincts already outpace your toolkit—and which skills will compound fastest next.',
     capturedNote:
-      'You have completed all six capability pillars across situational understanding and practical experience.',
+      'Sections A, B, and C are complete and ready to come together in your discovery report.',
+    nextSectionLabel: 'Final step · Section D — Your Profile & Next Steps',
     anticipationNote:
-      'One short final section remains — Section D — Your Profile & Next Steps: a few context questions and your details so your immediate personalized discovery report can be generated.',
+      'A few brief context questions and your details—then your personalized KWS Discovery Report opens immediately on screen.',
     ctaLabel: 'Continue to Final Section',
   },
+};
+
+const MOBILE_SECTION_LABELS: Record<AssessmentSectionId, string> = {
+  professional_style: 'Style',
+  growth_journey: 'Journey',
+  strengths_growth: 'Strengths',
+  profile_next_steps: 'Next Steps',
 };
 
 export function AssessmentQuestionView({
@@ -113,6 +134,7 @@ export function AssessmentQuestionView({
   const [transitionAfterSection, setTransitionAfterSection] =
     useState<AssessmentSectionId | null>(null);
   const enteredSectionsRef = useRef<Set<AssessmentSectionId>>(new Set());
+  const directionRef = useRef<1 | -1>(1);
 
   const totalSteps = steps.length;
   const safeStepIndex = Math.min(Math.max(stepIndex, 0), Math.max(totalSteps - 1, 0));
@@ -210,16 +232,68 @@ export function AssessmentQuestionView({
     return null;
   }
 
-  // Compute progress fraction within the active section for the 4-section segmented bar
+  // Compute responsive section & overall completion ratios (reacts immediately on option click)
   const sectionSteps = steps.filter(
     (s) => s.sectionId === currentStep.sectionId
   );
   const indexInSection = sectionSteps.findIndex((s) => s.id === currentStep.id);
-  const activeSectionPct = transitionAfterSection
-    ? 100
+
+  let currentStepFraction = 0;
+  if (transitionAfterSection) {
+    currentStepFraction = 1;
+  } else if (currentStep.kind === 'capability_card') {
+    const hasUnderstanding = Boolean(
+      answers.selections[currentStep.card.understandingQuestion.id]
+    );
+    const hasExperience = Boolean(
+      answers.selections[currentStep.card.experienceQuestion.id]
+    );
+    currentStepFraction =
+      hasUnderstanding && hasExperience ? 0.85 : hasUnderstanding ? 0.45 : 0;
+  } else if (canProceed) {
+    currentStepFraction = 0.75;
+  }
+
+  const activeSectionRatio = transitionAfterSection
+    ? 1
     : sectionSteps.length > 0
-      ? Math.round(((indexInSection + 1) / sectionSteps.length) * 100)
+      ? Math.min(
+          1,
+          (indexInSection + Math.max(0.18, currentStepFraction)) /
+            sectionSteps.length
+        )
       : 0;
+  const activeSectionPct = Math.round(activeSectionRatio * 100);
+
+  const overallPct =
+    totalSteps > 0
+      ? transitionAfterSection
+        ? Math.round(((safeStepIndex + 1) / totalSteps) * 100)
+        : Math.max(
+            3,
+            Math.min(
+              100,
+              Math.round(((safeStepIndex + currentStepFraction) / totalSteps) * 100)
+            )
+          )
+      : 0;
+
+  const momentumLabel =
+    overallPct >= 85
+      ? 'Final stretch'
+      : overallPct >= 55
+        ? 'Past halfway'
+        : overallPct >= 25
+          ? 'Building clarity'
+          : 'Finding your rhythm';
+
+  const stepSlideVariants = {
+    enter: (dir: number) =>
+      prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: dir * 28 },
+    center: { opacity: 1, x: 0 },
+    exit: (dir: number) =>
+      prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: dir * -24 },
+  };
 
   const handleNextQuestion = () => {
     if (isSubmitting) return;
@@ -256,6 +330,7 @@ export function AssessmentQuestionView({
       onEmitTelemetry?.(events);
     }
 
+    directionRef.current = 1;
     if (isLastStep) {
       onSubmit();
     } else if (
@@ -272,6 +347,7 @@ export function AssessmentQuestionView({
 
   const handleBack = () => {
     if (isSubmitting) return;
+    directionRef.current = -1;
     if (transitionAfterSection) {
       setTransitionAfterSection(null);
       return;
@@ -306,24 +382,31 @@ export function AssessmentQuestionView({
       : currentSectionIndex;
 
   return (
-    <div className="mx-auto max-w-[780px] px-4 py-6 sm:px-6 sm:py-10">
-      {/* Four-Section Segmented Progress Indicator (No intimidating question counter) */}
+    <div className="mx-auto max-w-[780px] px-4 py-5 sm:px-6 sm:py-10">
+      {/* Four-Section Responsive Segmented Progress Indicator */}
       <nav aria-label="Assessment sections" className="mb-6 space-y-2.5">
-        <div className="flex items-center justify-between text-xs text-[var(--kws-muted)]">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-[var(--kws-muted)]">
           <span className="font-semibold text-[var(--kws-ink)]">
-            {currentSection?.partLabel}
+            {transitionAfterSection
+              ? `${currentSection?.partLabel} Complete`
+              : currentSection?.partLabel}
           </span>
-          <span className="font-mono-tabular">
-            Section {currentSection?.code} of D
+          <span className="font-mono-tabular flex items-center gap-1.5">
+            <span>{momentumLabel}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-[var(--kws-ink)]">
+              {overallPct}%
+            </span>
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 sm:gap-2.5">
           {sections.map((sec, idx) => {
             const isCompleted =
               idx < currentSectionIndex ||
               (transitionAfterSection === sec.id && idx === currentSectionIndex);
             const isActive = idx === currentSectionIndex && !isCompleted;
+            const fillRatio = isCompleted ? 1 : isActive ? activeSectionRatio : 0;
             const fillPct = isCompleted ? 100 : isActive ? activeSectionPct : 0;
 
             return (
@@ -334,21 +417,58 @@ export function AssessmentQuestionView({
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={fillPct}
-                  className="h-2 w-full overflow-hidden rounded-full bg-[var(--kws-border)]"
+                  className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--kws-border)]"
                 >
-                  <div
-                    className="h-full bg-[var(--kws-accent)] transition-all duration-300 ease-out"
-                    style={{ width: `${fillPct}%` }}
+                  <motion.div
+                    initial={false}
+                    animate={{ scaleX: fillRatio }}
+                    transition={
+                      prefersReducedMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 260, damping: 28, mass: 0.8 }
+                    }
+                    style={{ transformOrigin: 'left center' }}
+                    className={`h-full w-full rounded-full ${
+                      isCompleted
+                        ? 'bg-[var(--kws-success)]'
+                        : 'bg-[var(--kws-accent)]'
+                    }`}
                   />
                 </div>
                 <p
-                  className={`truncate text-[11px] sm:text-xs ${
+                  className={`flex items-center gap-1 truncate text-[11px] sm:text-xs ${
                     isActive || isCompleted
                       ? 'font-semibold text-[var(--kws-ink)]'
-                      : 'text-[var(--kws-muted)]/70'
+                      : 'text-[var(--kws-muted)]/75'
                   }`}
                 >
-                  {sec.code}. {sec.navLabel}
+                  {isCompleted ? (
+                    <motion.span
+                      initial={prefersReducedMotion ? false : { scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                      className="inline-flex shrink-0"
+                    >
+                      <Check
+                        className="h-3 w-3 text-[var(--kws-success)]"
+                        aria-hidden="true"
+                      />
+                    </motion.span>
+                  ) : (
+                    <span
+                      className={`font-mono-tabular shrink-0 ${
+                        isActive ? 'text-[var(--kws-accent)]' : ''
+                      }`}
+                    >
+                      {sec.code}.
+                    </span>
+                  )}
+                  <span className="truncate">
+                    <span className="sm:hidden">
+                      {MOBILE_SECTION_LABELS[sec.id]}
+                    </span>
+                    <span className="hidden sm:inline">{sec.navLabel}</span>
+                  </span>
                 </p>
               </div>
             );
@@ -365,143 +485,197 @@ export function AssessmentQuestionView({
         </Surface>
       )}
 
-      {/* Active Step Content or Section-End Transition Screen */}
-      <AnimatePresence mode="wait" initial={false}>
-        {transitionAfterSection && transitionCopy ? (
-          <motion.div
-            key={`transition-${transitionAfterSection}`}
-            initial={
-              prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }
-            }
-            animate={{ opacity: 1, y: 0 }}
-            exit={
-              prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -6 }
-            }
-            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <Surface className="p-6 sm:p-8">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--kws-success)]">
-                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                <span>
-                  {currentSection?.partLabel} Complete
-                  <span aria-hidden="true" className="mx-1.5">
-                    ·
-                  </span>
-                  {completedSectionsCount} of {sections.length} captured
-                </span>
-              </div>
+      {/* Active Step Content or Section-End Editorial Milestone Screen */}
+      <div className="overflow-x-hidden">
+        <AnimatePresence
+          mode="wait"
+          initial={false}
+          custom={directionRef.current}
+        >
+          {transitionAfterSection && transitionCopy ? (
+            <motion.div
+              key={`transition-${transitionAfterSection}`}
+              custom={directionRef.current}
+              variants={stepSlideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Surface className="overflow-hidden p-0">
+                {/* Top Milestone Progress Hairline */}
+                <div className="h-1 w-full bg-[var(--kws-border)]/70">
+                  <motion.div
+                    initial={prefersReducedMotion ? false : { scaleX: Math.max(0, (completedSectionsCount - 1) / sections.length) }}
+                    animate={{ scaleX: completedSectionsCount / sections.length }}
+                    transition={
+                      prefersReducedMotion
+                        ? { duration: 0 }
+                        : { type: 'spring', stiffness: 200, damping: 26 }
+                    }
+                    style={{ transformOrigin: 'left center' }}
+                    className="h-full w-full bg-[var(--kws-success)]"
+                  />
+                </div>
 
-              <h1 className="mt-3 font-display text-2xl font-bold leading-snug text-[var(--kws-ink)] sm:text-3xl [text-wrap:balance]">
-                {transitionCopy.headline}
-              </h1>
-
-              <p className="mt-3 text-base leading-relaxed text-[var(--kws-ink)]">
-                {transitionCopy.capturedNote}
-              </p>
-
-              <div className="mt-5 rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--kws-accent)]">
-                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                  Up Next
-                </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-[var(--kws-ink)]">
-                  {transitionCopy.anticipationNote}
-                </p>
-              </div>
-
-              <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {sections.map((sec, idx) => {
-                  const done = idx < completedSectionsCount;
-                  const upcoming = idx === completedSectionsCount;
-                  return (
-                    <div
-                      key={sec.id}
-                      className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-xs ${
-                        done
-                          ? 'border-[var(--kws-success)]/35 bg-[var(--kws-success-surface)] text-[var(--kws-ink)]'
-                          : upcoming
-                            ? 'border-[var(--kws-accent)]/40 bg-[var(--kws-surface)] text-[var(--kws-ink)]'
-                            : 'border-[var(--kws-border)] bg-[var(--kws-surface-subtle)]/50 text-[var(--kws-muted)]'
-                      }`}
-                    >
-                      {done ? (
-                        <Check
-                          className="h-4 w-4 shrink-0 text-[var(--kws-success)]"
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center font-mono-tabular font-semibold text-[var(--kws-accent)]">
-                          {sec.code}
-                        </span>
-                      )}
-                      <span className="truncate font-medium">
-                        {sec.title}
-                      </span>
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 font-mono-tabular text-xs font-semibold text-[var(--kws-success)]">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span>{transitionCopy.stepLabel}</span>
                     </div>
-                  );
-                })}
-              </div>
+                    <span className="font-mono-tabular text-xs font-medium text-[var(--kws-muted)]">
+                      {overallPct}% overall progress
+                    </span>
+                  </div>
 
-              <div className="mt-7 flex items-center justify-between gap-4 border-t border-[var(--kws-border)] pt-5">
-                <Button variant="secondary" onClick={handleBack}>
-                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                  Back
-                </Button>
+                  <h1 className="mt-4 font-display text-2xl font-bold leading-tight text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
+                    {transitionCopy.headline}
+                  </h1>
 
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setTransitionAfterSection(null);
+                  <p className="mt-3.5 text-base leading-relaxed text-[var(--kws-ink)]">
+                    {transitionCopy.insightNote}
+                  </p>
+
+                  <p className="mt-2.5 text-sm leading-relaxed text-[var(--kws-muted)]">
+                    {transitionCopy.capturedNote}
+                  </p>
+
+                  {/* Unboxed Editorial Preview of Next Section */}
+                  <div className="mt-6 border-t border-[var(--kws-border)] pt-5">
+                    <p className="text-xs font-semibold text-[var(--kws-accent)]">
+                      {transitionCopy.nextSectionLabel}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-[var(--kws-ink)] sm:text-base">
+                      {transitionCopy.anticipationNote}
+                    </p>
+                  </div>
+
+                  {/* Unboxed 4-Step Editorial Journey Rail */}
+                  <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[var(--kws-border)] pt-5 sm:grid-cols-4">
+                    {sections.map((sec, idx) => {
+                      const done = idx < completedSectionsCount;
+                      const upcoming = idx === completedSectionsCount;
+                      return (
+                        <div key={sec.id} className="min-w-0">
+                          <div
+                            className={`h-0.5 w-full rounded-full ${
+                              done
+                                ? 'bg-[var(--kws-success)]'
+                                : upcoming
+                                  ? 'bg-[var(--kws-accent)]'
+                                  : 'bg-[var(--kws-border)]'
+                            }`}
+                          />
+                          <div className="mt-2 flex items-center gap-1.5 text-xs">
+                            {done ? (
+                              <Check
+                                className="h-3.5 w-3.5 shrink-0 text-[var(--kws-success)]"
+                                aria-hidden="true"
+                              />
+                            ) : (
+                              <span
+                                className={`font-mono-tabular font-semibold ${
+                                  upcoming
+                                    ? 'text-[var(--kws-accent)]'
+                                    : 'text-[var(--kws-muted)]/70'
+                                }`}
+                              >
+                                {sec.code}
+                              </span>
+                            )}
+                            <span
+                              className={
+                                done
+                                  ? 'font-semibold text-[var(--kws-success)]'
+                                  : upcoming
+                                    ? 'font-semibold text-[var(--kws-accent)]'
+                                    : 'text-[var(--kws-muted)]/70'
+                              }
+                            >
+                              {done ? 'Saved' : upcoming ? 'Next' : 'Later'}
+                            </span>
+                          </div>
+                          <p
+                            className={`mt-0.5 truncate text-xs font-medium ${
+                              done || upcoming
+                                ? 'text-[var(--kws-ink)]'
+                                : 'text-[var(--kws-muted)]/75'
+                            }`}
+                          >
+                            {sec.navLabel}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[var(--kws-border)] pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                    <Button
+                      variant="secondary"
+                      onClick={handleBack}
+                      className="w-full sm:w-auto"
+                    >
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                      Back
+                    </Button>
+
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        directionRef.current = 1;
+                        setTransitionAfterSection(null);
+                        onStepChange(safeStepIndex + 1);
+                      }}
+                      className="w-full sm:w-auto"
+                    >
+                      {transitionCopy.ctaLabel}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
+              </Surface>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={currentStep.id}
+              custom={directionRef.current}
+              variants={stepSlideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {currentStep.kind === 'capability_card' ? (
+                <CapabilityCardView
+                  card={currentStep.card}
+                  totalCards={totalCards}
+                  answers={answers}
+                  onSelectOption={onSelectOption}
+                  onBackCard={handleBack}
+                  onContinueCard={() => {
+                    directionRef.current = 1;
+                    if (isSectionLast) {
+                      onEmitTelemetry?.([
+                        {
+                          eventType: 'section_completed',
+                          sectionId: currentStep.sectionId,
+                        },
+                      ]);
+                      if (
+                        nextStepObj &&
+                        SECTION_TRANSITION_COPY[currentStep.sectionId]
+                      ) {
+                        setTransitionAfterSection(currentStep.sectionId);
+                        window.scrollTo({ top: 0, behavior: 'auto' });
+                        return;
+                      }
+                    }
                     onStepChange(safeStepIndex + 1);
                   }}
-                >
-                  {transitionCopy.ctaLabel}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Button>
-              </div>
-            </Surface>
-          </motion.div>
-        ) : (
-          <motion.div
-            key={currentStep.id}
-            initial={
-              prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }
-            }
-            animate={{ opacity: 1, y: 0 }}
-            exit={
-              prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: -6 }
-            }
-            transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {currentStep.kind === 'capability_card' ? (
-              <CapabilityCardView
-                card={currentStep.card}
-                totalCards={totalCards}
-                answers={answers}
-                onSelectOption={onSelectOption}
-                onBackCard={handleBack}
-                onContinueCard={() => {
-                  if (isSectionLast) {
-                    onEmitTelemetry?.([
-                      {
-                        eventType: 'section_completed',
-                        sectionId: currentStep.sectionId,
-                      },
-                    ]);
-                    if (
-                      nextStepObj &&
-                      SECTION_TRANSITION_COPY[currentStep.sectionId]
-                    ) {
-                      setTransitionAfterSection(currentStep.sectionId);
-                      window.scrollTo({ top: 0, behavior: 'auto' });
-                      return;
-                    }
-                  }
-                  onStepChange(safeStepIndex + 1);
-                }}
-                onEmitTelemetry={onEmitTelemetry}
-                onAbandonmentBeacon={onAbandonmentBeacon}
-              />
+                  onEmitTelemetry={onEmitTelemetry}
+                  onAbandonmentBeacon={onAbandonmentBeacon}
+                />
             ) : (
               (() => {
                 const question = currentStep.question;
@@ -739,10 +913,24 @@ export function AssessmentQuestionView({
                             </div>
 
                             {isSelected && (
-                              <CheckCircle2
-                                className="mt-0.5 h-5 w-5 shrink-0 text-[var(--kws-accent)]"
-                                aria-hidden="true"
-                              />
+                              <motion.span
+                                initial={
+                                  prefersReducedMotion
+                                    ? false
+                                    : { scale: 0.7, opacity: 0 }
+                                }
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{
+                                  duration: 0.16,
+                                  ease: [0.16, 1, 0.3, 1],
+                                }}
+                                className="mt-0.5 shrink-0"
+                              >
+                                <CheckCircle2
+                                  className="h-5 w-5 text-[var(--kws-accent)]"
+                                  aria-hidden="true"
+                                />
+                              </motion.span>
                             )}
                           </button>
                         );
@@ -817,11 +1005,12 @@ export function AssessmentQuestionView({
                   )}
 
                   {/* Navigation Controls */}
-                  <div className="mt-7 flex items-center justify-between gap-4 border-t border-[var(--kws-border)] pt-5">
+                  <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[var(--kws-border)] pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <Button
                       variant="secondary"
                       onClick={handleBack}
                       disabled={isSubmitting}
+                      className="w-full sm:w-auto"
                     >
                       <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                       {safeStepIndex === 0 ? 'Overview' : 'Back'}
@@ -834,6 +1023,7 @@ export function AssessmentQuestionView({
                         question.kind !== 'contact_details' && !canProceed
                       }
                       loading={isSubmitting}
+                      className="w-full sm:w-auto"
                     >
                       {isLastStep
                         ? isSubmitting
@@ -850,8 +1040,9 @@ export function AssessmentQuestionView({
             })()
           )}
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -303,10 +303,10 @@ export function ResultsView({
       </header>
 
       {/* A. Professional Style */}
-      <Surface className="p-6 sm:p-8">
+      <Surface className="p-5 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+            <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-muted)]">
               Section A · Your Professional Style
             </p>
             <h2 className="mt-2 font-display text-2xl font-bold text-[var(--kws-accent)] sm:text-3xl">
@@ -321,7 +321,7 @@ export function ResultsView({
               type="button"
               aria-expanded={expandedStyle}
               onClick={() => setExpandedStyle((prev) => !prev)}
-              className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3 py-1.5 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3.5 py-2 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
             >
               {expandedStyle ? 'Hide details' : 'Explore details'}
               {expandedStyle ? (
@@ -368,7 +368,7 @@ export function ResultsView({
                       {style.description}
                     </p>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+                      <p className="text-xs font-semibold text-[var(--kws-muted)]">
                         Likely professional contributions
                       </p>
                       <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-[var(--kws-muted)]">
@@ -396,7 +396,7 @@ export function ResultsView({
                   </p>
                 )}
 
-                <div className="rounded-lg border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4 text-sm">
+                <div className="border-t border-[var(--kws-border)] pt-4 text-sm">
                   <p className="font-semibold text-[var(--kws-ink)]">
                     Reflection prompt
                   </p>
@@ -411,10 +411,10 @@ export function ResultsView({
 
         {/* Interactive Six-Style Explorer */}
         <div className="mt-6 border-t border-[var(--kws-border)] pt-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
-                Explore All Six Professional Styles
+              <p className="text-xs font-semibold text-[var(--kws-ink)]">
+                Explore all six professional styles
               </p>
               <p className="mt-0.5 text-xs text-[var(--kws-muted)]">
                 Select any style below to compare how each orientation approaches work, contribution, and balance.
@@ -424,7 +424,7 @@ export function ResultsView({
               type="button"
               aria-expanded={showStyleExplorer}
               onClick={() => setShowStyleExplorer((prev) => !prev)}
-              className="print:hidden inline-flex min-h-[34px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3 py-1.5 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
+              className="print:hidden inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3.5 py-2 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
             >
               {showStyleExplorer ? 'Collapse explorer' : 'Compare all 6 styles'}
               {showStyleExplorer ? (
@@ -473,7 +473,7 @@ export function ResultsView({
                 })}
               </div>
 
-              <div className="rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4 sm:p-5">
+              <div className="border-t border-[var(--kws-border)] pt-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <h3 className="font-display text-lg font-bold text-[var(--kws-ink)]">
                     {inspectedStyleDef.name}
@@ -487,7 +487,7 @@ export function ResultsView({
                 </p>
                 <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+                    <p className="text-xs font-semibold text-[var(--kws-muted)]">
                       Likely contributions
                     </p>
                     <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs text-[var(--kws-muted)]">
@@ -498,7 +498,7 @@ export function ResultsView({
                   </div>
                   <div className="space-y-2.5 text-xs">
                     <div>
-                      <p className="font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+                      <p className="font-semibold text-[var(--kws-muted)]">
                         Watch-out
                       </p>
                       <p className="mt-1 text-[var(--kws-ink)]">
@@ -506,7 +506,7 @@ export function ResultsView({
                       </p>
                     </div>
                     <div>
-                      <p className="font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+                      <p className="font-semibold text-[var(--kws-muted)]">
                         Reflection prompt
                       </p>
                       <p className="mt-1 text-[var(--kws-muted)]">
@@ -522,10 +522,10 @@ export function ResultsView({
       </Surface>
 
       {/* B. Growth Journey */}
-      <Surface className="p-6 sm:p-8">
+      <Surface className="p-5 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+            <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-muted)]">
               Section B · Your Growth Journey (Provisional)
             </p>
             <h2 className="mt-2 font-display text-2xl font-bold text-[var(--kws-accent)] sm:text-3xl">
@@ -537,7 +537,7 @@ export function ResultsView({
             type="button"
             aria-expanded={expandedGrowth}
             onClick={() => setExpandedGrowth((prev) => !prev)}
-            className="print:hidden inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3 py-1.5 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
+            className="print:hidden inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[var(--kws-border-strong)] px-3.5 py-2 text-xs font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] cursor-pointer"
           >
             {expandedGrowth ? 'Hide reflection notes' : 'Open deeper explanation'}
             {expandedGrowth ? (
@@ -662,9 +662,9 @@ export function ResultsView({
       </Surface>
 
       {/* C. Six Capabilities (Understanding & Experience kept strictly separate) */}
-      <Surface className="p-6 sm:p-8">
+      <Surface className="p-5 sm:p-8">
         <div className="space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+          <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-muted)]">
             Section C · Strengths &amp; Growth Areas
           </p>
           <p className="text-sm text-[var(--kws-muted)]">
@@ -677,7 +677,7 @@ export function ResultsView({
         {/* Two-Dimension Visual Overview (SVG track per capability, click to inspect) */}
         <div
           aria-label="Two-dimension capability comparison"
-          className="mt-5 rounded-xl border border-[var(--kws-border)] bg-[var(--kws-surface-subtle)] p-4"
+          className="mt-5 border-t border-[var(--kws-border)] pt-4"
         >
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 text-xs text-[var(--kws-muted)]">
             <span className="font-semibold text-[var(--kws-ink)]">
@@ -687,7 +687,7 @@ export function ResultsView({
               Understanding indicator kept separate from 0–4 practical experience
             </span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {capabilities.map((cap) => {
               const isAligned = cap.understandingScore === 1;
               return (
@@ -700,20 +700,23 @@ export function ResultsView({
                       [cap.pillarId]: !prev[cap.pillarId],
                     }))
                   }
-                  className="grid w-full grid-cols-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-[var(--kws-surface)] sm:grid-cols-12 cursor-pointer"
+                  className="grid min-h-[44px] w-full grid-cols-1 items-center gap-2 rounded-lg px-2 py-2 text-left transition-colors hover:bg-[var(--kws-surface-subtle)] sm:grid-cols-12 cursor-pointer"
                 >
                   <span className="truncate text-xs font-medium text-[var(--kws-ink)] sm:col-span-5">
                     {cap.name}
                   </span>
                   <span className="flex items-center gap-1.5 text-[11px] sm:col-span-3">
-                    <span
-                      aria-hidden="true"
-                      className={`inline-block h-2 w-2 rounded-full ${
-                        isAligned
-                          ? 'bg-[var(--kws-success)]'
-                          : 'bg-[var(--kws-gold)]'
-                      }`}
-                    />
+                    {isAligned ? (
+                      <CheckCircle2
+                        className="h-3.5 w-3.5 shrink-0 text-[var(--kws-success)]"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <AlertCircle
+                        className="h-3.5 w-3.5 shrink-0 text-[var(--kws-gold-ink)]"
+                        aria-hidden="true"
+                      />
+                    )}
                     <span
                       className={
                         isAligned
@@ -843,8 +846,8 @@ export function ResultsView({
       </Surface>
 
       {/* D. Development Priorities */}
-      <Surface className="p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+      <Surface className="p-5 sm:p-8">
+        <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-muted)]">
           Development Priorities
         </p>
         <p className="mt-1 text-sm text-[var(--kws-muted)]">
@@ -866,7 +869,7 @@ export function ResultsView({
                       [priority.id]: !prev[priority.id],
                     }))
                   }
-                  className="flex w-full items-center justify-between gap-4 text-left cursor-pointer"
+                  className="flex min-h-[44px] w-full items-center justify-between gap-4 text-left cursor-pointer"
                 >
                   <span className="font-display text-base font-bold text-[var(--kws-ink)]">
                     0{idx + 1}. {priority.title}
@@ -900,8 +903,8 @@ export function ResultsView({
       </Surface>
 
       {/* E. Next Steps */}
-      <Surface className="p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[var(--kws-muted)]">
+      <Surface className="p-5 sm:p-8">
+        <p className="font-mono-tabular text-xs font-semibold text-[var(--kws-muted)]">
           Next Steps
         </p>
         <h2 className="mt-2 font-display text-xl font-bold text-[var(--kws-ink)]">
@@ -1062,12 +1065,20 @@ export function ResultsView({
           <h3 className="font-display text-base font-bold text-[var(--kws-ink)]">
             Share or save a copy of your summary
           </h3>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <Button variant="secondary" onClick={handleCopySummary}>
+          <div className="mt-3 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+            <Button
+              variant="secondary"
+              onClick={handleCopySummary}
+              className="w-full sm:w-auto"
+            >
               <Copy className="h-4 w-4" aria-hidden="true" />
               Copy my summary
             </Button>
-            <Button variant="secondary" onClick={handleNativeShare}>
+            <Button
+              variant="secondary"
+              onClick={handleNativeShare}
+              className="w-full sm:w-auto"
+            >
               <Share2 className="h-4 w-4" aria-hidden="true" />
               Share
             </Button>
@@ -1075,16 +1086,24 @@ export function ResultsView({
               href={`https://wa.me/?text=${encodeURIComponent(plainTextSummary)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-4 py-2 text-sm font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] hover:bg-[var(--kws-surface-subtle)] transition-colors whitespace-nowrap shrink-0"
+              className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-4 py-2 text-sm font-semibold text-[var(--kws-ink)] hover:border-[var(--kws-accent)] hover:bg-[var(--kws-surface-subtle)] transition-colors whitespace-nowrap shrink-0 sm:w-auto"
             >
               <MessageSquare className="h-4 w-4" aria-hidden="true" />
               Share via WhatsApp
             </a>
-            <Button variant="secondary" onClick={() => window.print()}>
+            <Button
+              variant="secondary"
+              onClick={() => window.print()}
+              className="w-full sm:w-auto"
+            >
               <Printer className="h-4 w-4" aria-hidden="true" />
               Print / Save PDF
             </Button>
-            <Button variant="ghost" onClick={onStartNew}>
+            <Button
+              variant="ghost"
+              onClick={onStartNew}
+              className="w-full sm:w-auto"
+            >
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
               New assessment
             </Button>

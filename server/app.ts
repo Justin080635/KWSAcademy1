@@ -698,7 +698,7 @@ export async function createApp(options?: {
       authResult.actorLabel,
       authResult.email
     );
-    setSessionCookie(res, token);
+    setSessionCookie(res, token, req);
     res.json({
       authenticated: true,
       role: authResult.role,
@@ -706,8 +706,8 @@ export async function createApp(options?: {
     });
   });
 
-  app.post('/api/admin/logout', (_req, res) => {
-    clearSessionCookie(res);
+  app.post('/api/admin/logout', (req, res) => {
+    clearSessionCookie(res, req);
     res.json({ authenticated: false });
   });
 
