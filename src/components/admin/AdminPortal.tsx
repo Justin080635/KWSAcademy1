@@ -594,7 +594,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-2.5 py-1.5 text-sm text-[var(--kws-ink)]"
             >
               <option value="all">All audiences</option>
-              {(QUESTION_MAP['profile_q01']?.options ?? []).map((opt) => (
+              {(QUESTION_MAP['D1']?.options ?? []).map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {opt.label}
                 </option>
@@ -616,7 +616,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-2.5 py-1.5 text-sm text-[var(--kws-ink)]"
             >
               <option value="all">All urgency levels</option>
-              {(QUESTION_MAP['profile_q03']?.options ?? []).map((opt) => (
+              {(QUESTION_MAP['D3']?.options ?? []).map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {opt.label}
                 </option>
@@ -640,7 +640,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-2.5 py-1.5 text-sm text-[var(--kws-ink)]"
             >
               <option value="all">All financial responses</option>
-              {(QUESTION_MAP['profile_q05']?.options ?? []).map((opt) => (
+              {(QUESTION_MAP['D5']?.options ?? []).map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {opt.label}
                 </option>
@@ -662,7 +662,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
               className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-2.5 py-1.5 text-sm text-[var(--kws-ink)]"
             >
               <option value="all">All cohort responses</option>
-              {(QUESTION_MAP['profile_q06']?.options ?? []).map((opt) => (
+              {(QUESTION_MAP['D6']?.options ?? []).map((opt) => (
                 <option key={opt.id} value={opt.id}>
                   {opt.label}
                 </option>
@@ -1098,7 +1098,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                       </thead>
                       <tbody className="divide-y divide-[var(--kws-border)]">
                         {records.map((rec) => {
-                          const audience = getOptionDisplay(rec, 'profile_q01');
+                          const audience = getOptionDisplay(rec, 'D1');
                           return (
                             <tr
                               key={rec.id}
@@ -1316,7 +1316,7 @@ export function AdminPortal({ route, onNavigate }: AdminPortalProps) {
                           Ikeja Proximity / Availability
                         </dt>
                         <dd className="mt-0.5 font-medium text-[var(--kws-ink)]">
-                          {getOptionDisplay(selectedRecord, 'profile_q04').label}
+                          {getOptionDisplay(selectedRecord, 'D4').label}
                         </dd>
                       </div>
                     </dl>

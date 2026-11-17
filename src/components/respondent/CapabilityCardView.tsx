@@ -57,6 +57,7 @@ export function CapabilityCardView({
   );
   const [showMissingHint, setShowMissingHint] = useState(false);
   const subDirectionRef = useRef<1 | -1>(1);
+  const subStepRegionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     subDirectionRef.current = 1;
@@ -67,6 +68,26 @@ export function CapabilityCardView({
         : 'understanding'
     );
   }, [card.id]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion ? 'instant' : 'smooth',
+    });
+    const timer = window.setTimeout(() => {
+      const container = subStepRegionRef.current;
+      if (!container) return;
+      const firstOption = container.querySelector<HTMLElement>('[role="radio"]');
+      if (firstOption) {
+        firstOption.focus({ preventScroll: true });
+        return;
+      }
+      const heading = container.querySelector<HTMLElement>('h1');
+      heading?.focus({ preventScroll: true });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [card.id, subStep, prefersReducedMotion]);
 
   const activeQuestion =
     subStep === 'understanding'
@@ -275,7 +296,7 @@ export function CapabilityCardView({
         </div>
 
         {/* Active Step Prompt & Options */}
-        <div className="mt-5 overflow-hidden sm:mt-6">
+        <div ref={subStepRegionRef} className="mt-5 overflow-hidden sm:mt-6">
           <AnimatePresence mode="wait" initial={false} custom={subDirectionRef.current}>
             <motion.div
               key={activeQuestion.id}
@@ -305,7 +326,10 @@ export function CapabilityCardView({
                   : 'What you’ve done'}
               </p>
 
-              <h1 className="mt-2 font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]">
+              <h1
+                tabIndex={-1}
+                className="mt-2 font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]"
+              >
                 {activeQuestion.prompt}
               </h1>
 
@@ -329,10 +353,10 @@ export function CapabilityCardView({
                           'strengths_growth'
                         )
                       }
-                      className={`group flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[20px] border px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[60px] sm:gap-4 sm:px-5 sm:py-4 ${
+                      className={`group flex w-full min-h-[60px] items-center justify-between gap-3 rounded-[20px] border-2 px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[64px] sm:gap-4 sm:px-5 sm:py-4 ${
                         isSelected
-                          ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-[0_8px_20px_-10px_var(--kws-shadow-accent)]'
-                          : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-tint-bg)]/40 hover:shadow-xs'
+                          ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-4 ring-[var(--kws-accent)]/15 shadow-[0_10px_24px_-10px_var(--kws-shadow-accent)]'
+                          : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-tint-bg)]/45 hover:shadow-xs'
                       }`}
                     >
                       <div className="flex items-center gap-3 text-sm leading-relaxed sm:gap-3.5 sm:text-base">
@@ -343,7 +367,7 @@ export function CapabilityCardView({
                               : 'bg-[var(--kws-surface-subtle)] text-[var(--kws-muted)] group-hover:scale-105 group-hover:text-[var(--kws-ink)]'
                           }`}
                         >
-                          {OPTION_LETTERS[idx]}
+                          {opt.key ?? OPTION_LETTERS[idx]}
                         </span>
                         <span className="font-medium text-[var(--kws-ink)]">
                           {opt.label}
@@ -367,35 +391,42 @@ export function CapabilityCardView({
                   );
                 })}
               </div>
-
-              {showMissingHint && !activeSelection && (
-                <p
-                  role="status"
-                  className="mt-4 text-sm font-medium text-[var(--kws-accent)]"
-                >
-                  Pick an answer to keep going.
-                </p>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>
       </Surface>
 
-      {/* Sticky Bottom Mobile Action Bar */}
+      {/* Sticky Bottom Mobile Action Bar — Disabled Continue Always Shows Quiet Helper */}
       <div className="sticky bottom-0 z-20 -mx-4 mt-4 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-6 sm:bg-none sm:p-0">
         <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
-          <Button
-            variant="primary"
-            allowWrap
-            onClick={handleContinue}
-            className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[180px] sm:justify-center"
-          >
-            <span>Continue</span>
-            <ArrowRight
-              className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </Button>
+          <div className="flex flex-col gap-1.5 sm:flex-row-reverse sm:items-center sm:gap-3">
+            <Button
+              variant="primary"
+              allowWrap
+              disabled={!activeSelection}
+              aria-describedby={
+                !activeSelection ? 'kws-cap-continue-helper' : undefined
+              }
+              onClick={handleContinue}
+              className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[180px] sm:justify-center"
+            >
+              <span>Continue</span>
+              <ArrowRight
+                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </Button>
+
+            {!activeSelection && (
+              <p
+                id="kws-cap-continue-helper"
+                role="status"
+                className="text-center text-xs font-medium text-[var(--kws-muted)] sm:text-right sm:text-sm"
+              >
+                Pick an answer to keep going.
+              </p>
+            )}
+          </div>
 
           <Button
             variant="secondary"

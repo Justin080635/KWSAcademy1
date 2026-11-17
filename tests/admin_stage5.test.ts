@@ -18,41 +18,41 @@ function buildCompleteAnswers(overrides?: {
 }): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_6',
-      style_q02: 'style_q02_opt_2',
-      style_q03: 'style_q03_opt_3',
-      style_q04: 'style_q04_opt_4',
-      style_q05: 'style_q05_opt_5',
-      style_q06: 'style_q06_opt_6',
-      style_q07: 'style_q07_opt_1',
-      style_q08: 'style_q08_opt_2',
-      style_q09: 'style_q09_opt_3',
-      growth_q01: 'growth_q01_stage_2',
-      growth_q02: 'growth_q02_stage_3',
-      growth_q03: 'growth_q03_stage_3',
-      growth_q04: 'growth_q04_stage_4',
-      growth_q05: 'growth_q05_application',
-      growth_q06: 'growth_q06_projects',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_3',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_4',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_1',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_0',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_very_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_yes',
-      profile_q08: 'profile_q08_referral',
+      A1: 'A1-A',
+      A2: 'A2-C',
+      A3: 'A3-A',
+      A4: 'A4-D',
+      A5: 'A5-A',
+      A6: 'A6-C',
+      A7: 'A7-C',
+      A8: 'A8-B',
+      A9: 'A9-B',
+      B1: 'B1-B',
+      B2: 'B2-C',
+      B3: 'B3-C',
+      B4: 'B4-D',
+      B5: 'B5-C',
+      B6: 'B6-C',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-D',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-E',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-B',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-A',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-D',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-A',
+      D8: 'D8-F',
       ...(overrides?.selections ?? {}),
     },
     otherText: {},
@@ -136,328 +136,359 @@ test('Stage 5 Administrative Dashboard Acceptance Suite', async (t) => {
   let subLagosToken = '';
   let subAbujaId = '';
 
-  await t.test('1. Staff account & allowlist authentication and RBAC sign-in', async () => {
-    const statusRes = await fetch(`${ctx.baseUrl}/api/admin/status`);
-    assert.equal(statusRes.status, 200);
-    const statusJson = await statusRes.json();
-    assert.equal(statusJson.authConfigured, true);
-    assert.equal(statusJson.accountSignInEnabled, true);
-    assert.equal(statusJson.allowlistEnabled, true);
+  await t.test(
+    '1. Staff account & allowlist authentication and RBAC sign-in',
+    async () => {
+      const statusRes = await fetch(`${ctx.baseUrl}/api/admin/status`);
+      assert.equal(statusRes.status, 200);
+      const statusJson = await statusRes.json();
+      assert.equal(statusJson.authConfigured, true);
+      assert.equal(statusJson.accountSignInEnabled, true);
+      assert.equal(statusJson.allowlistEnabled, true);
 
-    // Non-allowlisted email rejected even with passcode
-    const outsiderRes = await fetch(`${ctx.baseUrl}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'outsider@example.com',
-        passcode: 'admin-stage5-pass',
-      }),
-    });
-    assert.equal(outsiderRes.status, 401);
-
-    // Sign in Admin account
-    const adminLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'director@kws.example',
-        passcode: 'director-pw-123',
-      }),
-    });
-    assert.equal(adminLogin.status, 200);
-    const adminBody = await adminLogin.json();
-    assert.equal(adminBody.role, 'admin');
-    assert.equal(adminBody.actorLabel, 'KWS Director');
-    adminCookie = adminLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
-
-    // Sign in Advisor account
-    const advisorLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'advisor@kws.example',
-        passcode: 'advisor-pw-123',
-      }),
-    });
-    assert.equal(advisorLogin.status, 200);
-    advisorCookie = advisorLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
-
-    // Sign in Viewer account
-    const viewerLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'observer@kws.example',
-        passcode: 'observer-pw-123',
-      }),
-    });
-    assert.equal(viewerLogin.status, 200);
-    const viewerBody = await viewerLogin.json();
-    assert.equal(viewerBody.role, 'viewer');
-    viewerCookie = viewerLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
-  });
-
-  await t.test('2. Empty database returns clean null rates and zero fabricated figures', async () => {
-    const emptyAnalyticsRes = await fetch(`${ctx.baseUrl}/api/admin/analytics`, {
-      headers: { Cookie: adminCookie },
-    });
-    assert.equal(emptyAnalyticsRes.status, 200);
-    const { summary } = await emptyAnalyticsRes.json();
-    assert.equal(summary.totalStarts, 0);
-    assert.equal(summary.totalSubmissions, 0);
-    assert.equal(summary.completionRatePct, null);
-    assert.equal(summary.averageDurationMinutes, null);
-    assert.equal(summary.inProgressDrafts, 0);
-    assert.equal(summary.consultationRequests, 0);
-  });
-
-  await t.test('3. Seed incomplete start + two completed submissions and verify all 14 analytics metrics', async () => {
-    // 1 in-progress draft
-    const draftRes = await fetch(`${ctx.baseUrl}/api/submissions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'draft',
-        idempotencyKey: 'stage5_draft_001',
-        answers: {
-          selections: { style_q01: 'style_q01_opt_6' },
-          otherText: {},
-          contact: { fullName: 'Draft Starter', city: 'Ikeja', state: 'Lagos' },
-        },
-        durationMinutes: 1,
-      }),
-    });
-    assert.equal(draftRes.status, 201);
-
-    // Completed Submission 1: Lagos, Employed, Very Important urgency, Ready financially, Yes Jan 2027, Instagram
-    const sub1Res = await fetch(`${ctx.baseUrl}/api/submissions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'submit',
-        idempotencyKey: 'stage5_sub_lagos_001',
-        submitNonce: 'stage5_nonce_lagos_001',
-        durationMinutes: 6,
-        attribution: { utmSource: 'instagram', utmMedium: 'social' },
-        answers: buildCompleteAnswers({
-          selections: {
-            profile_q01: 'profile_q01_employed',
-            profile_q03: 'profile_q03_very_important',
-            profile_q05: 'profile_q05_ready',
-            profile_q06: 'profile_q06_ready',
-            profile_q07: 'profile_q07_yes',
-          },
-          contact: {
-            fullName: 'Toluwanimi Lagos',
-            email: 'tolu@lagos.example',
-            city: 'Ikeja',
-            state: 'Lagos',
-          },
-        }),
-      }),
-    });
-    assert.equal(sub1Res.status, 201);
-    const sub1Json = await sub1Res.json();
-    subLagosId = sub1Json.record.id;
-    subLagosToken = sub1Json.accessToken;
-
-    // Completed Submission 2: Abuja, Student, Exploring urgency, Needs sponsorship, No Jan 2027, Referral
-    const sub2Res = await fetch(`${ctx.baseUrl}/api/submissions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        mode: 'submit',
-        idempotencyKey: 'stage5_sub_abuja_001',
-        submitNonce: 'stage5_nonce_abuja_001',
-        durationMinutes: 10,
-        attribution: { utmSource: 'linkedin', utmMedium: 'organic' },
-        answers: buildCompleteAnswers({
-          selections: {
-            profile_q01: 'profile_q01_student',
-            profile_q02: 'profile_q02_direction',
-            profile_q03: 'profile_q03_later',
-            profile_q04: 'profile_q04_possibly',
-            profile_q05: 'profile_q05_support',
-            profile_q06: 'profile_q06_not_ready',
-            profile_q07: 'profile_q07_no',
-            profile_q08: 'profile_q08_campus',
-          },
-          contact: {
-            fullName: 'Ibrahim Abuja',
-            email: 'ibrahim@abuja.example',
-            city: 'Abuja',
-            state: 'FCT',
-            institution: 'University of Abuja',
-            whatsappConsent: false,
-          },
-        }),
-      }),
-    });
-    assert.equal(sub2Res.status, 201);
-    subAbujaId = (await sub2Res.json()).record.id;
-
-    const analyticsRes = await fetch(`${ctx.baseUrl}/api/admin/analytics`, {
-      headers: { Cookie: viewerCookie },
-    });
-    assert.equal(analyticsRes.status, 200);
-    const { summary } = await analyticsRes.json();
-
-    assert.equal(summary.totalStarts, 3);
-    assert.equal(summary.totalSubmissions, 2);
-    assert.equal(summary.inProgressDrafts, 1);
-    assert.equal(summary.completionRatePct, 67);
-    assert.equal(summary.consultationRequests, 1);
-    assert.equal(summary.averageDurationMinutes, 8);
-    assert.equal(summary.partAConfigApproved, true);
-    assert.equal(summary.incompleteStyleCount, 0);
-    assert.equal(summary.stageDistribution.length, 5);
-    assert.equal(summary.pillarAverages.length, 6);
-    assert.equal(summary.pillarAverages[0].experienceDistribution.length, 5);
-    assert.ok(summary.audienceSegments.some((a: { count: number }) => a.count > 0));
-    assert.ok(summary.challengesBreakdown.some((c: { count: number }) => c.count > 0));
-    assert.ok(summary.urgencyBreakdown.some((u: { count: number }) => u.count > 0));
-    assert.equal(summary.geographicBreakdown.length, 2);
-    assert.ok(
-      summary.financialReadinessBreakdown.some((f: { count: number }) => f.count > 0)
-    );
-    assert.ok(summary.januaryCohortBreakdown.some((j: { count: number }) => j.count > 0));
-  });
-
-  await t.test('4. Human lead review categories & 10 follow-up statuses respect RBAC and remain hidden from respondents', async () => {
-    // Viewer CANNOT update review categories or statuses -> 403
-    const viewerPatch = await fetch(
-      `${ctx.baseUrl}/api/admin/consultations/${subLagosId}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Cookie: viewerCookie,
-        },
+      // Non-allowlisted email rejected even with passcode
+      const outsiderRes = await fetch(`${ctx.baseUrl}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          reviewCategory: 'priority_consultation',
-          consultationStatus: 'approved_for_contact',
+          email: 'outsider@example.com',
+          passcode: 'admin-stage5-pass',
         }),
-      }
-    );
-    assert.equal(viewerPatch.status, 403);
+      });
+      assert.equal(outsiderRes.status, 401);
 
-    // Advisor cycles through every review category and follow-up status cleanly
-    for (const cat of ALL_REVIEW_CATEGORIES) {
-      const res = await fetch(
-        `${ctx.baseUrl}/api/admin/consultations/${subLagosId}`,
+      // Sign in Admin account
+      const adminLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'director@kws.example',
+          passcode: 'director-pw-123',
+        }),
+      });
+      assert.equal(adminLogin.status, 200);
+      const adminBody = await adminLogin.json();
+      assert.equal(adminBody.role, 'admin');
+      assert.equal(adminBody.actorLabel, 'KWS Director');
+      adminCookie = adminLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
+
+      // Sign in Advisor account
+      const advisorLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'advisor@kws.example',
+          passcode: 'advisor-pw-123',
+        }),
+      });
+      assert.equal(advisorLogin.status, 200);
+      advisorCookie =
+        advisorLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
+
+      // Sign in Viewer account
+      const viewerLogin = await fetch(`${ctx.baseUrl}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'observer@kws.example',
+          passcode: 'observer-pw-123',
+        }),
+      });
+      assert.equal(viewerLogin.status, 200);
+      const viewerBody = await viewerLogin.json();
+      assert.equal(viewerBody.role, 'viewer');
+      viewerCookie = viewerLogin.headers.get('set-cookie')?.split(';')[0] ?? '';
+    }
+  );
+
+  await t.test(
+    '2. Empty database returns clean null rates and zero fabricated figures',
+    async () => {
+      const emptyAnalyticsRes = await fetch(
+        `${ctx.baseUrl}/api/admin/analytics`,
         {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Cookie: advisorCookie,
-          },
-          body: JSON.stringify({ reviewCategory: cat }),
+          headers: { Cookie: adminCookie },
         }
       );
-      assert.equal(res.status, 200);
+      assert.equal(emptyAnalyticsRes.status, 200);
+      const { summary } = await emptyAnalyticsRes.json();
+      assert.equal(summary.totalStarts, 0);
+      assert.equal(summary.totalSubmissions, 0);
+      assert.equal(summary.completionRatePct, null);
+      assert.equal(summary.averageDurationMinutes, null);
+      assert.equal(summary.inProgressDrafts, 0);
+      assert.equal(summary.consultationRequests, 0);
     }
+  );
 
-    for (const status of ALL_CONSULTATION_STATUSES) {
-      const res = await fetch(
+  await t.test(
+    '3. Seed incomplete start + two completed submissions and verify all 14 analytics metrics',
+    async () => {
+      // 1 in-progress draft
+      const draftRes = await fetch(`${ctx.baseUrl}/api/submissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'draft',
+          idempotencyKey: 'stage5_draft_001',
+          answers: {
+            selections: { A1: 'A1-A' },
+            otherText: {},
+            contact: { fullName: 'Draft Starter', city: 'Ikeja', state: 'Lagos' },
+          },
+          durationMinutes: 1,
+        }),
+      });
+      assert.equal(draftRes.status, 201);
+
+      // Completed Submission 1: Lagos, Already working (D1-D), High priority (D3-D), Comfortable investment (D5-A), Ready Jan 2027 (D6-A), Book (D7-A), Instagram
+      const sub1Res = await fetch(`${ctx.baseUrl}/api/submissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'submit',
+          idempotencyKey: 'stage5_sub_lagos_001',
+          submitNonce: 'stage5_nonce_lagos_001',
+          durationMinutes: 6,
+          attribution: { utmSource: 'instagram', utmMedium: 'social' },
+          answers: buildCompleteAnswers({
+            selections: {
+              D1: 'D1-D',
+              D3: 'D3-D',
+              D5: 'D5-A',
+              D6: 'D6-A',
+              D7: 'D7-A',
+            },
+            contact: {
+              fullName: 'Toluwanimi Lagos',
+              email: 'tolu@lagos.example',
+              city: 'Ikeja',
+              state: 'Lagos',
+            },
+          }),
+        }),
+      });
+      assert.equal(sub1Res.status, 201);
+      const sub1Json = await sub1Res.json();
+      subLagosId = sub1Json.record.id;
+      subLagosToken = sub1Json.accessToken;
+
+      // Completed Submission 2: Abuja, Student (D1-A), Not major priority (D3-A), Support/payment plan (D5-C), Not considering Jan 2027 (D6-E), No consultation (D7-C)
+      const sub2Res = await fetch(`${ctx.baseUrl}/api/submissions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'submit',
+          idempotencyKey: 'stage5_sub_abuja_001',
+          submitNonce: 'stage5_nonce_abuja_001',
+          durationMinutes: 10,
+          attribution: { utmSource: 'linkedin', utmMedium: 'organic' },
+          answers: buildCompleteAnswers({
+            selections: {
+              D1: 'D1-A',
+              D2: 'D2-A',
+              D3: 'D3-A',
+              D4: 'D4-C',
+              D5: 'D5-C',
+              D6: 'D6-E',
+              D7: 'D7-C',
+              D8: 'D8-C',
+            },
+            contact: {
+              fullName: 'Ibrahim Abuja',
+              email: 'ibrahim@abuja.example',
+              city: 'Abuja',
+              state: 'FCT',
+              institution: 'University of Abuja',
+              whatsappConsent: false,
+            },
+          }),
+        }),
+      });
+      assert.equal(sub2Res.status, 201);
+      subAbujaId = (await sub2Res.json()).record.id;
+
+      const analyticsRes = await fetch(`${ctx.baseUrl}/api/admin/analytics`, {
+        headers: { Cookie: viewerCookie },
+      });
+      assert.equal(analyticsRes.status, 200);
+      const { summary } = await analyticsRes.json();
+
+      assert.equal(summary.totalStarts, 3);
+      assert.equal(summary.totalSubmissions, 2);
+      assert.equal(summary.inProgressDrafts, 1);
+      assert.equal(summary.completionRatePct, 67);
+      assert.equal(summary.consultationRequests, 1);
+      assert.equal(summary.averageDurationMinutes, 8);
+      assert.equal(summary.partAConfigApproved, true);
+      assert.equal(summary.incompleteStyleCount, 0);
+      assert.equal(summary.stageDistribution.length, 5);
+      assert.equal(summary.pillarAverages.length, 6);
+      assert.equal(summary.pillarAverages[0].experienceDistribution.length, 5);
+      assert.ok(
+        summary.audienceSegments.some((a: { count: number }) => a.count > 0)
+      );
+      assert.ok(
+        summary.challengesBreakdown.some((c: { count: number }) => c.count > 0)
+      );
+      assert.ok(
+        summary.urgencyBreakdown.some((u: { count: number }) => u.count > 0)
+      );
+      assert.equal(summary.geographicBreakdown.length, 2);
+      assert.ok(
+        summary.financialReadinessBreakdown.some(
+          (f: { count: number }) => f.count > 0
+        )
+      );
+      assert.ok(
+        summary.januaryCohortBreakdown.some(
+          (j: { count: number }) => j.count > 0
+        )
+      );
+    }
+  );
+
+  await t.test(
+    '4. Human lead review categories & 10 follow-up statuses respect RBAC and remain hidden from respondents',
+    async () => {
+      // Viewer CANNOT update review categories or statuses -> 403
+      const viewerPatch = await fetch(
         `${ctx.baseUrl}/api/admin/consultations/${subLagosId}`,
         {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            Cookie: advisorCookie,
+            Cookie: viewerCookie,
           },
           body: JSON.stringify({
-            consultationStatus: status,
             reviewCategory: 'priority_consultation',
-            assignedStaffMember: 'KWS Lead Advisor',
-            outcomeNotes: 'Human review verified readiness for consultation.',
+            consultationStatus: 'approved_for_contact',
           }),
         }
       );
-      assert.equal(res.status, 200);
+      assert.equal(viewerPatch.status, 403);
+
+      // Advisor cycles through every review category and follow-up status cleanly
+      for (const cat of ALL_REVIEW_CATEGORIES) {
+        const res = await fetch(
+          `${ctx.baseUrl}/api/admin/consultations/${subLagosId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Cookie: advisorCookie,
+            },
+            body: JSON.stringify({ reviewCategory: cat }),
+          }
+        );
+        assert.equal(res.status, 200);
+      }
+
+      for (const status of ALL_CONSULTATION_STATUSES) {
+        const res = await fetch(
+          `${ctx.baseUrl}/api/admin/consultations/${subLagosId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Cookie: advisorCookie,
+            },
+            body: JSON.stringify({
+              consultationStatus: status,
+              reviewCategory: 'priority_consultation',
+              assignedStaffMember: 'KWS Lead Advisor',
+              outcomeNotes: 'Human review verified readiness for consultation.',
+            }),
+          }
+        );
+        assert.equal(res.status, 200);
+      }
+
+      const detailRes = await fetch(
+        `${ctx.baseUrl}/api/admin/submissions/${subLagosId}`,
+        { headers: { Cookie: adminCookie } }
+      );
+      assert.equal(detailRes.status, 200);
+      const { record } = await detailRes.json();
+      assert.equal(record.consultation.reviewCategory, 'priority_consultation');
+      assert.equal(record.consultation.status, 'closed');
+      assert.equal(record.consultation.reviewedBy, 'KWS Lead Advisor');
+      assert.ok(record.consultation.reviewedAt);
+      assert.ok(record.consultation.statusUpdatedAt);
+
+      // Respondent endpoint MUST NEVER expose reviewCategory or staffNotes
+      const respondentRes = await fetch(
+        `${ctx.baseUrl}/api/submissions/${subLagosId}`,
+        { headers: { 'X-Submission-Token': subLagosToken } }
+      );
+      assert.equal(respondentRes.status, 200);
+      const respondentJson = await respondentRes.json();
+      const serialized = JSON.stringify(respondentJson);
+      assert.ok(!serialized.includes('priority_consultation'));
+      assert.ok(!serialized.includes('reviewCategory'));
+      assert.ok(!serialized.includes('outcomeNotes'));
+      assert.ok(!serialized.includes('Human review verified'));
     }
+  );
 
-    const detailRes = await fetch(
-      `${ctx.baseUrl}/api/admin/submissions/${subLagosId}`,
-      { headers: { Cookie: adminCookie } }
-    );
-    assert.equal(detailRes.status, 200);
-    const { record } = await detailRes.json();
-    assert.equal(record.consultation.reviewCategory, 'priority_consultation');
-    assert.equal(record.consultation.status, 'closed');
-    assert.equal(record.consultation.reviewedBy, 'KWS Lead Advisor');
-    assert.ok(record.consultation.reviewedAt);
-    assert.ok(record.consultation.statusUpdatedAt);
+  await t.test(
+    '5. Shared filtering works across analytics, directory, and CSV/XLSX exports',
+    async () => {
+      const query =
+        'location=Abuja&audience=D1-A&financialReadiness=D5-C&januaryCohort=D6-E';
 
-    // Respondent endpoint MUST NEVER expose reviewCategory or staffNotes
-    const respondentRes = await fetch(
-      `${ctx.baseUrl}/api/submissions/${subLagosId}`,
-      { headers: { 'X-Submission-Token': subLagosToken } }
-    );
-    assert.equal(respondentRes.status, 200);
-    const respondentJson = await respondentRes.json();
-    const serialized = JSON.stringify(respondentJson);
-    assert.ok(!serialized.includes('priority_consultation'));
-    assert.ok(!serialized.includes('reviewCategory'));
-    assert.ok(!serialized.includes('outcomeNotes'));
-    assert.ok(!serialized.includes('Human review verified'));
-  });
+      const dirRes = await fetch(
+        `${ctx.baseUrl}/api/admin/submissions?${query}`,
+        { headers: { Cookie: adminCookie } }
+      );
+      assert.equal(dirRes.status, 200);
+      const dirJson = await dirRes.json();
+      assert.equal(dirJson.records.length, 1);
+      assert.equal(dirJson.records[0].id, subAbujaId);
 
-  await t.test('5. Shared filtering works across analytics, directory, and CSV/XLSX exports', async () => {
-    const query =
-      'location=Abuja&audience=profile_q01_student&financialReadiness=profile_q05_support&januaryCohort=profile_q06_not_ready';
+      const anaRes = await fetch(
+        `${ctx.baseUrl}/api/admin/analytics?${query}`,
+        { headers: { Cookie: adminCookie } }
+      );
+      assert.equal(anaRes.status, 200);
+      const { summary } = await anaRes.json();
+      assert.equal(summary.totalSubmissions, 1);
+      assert.equal(summary.consultationRequests, 0);
 
-    const dirRes = await fetch(
-      `${ctx.baseUrl}/api/admin/submissions?${query}`,
-      { headers: { Cookie: adminCookie } }
-    );
-    assert.equal(dirRes.status, 200);
-    const dirJson = await dirRes.json();
-    assert.equal(dirJson.records.length, 1);
-    assert.equal(dirJson.records[0].id, subAbujaId);
+      // Viewer & Advisor are blocked from exports -> 403
+      const viewerExport = await fetch(
+        `${ctx.baseUrl}/api/admin/export?format=xlsx&${query}`,
+        { headers: { Cookie: viewerCookie } }
+      );
+      assert.equal(viewerExport.status, 403);
 
-    const anaRes = await fetch(
-      `${ctx.baseUrl}/api/admin/analytics?${query}`,
-      { headers: { Cookie: adminCookie } }
-    );
-    assert.equal(anaRes.status, 200);
-    const { summary } = await anaRes.json();
-    assert.equal(summary.totalSubmissions, 1);
-    assert.equal(summary.consultationRequests, 0);
+      // Filtered CSV contains Abuja record only, excludes Lagos record
+      const csvRes = await fetch(
+        `${ctx.baseUrl}/api/admin/export?format=csv&${query}`,
+        { headers: { Cookie: adminCookie } }
+      );
+      assert.equal(csvRes.status, 200);
+      const csvText = await csvRes.text();
+      assert.ok(csvText.includes('Ibrahim Abuja'));
+      assert.ok(!csvText.includes('Toluwanimi Lagos'));
 
-    // Viewer & Advisor are blocked from exports -> 403
-    const viewerExport = await fetch(
-      `${ctx.baseUrl}/api/admin/export?format=xlsx&${query}`,
-      { headers: { Cookie: viewerCookie } }
-    );
-    assert.equal(viewerExport.status, 403);
-
-    // Filtered CSV contains Abuja record only, excludes Lagos record
-    const csvRes = await fetch(
-      `${ctx.baseUrl}/api/admin/export?format=csv&${query}`,
-      { headers: { Cookie: adminCookie } }
-    );
-    assert.equal(csvRes.status, 200);
-    const csvText = await csvRes.text();
-    assert.ok(csvText.includes('Ibrahim Abuja'));
-    assert.ok(!csvText.includes('Toluwanimi Lagos'));
-
-    // Filtered Excel (.xlsx) returns valid ZIP OOXML container
-    const xlsxRes = await fetch(
-      `${ctx.baseUrl}/api/admin/export?format=xlsx&${query}`,
-      { headers: { Cookie: adminCookie } }
-    );
-    assert.equal(xlsxRes.status, 200);
-    assert.equal(
-      xlsxRes.headers.get('content-type'),
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-    const xlsxBytes = new Uint8Array(await xlsxRes.arrayBuffer());
-    assert.ok(xlsxBytes.length > 500);
-    // ZIP local file header magic bytes: P K \x03 \x04
-    assert.equal(xlsxBytes[0], 0x50);
-    assert.equal(xlsxBytes[1], 0x4b);
-    assert.equal(xlsxBytes[2], 0x03);
-    assert.equal(xlsxBytes[3], 0x04);
-  });
+      // Filtered Excel (.xlsx) returns valid ZIP OOXML container
+      const xlsxRes = await fetch(
+        `${ctx.baseUrl}/api/admin/export?format=xlsx&${query}`,
+        { headers: { Cookie: adminCookie } }
+      );
+      assert.equal(xlsxRes.status, 200);
+      assert.equal(
+        xlsxRes.headers.get('content-type'),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
+      const xlsxBytes = new Uint8Array(await xlsxRes.arrayBuffer());
+      assert.ok(xlsxBytes.length > 500);
+      // ZIP local file header magic bytes: P K \x03 \x04
+      assert.equal(xlsxBytes[0], 0x50);
+      assert.equal(xlsxBytes[1], 0x4b);
+      assert.equal(xlsxBytes[2], 0x03);
+      assert.equal(xlsxBytes[3], 0x04);
+    }
+  );
 });

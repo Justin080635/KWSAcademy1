@@ -82,11 +82,11 @@ const TARGET_CATEGORY_CHOICES: Array<{
 ];
 
 const CONDITION_QUESTION_IDS = [
-  'profile_q03',
-  'profile_q04',
-  'profile_q05',
-  'profile_q06',
-  'profile_q07',
+  'D3',
+  'D4',
+  'D5',
+  'D6',
+  'D7',
 ] as const;
 
 export function AdminVersionsView({ staffRole }: AdminVersionsViewProps) {
@@ -635,7 +635,7 @@ export function AdminVersionsView({ staffRole }: AdminVersionsViewProps) {
                       type="text"
                       value={newVersionId}
                       onChange={(e) => setNewVersionId(e.target.value)}
-                      placeholder="kws-assessment-v2.1"
+                      placeholder="kws-assessment-v3.1"
                       className="mt-1 w-full rounded-lg border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3 py-2 font-mono-tabular text-sm text-[var(--kws-ink)]"
                     />
                   </div>

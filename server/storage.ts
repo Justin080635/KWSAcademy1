@@ -11,6 +11,7 @@ import {
 } from '../src/domain/assessmentContent.ts';
 import {
   ASSESSMENT_VERSION,
+  CONTENT_VERSION,
   PART_A_CONFIG_VERSION,
   SCORING_ENGINE_VERSION,
   scoreAssessment,
@@ -169,6 +170,7 @@ function buildVersionSnapshot(
 ): AssessmentVersionSnapshot {
   return {
     assessmentVersion,
+    contentVersion: CONTENT_VERSION,
     scoringVersion: SCORING_ENGINE_VERSION,
     partAConfigVersion: partAConfig.approved ? 'approved-v1' : PART_A_CONFIG_VERSION,
     partAConfigApproved: partAConfig.approved,
@@ -523,64 +525,77 @@ export class SqliteAssessmentRepository {
       );
     }
 
-    // Seed baseline active assessment version if none exists, or keep untouched system baseline aligned
-    const verCount = (
-      this.db
-        .prepare('SELECT COUNT(*) AS cnt FROM assessment_versions')
-        .get() as { cnt: number }
-    ).cnt;
-    if (verCount === 0) {
-      const now = new Date().toISOString();
-      this.db
+    // Seed baseline active assessment version if none exists, upgrade legacy system baseline, or keep untouched system baseline aligned
+    const expectedQuestionsJson = JSON.stringify(ASSESSMENT_QUESTIONS);
+    const expectedSectionsJson = JSON.stringify(ASSESSMENT_SECTIONS);
+    const currentBaseline = this.db
+      .prepare(
+        "SELECT version_id, created_by, questions_json, sections_json, part_a_config_version FROM assessment_versions WHERE version_id = ?"
+      )
+      .get(ASSESSMENT_VERSION) as
+      | {
+          version_id?: string;
+          created_by?: string;
+          questions_json?: string;
+          sections_json?: string;
+          part_a_config_version?: string;
+        }
+      | undefined;
+
+    if (!currentBaseline) {
+      const activeSystemRow = this.db
         .prepare(
-          `INSERT INTO assessment_versions
-           (version_id, label, status, created_by, change_summary, questions_json, sections_json, part_a_config_version, created_at, activated_at)
-           VALUES (?, ?, 'active', 'system', ?, ?, ?, ?, ?, ?)`
+          "SELECT version_id FROM assessment_versions WHERE status = 'active' AND created_by = 'system'"
         )
-        .run(
-          ASSESSMENT_VERSION,
-          'Approved Baseline Discovery Assessment',
-          'Initial master specification assessment configuration (9 Part A, 6 Part B, 6 Part C cards, 8 Part D questions + contact).',
-          JSON.stringify(ASSESSMENT_QUESTIONS),
-          JSON.stringify(ASSESSMENT_SECTIONS),
-          PART_A_CONFIG_VERSION,
-          now,
-          now
-        );
-    } else if (verCount === 1) {
-      const seedRow = this.db
-        .prepare(
-          "SELECT version_id, created_by, questions_json, sections_json, part_a_config_version FROM assessment_versions WHERE version_id = ? AND created_by = 'system'"
-        )
-        .get(ASSESSMENT_VERSION) as
-        | {
-            version_id?: string;
-            created_by?: string;
-            questions_json?: string;
-            sections_json?: string;
-            part_a_config_version?: string;
-          }
-        | undefined;
-      if (seedRow?.questions_json) {
-        const expectedQuestionsJson = JSON.stringify(ASSESSMENT_QUESTIONS);
-        const expectedSectionsJson = JSON.stringify(ASSESSMENT_SECTIONS);
-        if (
-          seedRow.questions_json !== expectedQuestionsJson ||
-          seedRow.sections_json !== expectedSectionsJson ||
-          seedRow.part_a_config_version !== PART_A_CONFIG_VERSION
-        ) {
+        .get() as { version_id?: string } | undefined;
+      const verCount = (
+        this.db
+          .prepare('SELECT COUNT(*) AS cnt FROM assessment_versions')
+          .get() as { cnt: number }
+      ).cnt;
+
+      if (verCount === 0 || activeSystemRow) {
+        const now = new Date().toISOString();
+        if (activeSystemRow) {
           this.db
             .prepare(
-              'UPDATE assessment_versions SET questions_json = ?, sections_json = ?, part_a_config_version = ? WHERE version_id = ?'
+              "UPDATE assessment_versions SET status = 'archived' WHERE status = 'active' AND created_by = 'system'"
             )
-            .run(
-              expectedQuestionsJson,
-              expectedSectionsJson,
-              PART_A_CONFIG_VERSION,
-              ASSESSMENT_VERSION
-            );
+            .run();
         }
+        this.db
+          .prepare(
+            `INSERT INTO assessment_versions
+             (version_id, label, status, created_by, change_summary, questions_json, sections_json, part_a_config_version, created_at, activated_at)
+             VALUES (?, ?, 'active', 'system', ?, ?, ?, ?, ?, ?)`
+          )
+          .run(
+            ASSESSMENT_VERSION,
+            'Approved Baseline Discovery Assessment',
+            'Master specification assessment configuration (9 Part A, 6 Part B, 6 Part C cards, 8 Part D questions + contact).',
+            expectedQuestionsJson,
+            expectedSectionsJson,
+            PART_A_CONFIG_VERSION,
+            now,
+            now
+          );
       }
+    } else if (
+      currentBaseline.created_by === 'system' &&
+      (currentBaseline.questions_json !== expectedQuestionsJson ||
+        currentBaseline.sections_json !== expectedSectionsJson ||
+        currentBaseline.part_a_config_version !== PART_A_CONFIG_VERSION)
+    ) {
+      this.db
+        .prepare(
+          'UPDATE assessment_versions SET questions_json = ?, sections_json = ?, part_a_config_version = ? WHERE version_id = ?'
+        )
+        .run(
+          expectedQuestionsJson,
+          expectedSectionsJson,
+          PART_A_CONFIG_VERSION,
+          ASSESSMENT_VERSION
+        );
     }
 
     // Migrate Stage 4 consultation_requests table if it still carries old CHECK constraint or lacks Stage 5 columns
@@ -903,9 +918,9 @@ export class SqliteAssessmentRepository {
         );
     }
 
-    const q7Id = partD['profile_q07'];
+    const q7Id = partD['D7'];
     const q7Pref =
-      QUESTION_MAP['profile_q07']?.options.find((o) => o.id === q7Id)
+      QUESTION_MAP['D7']?.options.find((o) => o.id === q7Id)
         ?.consultationIntent ?? 'none';
 
     this.db
@@ -2108,7 +2123,7 @@ export class SqliteAssessmentRepository {
       }
 
       if (audience && audience !== 'all') {
-        if (rec.answers.selections['profile_q01'] !== audience) return false;
+        if (rec.answers.selections['D1'] !== audience) return false;
       }
 
       if (location && location !== 'all') {
@@ -2117,17 +2132,17 @@ export class SqliteAssessmentRepository {
       }
 
       if (urgency && urgency !== 'all') {
-        if (rec.answers.selections['profile_q03'] !== urgency) return false;
+        if (rec.answers.selections['D3'] !== urgency) return false;
       }
 
       if (financialReadiness && financialReadiness !== 'all') {
-        if (rec.answers.selections['profile_q05'] !== financialReadiness) {
+        if (rec.answers.selections['D5'] !== financialReadiness) {
           return false;
         }
       }
 
       if (januaryCohort && januaryCohort !== 'all') {
-        if (rec.answers.selections['profile_q06'] !== januaryCohort) {
+        if (rec.answers.selections['D6'] !== januaryCohort) {
           return false;
         }
       }
@@ -2383,11 +2398,11 @@ export class SqliteAssessmentRepository {
       return map;
     };
 
-    const audienceMap = buildSurveyCounter('profile_q01');
-    const challengeMap = buildSurveyCounter('profile_q02');
-    const urgencyMap = buildSurveyCounter('profile_q03');
-    const financialMap = buildSurveyCounter('profile_q05');
-    const janMap = buildSurveyCounter('profile_q06');
+    const audienceMap = buildSurveyCounter('D1');
+    const challengeMap = buildSurveyCounter('D2');
+    const urgencyMap = buildSurveyCounter('D3');
+    const financialMap = buildSurveyCounter('D5');
+    const janMap = buildSurveyCounter('D6');
 
     const ikejaMap = new Map<string, number>();
     const attributionMap = new Map<string, number>();
@@ -2456,13 +2471,13 @@ export class SqliteAssessmentRepository {
         }
       };
 
-      incCounter(audienceMap, 'profile_q01');
-      incCounter(challengeMap, 'profile_q02');
-      incCounter(urgencyMap, 'profile_q03');
-      incCounter(financialMap, 'profile_q05');
-      incCounter(janMap, 'profile_q06');
+      incCounter(audienceMap, 'D1');
+      incCounter(challengeMap, 'D2');
+      incCounter(urgencyMap, 'D3');
+      incCounter(financialMap, 'D5');
+      incCounter(janMap, 'D6');
 
-      const q4Label = resolveQuestionOptionLabel(rec, 'profile_q04');
+      const q4Label = resolveQuestionOptionLabel(rec, 'D4');
       ikejaMap.set(q4Label, (ikejaMap.get(q4Label) ?? 0) + 1);
 
       const sourceKey =
@@ -3735,13 +3750,13 @@ function buildExportTabularRows(records: SubmissionRecord[]): {
     rec.answers.contact.city,
     rec.answers.contact.state,
     rec.answers.contact.institution,
-    resolveQuestionOptionLabel(rec, 'profile_q01'),
-    resolveQuestionOptionLabel(rec, 'profile_q02'),
-    resolveQuestionOptionLabel(rec, 'profile_q03'),
-    resolveQuestionOptionLabel(rec, 'profile_q04'),
-    resolveQuestionOptionLabel(rec, 'profile_q05'),
-    resolveQuestionOptionLabel(rec, 'profile_q06'),
-    resolveQuestionOptionLabel(rec, 'profile_q08'),
+    resolveQuestionOptionLabel(rec, 'D1'),
+    resolveQuestionOptionLabel(rec, 'D2'),
+    resolveQuestionOptionLabel(rec, 'D3'),
+    resolveQuestionOptionLabel(rec, 'D4'),
+    resolveQuestionOptionLabel(rec, 'D5'),
+    resolveQuestionOptionLabel(rec, 'D6'),
+    resolveQuestionOptionLabel(rec, 'D8'),
     rec.attribution.utmSource || 'unknown/direct',
     rec.attribution.utmMedium || 'unknown/direct',
     rec.attribution.utmCampaign || 'unknown/direct',

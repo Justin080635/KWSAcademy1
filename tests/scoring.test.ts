@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ASSESSMENT_QUESTIONS, CAPABILITY_PILLARS } from '../src/domain/assessmentContent.ts';
+import {
+  ASSESSMENT_QUESTIONS,
+  CAPABILITY_PILLARS,
+} from '../src/domain/assessmentContent.ts';
 import {
   roundGrowthMean,
   scoreAssessment,
@@ -14,46 +17,50 @@ import {
   validatePartAScoringConfig,
   type PartAScoringConfig,
 } from '../src/domain/scoringConfig.ts';
-import type { RespondentAnswers, StyleId } from '../src/domain/types.ts';
+import type { RespondentAnswers } from '../src/domain/types.ts';
+
+const STAGE_LETTERS = ['', 'A', 'B', 'C', 'D', 'E'] as const;
+const EXP_LETTERS = ['A', 'B', 'C', 'D', 'E'] as const;
 
 function buildBaseAnswers(): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_6',
-      style_q02: 'style_q02_opt_2',
-      style_q03: 'style_q03_opt_2',
-      style_q04: 'style_q04_opt_1',
-      style_q05: 'style_q05_opt_1',
-      style_q06: 'style_q06_opt_1',
-      style_q07: 'style_q07_opt_1',
-      style_q08: 'style_q08_opt_1',
-      style_q09: 'style_q09_opt_1',
-      growth_q01: 'growth_q01_stage_2',
-      growth_q02: 'growth_q02_stage_2',
-      growth_q03: 'growth_q03_stage_2',
-      growth_q04: 'growth_q04_stage_2',
-      growth_q05: 'growth_q05_foundations',
-      growth_q06: 'growth_q06_foundations',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_2',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_2',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_2',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_2',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_no',
-      profile_q08: 'profile_q08_referral',
+      // 6 Storyteller (A4-B, A5-B, A6-D, A7-C, A8-B, A9-C), 2 Strategist (A2-C, A3-D), 1 Opportunity Builder (A1-A)
+      A1: 'A1-A',
+      A2: 'A2-C',
+      A3: 'A3-D',
+      A4: 'A4-B',
+      A5: 'A5-B',
+      A6: 'A6-D',
+      A7: 'A7-C',
+      A8: 'A8-B',
+      A9: 'A9-C',
+      B1: 'B1-B',
+      B2: 'B2-B',
+      B3: 'B3-B',
+      B4: 'B4-B',
+      B5: 'B5-B',
+      B6: 'B6-B',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-C',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-C',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-C',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-C',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-C',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-C',
+      D8: 'D8-F',
     },
     otherText: {},
     contact: {
@@ -125,15 +132,15 @@ test('Part A handles dominant, co-leading 2-way tie, 3-way broad tie, and close-
 
   // 2. Clear 2-way tie: 4 Storyteller, 4 Creator, 1 Connector -> co_leading
   const twoWayTie = buildBaseAnswers();
-  twoWayTie.selections.style_q01 = 'style_q01_opt_3'; // Creator
-  twoWayTie.selections.style_q02 = 'style_q02_opt_4'; // Connector
-  twoWayTie.selections.style_q03 = 'style_q03_opt_3'; // Creator
-  twoWayTie.selections.style_q04 = 'style_q04_opt_1'; // Storyteller
-  twoWayTie.selections.style_q05 = 'style_q05_opt_1'; // Storyteller
-  twoWayTie.selections.style_q06 = 'style_q06_opt_1'; // Storyteller
-  twoWayTie.selections.style_q07 = 'style_q07_opt_1'; // Storyteller
-  twoWayTie.selections.style_q08 = 'style_q08_opt_3'; // Creator
-  twoWayTie.selections.style_q09 = 'style_q09_opt_3'; // Creator
+  twoWayTie.selections.A1 = 'A1-B'; // Creator
+  twoWayTie.selections.A2 = 'A2-A'; // Connector
+  twoWayTie.selections.A3 = 'A3-A'; // Creator
+  twoWayTie.selections.A4 = 'A4-B'; // Storyteller
+  twoWayTie.selections.A5 = 'A5-B'; // Storyteller
+  twoWayTie.selections.A6 = 'A6-D'; // Storyteller
+  twoWayTie.selections.A7 = 'A7-C'; // Storyteller
+  twoWayTie.selections.A8 = 'A8-A'; // Creator
+  twoWayTie.selections.A9 = 'A9-B'; // Creator
   const tieResult = scorePartAProfessionalStyle(twoWayTie);
   assert.equal(tieResult.pattern, 'co_leading');
   assert.deepEqual(
@@ -144,15 +151,15 @@ test('Part A handles dominant, co-leading 2-way tie, 3-way broad tie, and close-
 
   // 3. Even 3-way tie: 3 Storyteller, 3 Strategist, 3 Creator -> broad
   const threeWayTie = buildBaseAnswers();
-  threeWayTie.selections.style_q01 = 'style_q01_opt_3'; // Creator
-  threeWayTie.selections.style_q02 = 'style_q02_opt_2'; // Strategist
-  threeWayTie.selections.style_q03 = 'style_q03_opt_2'; // Strategist
-  threeWayTie.selections.style_q04 = 'style_q04_opt_1'; // Storyteller
-  threeWayTie.selections.style_q05 = 'style_q05_opt_1'; // Storyteller
-  threeWayTie.selections.style_q06 = 'style_q06_opt_1'; // Storyteller
-  threeWayTie.selections.style_q07 = 'style_q07_opt_2'; // Strategist
-  threeWayTie.selections.style_q08 = 'style_q08_opt_3'; // Creator
-  threeWayTie.selections.style_q09 = 'style_q09_opt_3'; // Creator
+  threeWayTie.selections.A1 = 'A1-B'; // Creator
+  threeWayTie.selections.A2 = 'A2-C'; // Strategist
+  threeWayTie.selections.A3 = 'A3-D'; // Strategist
+  threeWayTie.selections.A4 = 'A4-B'; // Storyteller
+  threeWayTie.selections.A5 = 'A5-B'; // Storyteller
+  threeWayTie.selections.A6 = 'A6-D'; // Storyteller
+  threeWayTie.selections.A7 = 'A7-A'; // Strategist
+  threeWayTie.selections.A8 = 'A8-A'; // Creator
+  threeWayTie.selections.A9 = 'A9-B'; // Creator
   const threeWayResult = scorePartAProfessionalStyle(threeWayTie);
   assert.equal(threeWayResult.pattern, 'broad');
   assert.equal(threeWayResult.leadingStyles.length, 3);
@@ -160,15 +167,15 @@ test('Part A handles dominant, co-leading 2-way tie, 3-way broad tie, and close-
 
   // 4. Close cluster (top two within default closeScoreThreshold=1): 4 Opportunity Builder, 3 Strategist, 2 Executor -> broad
   const closeCluster = buildBaseAnswers();
-  closeCluster.selections.style_q01 = 'style_q01_opt_6'; // Opportunity Builder
-  closeCluster.selections.style_q02 = 'style_q02_opt_6'; // Opportunity Builder
-  closeCluster.selections.style_q03 = 'style_q03_opt_6'; // Opportunity Builder
-  closeCluster.selections.style_q04 = 'style_q04_opt_6'; // Opportunity Builder
-  closeCluster.selections.style_q05 = 'style_q05_opt_5'; // Executor
-  closeCluster.selections.style_q06 = 'style_q06_opt_2'; // Strategist
-  closeCluster.selections.style_q07 = 'style_q07_opt_2'; // Strategist
-  closeCluster.selections.style_q08 = 'style_q08_opt_2'; // Strategist
-  closeCluster.selections.style_q09 = 'style_q09_opt_5'; // Executor
+  closeCluster.selections.A1 = 'A1-A'; // Opportunity Builder
+  closeCluster.selections.A2 = 'A2-B'; // Opportunity Builder
+  closeCluster.selections.A3 = 'A3-B'; // Opportunity Builder
+  closeCluster.selections.A4 = 'A4-C'; // Opportunity Builder
+  closeCluster.selections.A5 = 'A5-A'; // Executor
+  closeCluster.selections.A6 = 'A6-B'; // Strategist
+  closeCluster.selections.A7 = 'A7-A'; // Strategist
+  closeCluster.selections.A8 = 'A8-D'; // Strategist
+  closeCluster.selections.A9 = 'A9-A'; // Executor
   const closeResult = scorePartAProfessionalStyle(closeCluster);
   assert.equal(closeResult.pattern, 'broad');
   assert.equal(closeResult.leadTitle, 'A broad profile');
@@ -183,10 +190,13 @@ test('Part A handles dominant, co-leading 2-way tie, 3-way broad tie, and close-
     cloneApprovedConfig({ closeScoreThreshold: 0 })
   );
   assert.equal(strictThresholdResult.pattern, 'dominant');
-  assert.equal(strictThresholdResult.leadingStyles[0]?.styleId, 'OPPORTUNITY_BUILDER');
+  assert.equal(
+    strictThresholdResult.leadingStyles[0]?.styleId,
+    'OPPORTUNITY_BUILDER'
+  );
 });
 
-test('Part B scores all 5 growth stages, half-up rounding, raw responses, and ignores Q5/Q6', () => {
+test('Part B scores all 5 growth stages, half-up rounding, raw responses, and ignores B5/B6', () => {
   assert.equal(roundGrowthMean(1.49), 1);
   assert.equal(roundGrowthMean(1.5), 2);
   assert.equal(roundGrowthMean(2.5), 3);
@@ -194,16 +204,15 @@ test('Part B scores all 5 growth stages, half-up rounding, raw responses, and ig
   assert.equal(roundGrowthMean(4.5), 5);
 
   for (const stage of [1, 2, 3, 4, 5] as const) {
+    const letter = STAGE_LETTERS[stage];
     const answers = buildBaseAnswers();
-    answers.selections.growth_q01 = `growth_q01_stage_${stage}`;
-    answers.selections.growth_q02 = `growth_q02_stage_${stage}`;
-    answers.selections.growth_q03 = `growth_q03_stage_${stage}`;
-    answers.selections.growth_q04 = `growth_q04_stage_${stage}`;
-    // Diagnostic Q5 & Q6 deliberately point to stage 5 / stage 1 extremes
-    answers.selections.growth_q05 =
-      stage === 5 ? 'growth_q05_direction' : 'growth_q05_advancement';
-    answers.selections.growth_q06 =
-      stage === 5 ? 'growth_q06_clarity' : 'growth_q06_advancement';
+    answers.selections.B1 = `B1-${letter}`;
+    answers.selections.B2 = `B2-${letter}`;
+    answers.selections.B3 = `B3-${letter}`;
+    answers.selections.B4 = `B4-${letter}`;
+    // Diagnostic B5 & B6 deliberately point to extremes
+    answers.selections.B5 = stage === 5 ? 'B5-A' : 'B5-G';
+    answers.selections.B6 = stage === 5 ? 'B6-A' : 'B6-F';
 
     const result = scorePartBGrowthJourney(answers);
     assert.equal(result.roundedStageLevel, stage);
@@ -222,10 +231,10 @@ test('Part B scores all 5 growth stages, half-up rounding, raw responses, and ig
 test('Part B enforces mixed-stage flag boundary (spread < 2 vs spread >= 2)', () => {
   // Spread = 1 -> false ([2, 2, 3, 3], mean = 2.5 -> rounds to stage 3)
   const spreadOne = buildBaseAnswers();
-  spreadOne.selections.growth_q01 = 'growth_q01_stage_2';
-  spreadOne.selections.growth_q02 = 'growth_q02_stage_2';
-  spreadOne.selections.growth_q03 = 'growth_q03_stage_3';
-  spreadOne.selections.growth_q04 = 'growth_q04_stage_3';
+  spreadOne.selections.B1 = 'B1-B';
+  spreadOne.selections.B2 = 'B2-B';
+  spreadOne.selections.B3 = 'B3-C';
+  spreadOne.selections.B4 = 'B4-C';
   const res1 = scorePartBGrowthJourney(spreadOne);
   assert.equal(res1.spread, 1);
   assert.equal(res1.mixedStageFlag, false);
@@ -234,10 +243,10 @@ test('Part B enforces mixed-stage flag boundary (spread < 2 vs spread >= 2)', ()
 
   // Spread = 2 -> true ([1, 2, 3, 3], mean = 2.25 -> rounds to stage 2)
   const spreadTwo = buildBaseAnswers();
-  spreadTwo.selections.growth_q01 = 'growth_q01_stage_1';
-  spreadTwo.selections.growth_q02 = 'growth_q02_stage_2';
-  spreadTwo.selections.growth_q03 = 'growth_q03_stage_3';
-  spreadTwo.selections.growth_q04 = 'growth_q04_stage_3';
+  spreadTwo.selections.B1 = 'B1-A';
+  spreadTwo.selections.B2 = 'B2-B';
+  spreadTwo.selections.B3 = 'B3-C';
+  spreadTwo.selections.B4 = 'B4-C';
   const res2 = scorePartBGrowthJourney(spreadTwo);
   assert.equal(res2.spread, 2);
   assert.equal(res2.mixedStageFlag, true);
@@ -246,10 +255,10 @@ test('Part B enforces mixed-stage flag boundary (spread < 2 vs spread >= 2)', ()
 
   // Spread = 4 -> true ([1, 1, 5, 5], mean = 3.0 -> rounds to stage 3)
   const spreadFour = buildBaseAnswers();
-  spreadFour.selections.growth_q01 = 'growth_q01_stage_1';
-  spreadFour.selections.growth_q02 = 'growth_q02_stage_1';
-  spreadFour.selections.growth_q03 = 'growth_q03_stage_5';
-  spreadFour.selections.growth_q04 = 'growth_q04_stage_5';
+  spreadFour.selections.B1 = 'B1-A';
+  spreadFour.selections.B2 = 'B2-A';
+  spreadFour.selections.B3 = 'B3-E';
+  spreadFour.selections.B4 = 'B4-E';
   const res4 = scorePartBGrowthJourney(spreadFour);
   assert.equal(res4.spread, 4);
   assert.equal(res4.mixedStageFlag, true);
@@ -290,12 +299,12 @@ test('Part C verifies approved understanding keys (1:C, 2:D, 3:B, 4:D, 5:A, 6:C)
 
   // All wrong -> all understandingScore = 0
   const allWrong = buildBaseAnswers();
-  allWrong.selections.cap_p1_knowledge = 'cap_p1_k_copy';
-  allWrong.selections.cap_p2_knowledge = 'cap_p2_k_every';
-  allWrong.selections.cap_p3_knowledge = 'cap_p3_k_repeat';
-  allWrong.selections.cap_p4_knowledge = 'cap_p4_k_equipment';
-  allWrong.selections.cap_p5_knowledge = 'cap_p5_k_independent';
-  allWrong.selections.cap_p6_knowledge = 'cap_p6_k_followers';
+  allWrong.selections['C1-U'] = 'C1-U-A';
+  allWrong.selections['C2-U'] = 'C2-U-A';
+  allWrong.selections['C3-U'] = 'C3-U-A';
+  allWrong.selections['C4-U'] = 'C4-U-A';
+  allWrong.selections['C5-U'] = 'C5-U-B';
+  allWrong.selections['C6-U'] = 'C6-U-A';
   const wrongResults = scorePartCCapabilities(allWrong);
   for (const item of wrongResults) {
     assert.equal(item.understandingScore, 0);
@@ -304,15 +313,16 @@ test('Part C verifies approved understanding keys (1:C, 2:D, 3:B, 4:D, 5:A, 6:C)
 
 test('Part C scores experience values A=0 through E=4 separately from understanding', () => {
   for (const level of [0, 1, 2, 3, 4] as const) {
+    const expKey = EXP_LETTERS[level];
     const answers = buildBaseAnswers();
-    answers.selections.cap_p1_experience = `cap_p1_e_${level}`;
-    answers.selections.cap_p2_experience = `cap_p2_e_${level}`;
-    answers.selections.cap_p3_experience = `cap_p3_e_${level}`;
-    answers.selections.cap_p4_experience = `cap_p4_e_${level}`;
-    answers.selections.cap_p5_experience = `cap_p5_e_${level}`;
-    answers.selections.cap_p6_experience = `cap_p6_e_${level}`;
+    answers.selections['C1-E'] = `C1-E-${expKey}`;
+    answers.selections['C2-E'] = `C2-E-${expKey}`;
+    answers.selections['C3-E'] = `C3-E-${expKey}`;
+    answers.selections['C4-E'] = `C4-E-${expKey}`;
+    answers.selections['C5-E'] = `C5-E-${expKey}`;
+    answers.selections['C6-E'] = `C6-E-${expKey}`;
     // Understanding intentionally incorrect to verify zero coupling between the two scores
-    answers.selections.cap_p1_knowledge = 'cap_p1_k_copy';
+    answers.selections['C1-U'] = 'C1-U-A';
 
     const capabilities = scorePartCCapabilities(answers);
     assert.equal(capabilities[0].understandingScore, 0);
@@ -336,9 +346,11 @@ test('Full scoreAssessment returns instant style & stage profile and verifies 9 
   assert.equal(full.developmentPriorities.length, 3);
   assert.equal(full.nextStep.wantsConsultation, false);
 
-  const partAQuestions = ASSESSMENT_QUESTIONS.filter((q) => q.kind === 'orientation');
+  const partAQuestions = ASSESSMENT_QUESTIONS.filter(
+    (q) => q.kind === 'orientation'
+  );
 
-  // Combo 1: All A's (index 0 on Q1-Q9) -> Connector 3, Creator 2, Executor 2 -> broad (gap 1)
+  // Combo 1: All A's (index 0 on A1-A9) -> Connector 3, Creator 2, Executor 2 -> broad (gap 1)
   const allA = buildBaseAnswers();
   for (const q of partAQuestions) {
     allA.selections[q.id] = q.options[0].id;
@@ -348,7 +360,7 @@ test('Full scoreAssessment returns instant style & stage profile and verifies 9 
   assert.equal(allARes.professionalStyle.styleScores[0]?.styleId, 'CONNECTOR');
   assert.equal(allARes.professionalStyle.styleScores[0]?.count, 3);
 
-  // Combo 2: All B's (index 1 on Q1-Q9) -> Storyteller 3, Creator 2, Opportunity Builder 2 -> broad (gap 1)
+  // Combo 2: All B's (index 1 on A1-A9) -> Storyteller 3, Creator 2, Opportunity Builder 2 -> broad (gap 1)
   const allB = buildBaseAnswers();
   for (const q of partAQuestions) {
     allB.selections[q.id] = q.options[1].id;
@@ -358,26 +370,26 @@ test('Full scoreAssessment returns instant style & stage profile and verifies 9 
   assert.equal(allBRes.professionalStyle.styleScores[0]?.styleId, 'STORYTELLER');
   assert.equal(allBRes.professionalStyle.styleScores[0]?.count, 3);
 
-  // Combo 3: Early stage (Part B all 1, Part C all wrong + exp 0)
+  // Combo 3: Early stage (Part B all A=1, Part C C1 wrong + exp A=0)
   const early = buildBaseAnswers();
-  early.selections.growth_q01 = 'growth_q01_stage_1';
-  early.selections.growth_q02 = 'growth_q02_stage_1';
-  early.selections.growth_q03 = 'growth_q03_stage_1';
-  early.selections.growth_q04 = 'growth_q04_stage_1';
-  early.selections.cap_p1_knowledge = 'cap_p1_k_copy';
-  early.selections.cap_p1_experience = 'cap_p1_e_0';
+  early.selections.B1 = 'B1-A';
+  early.selections.B2 = 'B2-A';
+  early.selections.B3 = 'B3-A';
+  early.selections.B4 = 'B4-A';
+  early.selections['C1-U'] = 'C1-U-A';
+  early.selections['C1-E'] = 'C1-E-A';
   const earlyRes = scoreAssessment(early);
   assert.equal(earlyRes.growthJourney.roundedStageLevel, 1);
   assert.equal(earlyRes.growthJourney.indicativeStage.name, 'Discovering');
   assert.equal(earlyRes.growthJourney.mixedStageFlag, false);
 
-  // Combo 4: Advanced stage (Part B all 5, Part C all correct + exp 4)
+  // Combo 4: Advanced stage (Part B all E=5, Part C all correct + exp E=4)
   const advanced = buildBaseAnswers();
-  advanced.selections.growth_q01 = 'growth_q01_stage_5';
-  advanced.selections.growth_q02 = 'growth_q02_stage_5';
-  advanced.selections.growth_q03 = 'growth_q03_stage_5';
-  advanced.selections.growth_q04 = 'growth_q04_stage_5';
-  advanced.selections.cap_p1_experience = 'cap_p1_e_4';
+  advanced.selections.B1 = 'B1-E';
+  advanced.selections.B2 = 'B2-E';
+  advanced.selections.B3 = 'B3-E';
+  advanced.selections.B4 = 'B4-E';
+  advanced.selections['C1-E'] = 'C1-E-E';
   const advRes = scoreAssessment(advanced);
   assert.equal(advRes.growthJourney.roundedStageLevel, 5);
   assert.equal(advRes.growthJourney.indicativeStage.name, 'Advancing');
@@ -385,10 +397,10 @@ test('Full scoreAssessment returns instant style & stage profile and verifies 9 
 
   // Combo 5: Mixed stages (Part B [1, 2, 4, 5] -> avg 3.0 -> Stage 3 Applying, spread 4, mixedStageFlag true)
   const mixed = buildBaseAnswers();
-  mixed.selections.growth_q01 = 'growth_q01_stage_1';
-  mixed.selections.growth_q02 = 'growth_q02_stage_2';
-  mixed.selections.growth_q03 = 'growth_q03_stage_4';
-  mixed.selections.growth_q04 = 'growth_q04_stage_5';
+  mixed.selections.B1 = 'B1-A';
+  mixed.selections.B2 = 'B2-B';
+  mixed.selections.B3 = 'B3-D';
+  mixed.selections.B4 = 'B4-E';
   const mixedRes = scoreAssessment(mixed);
   assert.equal(mixedRes.growthJourney.roundedStageLevel, 3);
   assert.equal(mixedRes.growthJourney.indicativeStage.name, 'Applying');

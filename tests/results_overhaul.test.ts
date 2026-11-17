@@ -7,7 +7,10 @@ import test from 'node:test';
 import { createApp } from '../server/app.ts';
 import { SqliteAssessmentRepository } from '../server/storage.ts';
 import { formatPublicShareSummary } from '../src/components/respondent/ResultsView.tsx';
-import { ASSESSMENT_QUESTIONS, CAPABILITY_PILLARS } from '../src/domain/assessmentContent.ts';
+import {
+  ASSESSMENT_QUESTIONS,
+  CAPABILITY_PILLARS,
+} from '../src/domain/assessmentContent.ts';
 import {
   KWS_PROGRAMME_INFO,
   MIXED_STAGE_STATEMENT,
@@ -22,6 +25,8 @@ import { scoreAssessment } from '../src/domain/scoring.ts';
 import { DEFAULT_PART_A_SCORING_CONFIG } from '../src/domain/scoringConfig.ts';
 import type { RespondentAnswers, StyleId } from '../src/domain/types.ts';
 import type { PublicRespondentRecord } from '../src/services/api.ts';
+
+const STAGE_LETTERS = ['', 'A', 'B', 'C', 'D', 'E'] as const;
 
 function buildStyleAnswers(targetStyle: StyleId): RespondentAnswers {
   const orientationQuestions = ASSESSMENT_QUESTIONS.filter(
@@ -40,32 +45,32 @@ function buildStyleAnswers(targetStyle: StyleId): RespondentAnswers {
   return {
     selections: {
       ...selections,
-      growth_q01: 'growth_q01_stage_3',
-      growth_q02: 'growth_q02_stage_3',
-      growth_q03: 'growth_q03_stage_3',
-      growth_q04: 'growth_q04_stage_3',
-      growth_q05: 'growth_q05_application',
-      growth_q06: 'growth_q06_projects',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_3',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_1',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_1',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_0',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_very_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_no',
-      profile_q08: 'profile_q08_referral',
+      B1: 'B1-C',
+      B2: 'B2-C',
+      B3: 'B3-C',
+      B4: 'B4-C',
+      B5: 'B5-C',
+      B6: 'B6-C',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-D',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-B',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-B',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-A',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-D',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-C',
+      D8: 'D8-F',
     },
     otherText: {},
     contact: {
@@ -89,7 +94,7 @@ function toPublicRecord(answers: RespondentAnswers): PublicRespondentRecord {
     updatedAt: now,
     submittedAt: now,
     completionStatus: 'submitted',
-    assessmentVersion: 'kws-assessment-v2.0',
+    assessmentVersion: 'kws-assessment-v3.0',
     scoringVersion: result.scoringVersion,
     durationMinutes: 6,
     contact: answers.contact,
@@ -128,25 +133,32 @@ test('Results Discovery: handles all 6 styles, co-leading ties, and broad cluste
 
   // Co-leading tie: 4 Storyteller, 4 Creator, 1 Connector
   const tieAnswers = buildStyleAnswers('STORYTELLER');
-  tieAnswers.selections.style_q01 = 'style_q01_opt_3'; // Creator
-  tieAnswers.selections.style_q02 = 'style_q02_opt_4'; // Connector
-  tieAnswers.selections.style_q03 = 'style_q03_opt_3'; // Creator
-  tieAnswers.selections.style_q08 = 'style_q08_opt_3'; // Creator
-  tieAnswers.selections.style_q09 = 'style_q09_opt_3'; // Creator
+  tieAnswers.selections.A1 = 'A1-B'; // Creator
+  tieAnswers.selections.A2 = 'A2-A'; // Connector
+  tieAnswers.selections.A3 = 'A3-A'; // Creator
+  tieAnswers.selections.A4 = 'A4-B'; // Storyteller
+  tieAnswers.selections.A5 = 'A5-B'; // Storyteller
+  tieAnswers.selections.A6 = 'A6-D'; // Storyteller
+  tieAnswers.selections.A7 = 'A7-C'; // Storyteller
+  tieAnswers.selections.A8 = 'A8-A'; // Creator
+  tieAnswers.selections.A9 = 'A9-B'; // Creator
   const tieResult = scoreAssessment(tieAnswers);
   assert.equal(tieResult.professionalStyle.pattern, 'co_leading');
   const tieHero = buildHeroStyleHeadline(tieResult.professionalStyle);
   assert.equal(tieHero.eyebrow, 'Dual Leading Orientation');
   assert.ok(tieHero.primaryTitle.includes('&'));
 
-  // Broad 3-way tie
+  // Broad 3-way tie: 3 Storyteller, 3 Strategist, 3 Creator
   const broadAnswers = buildStyleAnswers('STORYTELLER');
-  broadAnswers.selections.style_q01 = 'style_q01_opt_3';
-  broadAnswers.selections.style_q02 = 'style_q02_opt_2';
-  broadAnswers.selections.style_q03 = 'style_q03_opt_2';
-  broadAnswers.selections.style_q07 = 'style_q07_opt_2';
-  broadAnswers.selections.style_q08 = 'style_q08_opt_3';
-  broadAnswers.selections.style_q09 = 'style_q09_opt_3';
+  broadAnswers.selections.A1 = 'A1-B'; // Creator
+  broadAnswers.selections.A2 = 'A2-C'; // Strategist
+  broadAnswers.selections.A3 = 'A3-D'; // Strategist
+  broadAnswers.selections.A4 = 'A4-B'; // Storyteller
+  broadAnswers.selections.A5 = 'A5-B'; // Storyteller
+  broadAnswers.selections.A6 = 'A6-D'; // Storyteller
+  broadAnswers.selections.A7 = 'A7-A'; // Strategist
+  broadAnswers.selections.A8 = 'A8-A'; // Creator
+  broadAnswers.selections.A9 = 'A9-B'; // Creator
   const broadResult = scoreAssessment(broadAnswers);
   assert.equal(broadResult.professionalStyle.pattern, 'broad');
   const broadHero = buildHeroStyleHeadline(broadResult.professionalStyle);
@@ -155,11 +167,12 @@ test('Results Discovery: handles all 6 styles, co-leading ties, and broad cluste
 
 test('Results Discovery: Growth stages 1-5 and mixed-stage observation work cleanly', () => {
   for (const level of [1, 2, 3, 4, 5] as const) {
+    const letter = STAGE_LETTERS[level];
     const answers = buildStyleAnswers('STRATEGIST');
-    answers.selections.growth_q01 = `growth_q01_stage_${level}`;
-    answers.selections.growth_q02 = `growth_q02_stage_${level}`;
-    answers.selections.growth_q03 = `growth_q03_stage_${level}`;
-    answers.selections.growth_q04 = `growth_q04_stage_${level}`;
+    answers.selections.B1 = `B1-${letter}`;
+    answers.selections.B2 = `B2-${letter}`;
+    answers.selections.B3 = `B3-${letter}`;
+    answers.selections.B4 = `B4-${letter}`;
     const record = toPublicRecord(answers);
     const card = buildShareCardPayload(record);
     assert.equal(card.stageNumber, level);
@@ -169,10 +182,10 @@ test('Results Discovery: Growth stages 1-5 and mixed-stage observation work clea
 
   // Mixed stage
   const mixed = buildStyleAnswers('CREATOR');
-  mixed.selections.growth_q01 = 'growth_q01_stage_1';
-  mixed.selections.growth_q02 = 'growth_q02_stage_2';
-  mixed.selections.growth_q03 = 'growth_q03_stage_4';
-  mixed.selections.growth_q04 = 'growth_q04_stage_4';
+  mixed.selections.B1 = 'B1-A';
+  mixed.selections.B2 = 'B2-B';
+  mixed.selections.B3 = 'B3-D';
+  mixed.selections.B4 = 'B4-D';
   const mixedRecord = toPublicRecord(mixed);
   assert.equal(mixedRecord.result.growthJourney.mixedStageFlag, true);
   assert.ok(
@@ -199,18 +212,18 @@ test('Results Discovery: Capabilities cover high, low, understanding-ahead, and 
   // Featured capability and share insight adapt to U=0, E=0 baseline gracefully
   const lowAnswers = buildStyleAnswers('CONNECTOR');
   Object.assign(lowAnswers.selections, {
-    cap_p1_knowledge: 'cap_p1_k_avoid',
-    cap_p1_experience: 'cap_p1_e_0',
-    cap_p2_knowledge: 'cap_p2_k_ask',
-    cap_p2_experience: 'cap_p2_e_0',
-    cap_p3_knowledge: 'cap_p3_k_ignore',
-    cap_p3_experience: 'cap_p3_e_0',
-    cap_p4_knowledge: 'cap_p4_k_post',
-    cap_p4_experience: 'cap_p4_e_0',
-    cap_p5_knowledge: 'cap_p5_k_start',
-    cap_p5_experience: 'cap_p5_e_0',
-    cap_p6_knowledge: 'cap_p6_k_charge',
-    cap_p6_experience: 'cap_p6_e_0',
+    'C1-U': 'C1-U-A',
+    'C1-E': 'C1-E-A',
+    'C2-U': 'C2-U-A',
+    'C2-E': 'C2-E-A',
+    'C3-U': 'C3-U-A',
+    'C3-E': 'C3-E-A',
+    'C4-U': 'C4-U-A',
+    'C4-E': 'C4-E-A',
+    'C5-U': 'C5-U-B',
+    'C5-E': 'C5-E-A',
+    'C6-U': 'C6-U-A',
+    'C6-E': 'C6-E-A',
   });
   const lowResult = scoreAssessment(lowAnswers);
   const featured = selectFeaturedCapability(lowResult);
@@ -230,14 +243,14 @@ test('Results Discovery: Programme info matches approved copy and all 3 consulta
     expected: 'book' | 'more_info' | 'none';
     wants: boolean;
   }> = [
-    { option: 'profile_q07_yes', expected: 'book', wants: true },
-    { option: 'profile_q07_more_info', expected: 'more_info', wants: true },
-    { option: 'profile_q07_no', expected: 'none', wants: false },
+    { option: 'D7-A', expected: 'book', wants: true },
+    { option: 'D7-B', expected: 'more_info', wants: true },
+    { option: 'D7-C', expected: 'none', wants: false },
   ];
 
   for (const item of mapping) {
     const answers = buildStyleAnswers('OPPORTUNITY_BUILDER');
-    answers.selections.profile_q07 = item.option;
+    answers.selections.D7 = item.option;
     const result = scoreAssessment(answers);
     assert.equal(result.nextStep.consultationIntent, item.expected);
     assert.equal(result.nextStep.wantsConsultation, item.wants);
@@ -256,7 +269,7 @@ test('Immediate Results Access (No Admin Gating) & Share Card Zero-PII Guarantee
 
   try {
     const answers = buildStyleAnswers('STRATEGIST');
-    answers.selections.profile_q07 = 'profile_q07_yes';
+    answers.selections.D7 = 'D7-A';
 
     // Submit directly with NO admin login or approval interaction whatsoever
     const submitRes = await fetch(`${baseUrl}/api/submissions`, {
@@ -304,7 +317,7 @@ test('Immediate Results Access (No Admin Gating) & Share Card Zero-PII Guarantee
     for (const secretPii of [
       answers.contact.email,
       answers.contact.whatsappNumber,
-      'profile_q07_yes',
+      'D7-A',
       'Private admin note test',
     ]) {
       assert.ok(
@@ -352,7 +365,8 @@ test('Motion System: unified motion tokens, reduced-motion safeguards, and clean
   ]) {
     assert.ok(cssSrc.includes(selector), `Expected CSS class ${selector}`);
   }
-  const reducedMotionSection = cssSrc.split('@media (prefers-reduced-motion: reduce)')[1] ?? '';
+  const reducedMotionSection =
+    cssSrc.split('@media (prefers-reduced-motion: reduce)')[1] ?? '';
   assert.ok(reducedMotionSection.includes('.kws-shimmer-text'));
   assert.ok(reducedMotionSection.includes('.kws-float-slow'));
   assert.ok(reducedMotionSection.includes('.kws-progress-sheen::after'));
@@ -365,4 +379,3 @@ test('Motion System: unified motion tokens, reduced-motion safeguards, and clean
   assert.ok(!questionSrc.includes("behavior: 'auto' }"));
   assert.ok(!capSrc.includes("behavior: 'auto' }"));
 });
-

@@ -12,11 +12,13 @@ import {
   ASSESSMENT_QUESTIONS,
   ASSESSMENT_SECTIONS,
   ASSESSMENT_STEPS,
+  PART_D_CONDITIONAL,
 } from '../../domain/assessmentContent.ts';
 import {
   isStepCompleteForSteps,
+  stepRequiresContactDetails,
   validateContactDetails,
-} from '../../domain/scoring.ts';
+} from '../../domain/validation.ts';
 import type {
   AssessmentQuestion,
   AssessmentSectionId,
@@ -27,6 +29,7 @@ import type {
 } from '../../domain/types.ts';
 import { useQuestionTiming } from '../../state/useQuestionTiming.ts';
 import { Button } from '../ui/Button.tsx';
+import { JourneyIndicator } from '../ui/JourneyIndicator.tsx';
 import { Surface } from '../ui/Surface.tsx';
 import {
   KWS_DURATIONS,
@@ -204,12 +207,16 @@ export function AssessmentQuestionView({
 }: AssessmentQuestionViewProps) {
   const prefersReducedMotion = useReducedMotion();
   const [showContactErrors, setShowContactErrors] = useState(false);
+  const [touchedContactFields, setTouchedContactFields] = useState<
+    Partial<Record<'fullName' | 'whatsappNumber' | 'email' | 'city' | 'state' | 'otherText' | 'institution', boolean>>
+  >({});
   const [showMissingHint, setShowMissingHint] = useState(false);
   const [transitionAfterSection, setTransitionAfterSection] =
     useState<AssessmentSectionId | null>(null);
 
   const enteredSectionsRef = useRef<Set<AssessmentSectionId>>(new Set());
   const directionRef = useRef<1 | -1>(1);
+  const stepRegionRef = useRef<HTMLDivElement | null>(null);
 
   const totalSteps = steps.length;
   const safeStepIndex = Math.min(
@@ -248,6 +255,10 @@ export function AssessmentQuestionView({
   );
 
   const contactValidation = validateContactDetails(answers.contact);
+  const showInlineContactFields = stepRequiresContactDetails(
+    safeStepIndex,
+    steps
+  );
 
   const activeQuestionId =
     !transitionAfterSection && currentStep?.kind === 'question'
@@ -279,10 +290,10 @@ export function AssessmentQuestionView({
   );
 
   const scrollTopSmoothly = useCallback(() => {
-    if (typeof window !== 'undefined' && window.scrollY > 24) {
+    if (typeof window !== 'undefined') {
       window.scrollTo({
         top: 0,
-        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        behavior: prefersReducedMotion ? 'instant' : 'smooth',
       });
     }
   }, [prefersReducedMotion]);
@@ -290,9 +301,33 @@ export function AssessmentQuestionView({
   useEffect(() => {
     scrollTopSmoothly();
     setShowContactErrors(false);
+    setTouchedContactFields({});
     setShowMissingHint(false);
     setTransitionAfterSection(null);
   }, [safeStepIndex, scrollTopSmoothly]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (currentStep?.kind === 'capability_card' && !transitionAfterSection) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const container = stepRegionRef.current;
+      if (!container) return;
+      if (!transitionAfterSection && currentStep?.kind === 'question' && currentStep.question.kind !== 'contact_details') {
+        const firstOption = container.querySelector<HTMLElement>('[role="radio"]');
+        if (firstOption) {
+          firstOption.focus({ preventScroll: true });
+          return;
+        }
+      }
+      const heading = container.querySelector<HTMLElement>('h1');
+      if (heading) {
+        heading.focus({ preventScroll: true });
+      }
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [safeStepIndex, transitionAfterSection, currentStep]);
 
   useEffect(() => {
     if (canProceed) {
@@ -345,13 +380,8 @@ export function AssessmentQuestionView({
 
   const handleNextQuestion = () => {
     if (isSubmitting) return;
-    if (
-      currentStep.kind === 'question' &&
-      currentStep.question.kind === 'contact_details' &&
-      !contactValidation.valid
-    ) {
+    if (showInlineContactFields && !contactValidation.valid) {
       setShowContactErrors(true);
-      return;
     }
     if (!canProceed) {
       setShowMissingHint(true);
@@ -454,88 +484,22 @@ export function AssessmentQuestionView({
     sectionSteps.length,
   ]);
 
+  const completedSectionCount = transitionAfterSection
+    ? currentSectionIndex + 1
+    : currentSectionIndex;
+
   return (
     <div className="mx-auto max-w-[780px] px-4 pt-4 pb-6 sm:px-6 sm:py-10">
-      {/* Clean Four-Stop Journey Path (No percentages, no monospace; hide part status row on break screens) */}
-      <nav aria-label="Discovery journey progress" className="mb-5 sm:mb-7">
-        {!transitionAfterSection && (
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--kws-muted)] sm:text-sm">
-            <span className="font-semibold text-[var(--kws-ink)]">
-              {currentSection?.partLabel}
-            </span>
-            <span className="tabular-nums text-[var(--kws-muted)]">
-              {partStatusText}
-            </span>
-          </div>
-        )}
-
-        <ol className="relative flex items-start justify-between gap-2">
-          {/* Connecting track behind the four nodes */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute top-3.5 right-[12%] left-[12%] h-[3px] overflow-hidden rounded-full bg-[var(--kws-border)]"
-          >
-            <motion.div
-              className={`h-full w-full origin-left rounded-full bg-[image:var(--kws-gradient-btn)] ${
-                trackProgressRatio > 0 && !prefersReducedMotion
-                  ? 'kws-progress-sheen'
-                  : ''
-              }`}
-              initial={false}
-              animate={{ scaleX: trackProgressRatio }}
-              transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
-            />
-          </div>
-
-          {sections.map((sec, idx) => {
-            const isCompleted =
-              idx < currentSectionIndex ||
-              (transitionAfterSection === sec.id && idx === currentSectionIndex);
-            const isActive = idx === currentSectionIndex && !isCompleted;
-
-            return (
-              <li
-                key={sec.id}
-                aria-current={isActive ? 'step' : undefined}
-                className="relative z-10 flex flex-1 flex-col items-center text-center"
-              >
-                <motion.span
-                  key={`${sec.id}-${isCompleted ? 'done' : isActive ? 'active' : 'pending'}`}
-                  initial={
-                    prefersReducedMotion || !isCompleted
-                      ? false
-                      : { scale: 0.85 }
-                  }
-                  animate={{ scale: 1 }}
-                  transition={prefersReducedMotion ? { duration: 0 } : KWS_SPRING}
-                  className={`flex h-7 w-7 items-center justify-center rounded-full border text-xs font-bold transition-[background-color,border-color,color,box-shadow] duration-250 ${
-                    isCompleted
-                      ? 'border-transparent bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-xs'
-                      : isActive
-                        ? 'border-[var(--kws-accent)] bg-[var(--kws-surface)] text-[var(--kws-accent)] ring-4 ring-[var(--kws-accent)]/15'
-                        : 'border-[var(--kws-border-strong)] bg-[var(--kws-surface)] text-[var(--kws-muted)]'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <Check className="h-3.5 w-3.5 stroke-[2.75]" aria-hidden="true" />
-                  ) : (
-                    sec.code
-                  )}
-                </motion.span>
-                <span
-                  className={`mt-1.5 text-[11px] transition-colors duration-200 sm:text-xs ${
-                    isActive || isCompleted
-                      ? 'font-semibold text-[var(--kws-ink)]'
-                      : 'text-[var(--kws-muted)]'
-                  }`}
-                >
-                  {sec.navLabel}
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
+      {/* Shared Four-Stop Journey Indicator (current part highlighted, finished parts ticked) */}
+      <JourneyIndicator
+        sections={sections}
+        currentSectionIndex={currentSectionIndex}
+        completedSectionCount={completedSectionCount}
+        progressRatio={trackProgressRatio}
+        headerLeft={!transitionAfterSection ? currentSection?.partLabel : undefined}
+        headerRight={!transitionAfterSection ? partStatusText : undefined}
+        className="mb-5 sm:mb-7"
+      />
 
       {/* Section Intro Banner on First Question of Each Part */}
       <AnimatePresence initial={false}>
@@ -588,7 +552,7 @@ export function AssessmentQuestionView({
       </AnimatePresence>
 
       {/* Active Question OR Clean Section Break Screen */}
-      <div className="overflow-x-clip">
+      <div ref={stepRegionRef} className="overflow-x-clip">
         <AnimatePresence
           mode="wait"
           initial={false}
@@ -627,7 +591,10 @@ export function AssessmentQuestionView({
                   </div>
                 </div>
 
-                <h1 className="mt-6 font-display text-[26px] font-bold leading-[1.16] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
+                <h1
+                  tabIndex={-1}
+                  className="mt-6 font-display text-[26px] font-bold leading-[1.16] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]"
+                >
                   {celebration.headline}
                 </h1>
 
@@ -655,54 +622,55 @@ export function AssessmentQuestionView({
                   </div>
                 )}
 
-                <div className="mt-8">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    loading={
-                      transitionAfterSection === 'profile_next_steps' &&
-                      isSubmitting
-                    }
-                    onClick={() => {
-                      if (transitionAfterSection === 'profile_next_steps') {
-                        onSubmit();
-                        return;
+                <div className="sticky bottom-0 z-20 -mx-4 mt-6 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-8 sm:bg-none sm:p-0">
+                  <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      allowWrap
+                      loading={
+                        transitionAfterSection === 'profile_next_steps' &&
+                        isSubmitting
                       }
-                      directionRef.current = 1;
-                      setTransitionAfterSection(null);
-                      onStepChange(safeStepIndex + 1);
-                    }}
-                    className="w-full min-h-[56px] justify-center sm:w-auto sm:min-w-[210px]"
-                  >
-                    <span>{celebration.ctaLabel}</span>
-                    {!(
-                      transitionAfterSection === 'profile_next_steps' &&
-                      isSubmitting
-                    ) && (
-                      <ArrowRight
-                        className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                      onClick={() => {
+                        if (transitionAfterSection === 'profile_next_steps') {
+                          onSubmit();
+                          return;
+                        }
+                        directionRef.current = 1;
+                        setTransitionAfterSection(null);
+                        onStepChange(safeStepIndex + 1);
+                      }}
+                      className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[210px] sm:justify-center"
+                    >
+                      <span>{celebration.ctaLabel}</span>
+                      {!(
+                        transitionAfterSection === 'profile_next_steps' &&
+                        isSubmitting
+                      ) && (
+                        <ArrowRight
+                          className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="secondary"
+                      allowWrap
+                      onClick={handleBack}
+                      disabled={isSubmitting}
+                      className="w-full min-h-[48px] px-6 sm:w-auto"
+                    >
+                      <ArrowLeft
+                        className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
                         aria-hidden="true"
                       />
-                    )}
-                  </Button>
+                      <span>Back</span>
+                    </Button>
+                  </div>
                 </div>
               </Surface>
-
-              <div className="mt-4 sm:mt-5">
-                <Button
-                  variant="secondary"
-                  allowWrap
-                  onClick={handleBack}
-                  disabled={isSubmitting}
-                  className="w-full min-h-[48px] px-6 sm:w-auto"
-                >
-                  <ArrowLeft
-                    className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:-translate-x-0.5"
-                    aria-hidden="true"
-                  />
-                  <span>Back</span>
-                </Button>
-              </div>
             </motion.div>
           ) : (
             <motion.div
@@ -752,20 +720,65 @@ export function AssessmentQuestionView({
                     (o) => o.id === selectedOptionId
                   );
 
-                  return (
-                    <div>
-                      <Surface className="rounded-[24px] p-6 sm:p-8">
-                        <h1 className="font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]">
-                          {question.prompt}
-                        </h1>
+                  const firstContactError =
+                    contactValidation.errors.fullName ??
+                    contactValidation.errors.whatsappNumber ??
+                    contactValidation.errors.email ??
+                    contactValidation.errors.city ??
+                    contactValidation.errors.state ??
+                    '';
 
-                        {question.kind === 'contact_details' ? (
-                          <div className="mt-5 space-y-4 sm:space-y-5">
-                            <p className="rounded-[14px] border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/65 px-4 py-3 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
-                              This just saves a copy of your profile for you and
-                              lets us reach out if you ask for a chat. You’ll
-                              see your full results right away either way.
-                            </p>
+                  const disabledHelperText = !canProceed
+                    ? question.kind === 'contact_details'
+                      ? firstContactError
+                      : !selectedOption
+                        ? 'Pick an answer to keep going.'
+                        : selectedOption.requiresOtherText &&
+                            !(answers.otherText[question.id] ?? '').trim()
+                          ? 'Please add a short note above so we know what you meant.'
+                          : selectedOption.requiresInstitution &&
+                              !answers.contact.institution.trim()
+                            ? 'Please add your school or institution above to keep going.'
+                            : firstContactError
+                    : null;
+
+                  const fullNameErr =
+                    (showContactErrors || touchedContactFields.fullName) &&
+                    contactValidation.errors.fullName;
+                  const whatsappErr =
+                    (showContactErrors || touchedContactFields.whatsappNumber) &&
+                    contactValidation.errors.whatsappNumber;
+                  const emailErr =
+                    (showContactErrors || touchedContactFields.email) &&
+                    contactValidation.errors.email;
+                  const cityErr =
+                    (showContactErrors || touchedContactFields.city) &&
+                    contactValidation.errors.city;
+                  const stateErr =
+                    (showContactErrors || touchedContactFields.state) &&
+                    contactValidation.errors.state;
+                  const otherErr =
+                    (showMissingHint || touchedContactFields.otherText) &&
+                    selectedOption?.requiresOtherText &&
+                    !(answers.otherText[question.id] ?? '').trim();
+                  const institutionErr =
+                    (showMissingHint || touchedContactFields.institution) &&
+                    selectedOption?.requiresInstitution &&
+                    !answers.contact.institution.trim();
+
+                  const contactFieldsBlock = (
+                    <div
+                      className={
+                        question.kind === 'contact_details'
+                          ? 'mt-5 space-y-4 sm:space-y-5'
+                          : 'mt-6 space-y-4 border-t border-[var(--kws-border)] pt-6 sm:space-y-5'
+                      }
+                    >
+                      <p className="rounded-[14px] border border-[var(--kws-border)] bg-[var(--kws-tint-bg)]/65 px-4 py-3 text-xs leading-relaxed text-[var(--kws-muted)] sm:text-sm">
+                        This just saves a copy of your profile for you and lets
+                        us reach out if you ask for a chat. You’ll see your full
+                        results right away either way.
+                      </p>
 
                             <div>
                               <label
@@ -780,19 +793,36 @@ export function AssessmentQuestionView({
                                 type="text"
                                 autoComplete="name"
                                 required
+                                aria-invalid={Boolean(fullNameErr)}
+                                aria-describedby={
+                                  fullNameErr ? 'kws-err-full-name' : undefined
+                                }
                                 value={answers.contact.fullName}
                                 onChange={(e) =>
                                   onUpdateContact({ fullName: e.target.value })
                                 }
+                                onBlur={() =>
+                                  setTouchedContactFields((prev) => ({
+                                    ...prev,
+                                    fullName: true,
+                                  }))
+                                }
                                 placeholder="Enter your full name"
-                                className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 ${
+                                  fullNameErr
+                                    ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                    : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                                }`}
                               />
-                              {showContactErrors &&
-                                contactValidation.errors.fullName && (
-                                  <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
-                                    {contactValidation.errors.fullName}
-                                  </p>
-                                )}
+                              {fullNameErr && (
+                                <p
+                                  id="kws-err-full-name"
+                                  className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                                >
+                                  <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                  <span>{fullNameErr}</span>
+                                </p>
+                              )}
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -807,23 +837,41 @@ export function AssessmentQuestionView({
                                 <input
                                   id="kws-whatsapp"
                                   type="tel"
+                                  inputMode="tel"
                                   autoComplete="tel"
                                   required
+                                  aria-invalid={Boolean(whatsappErr)}
+                                  aria-describedby={
+                                    whatsappErr ? 'kws-err-whatsapp' : undefined
+                                  }
                                   value={answers.contact.whatsappNumber}
                                   onChange={(e) =>
                                     onUpdateContact({
                                       whatsappNumber: e.target.value,
                                     })
                                   }
+                                  onBlur={() =>
+                                    setTouchedContactFields((prev) => ({
+                                      ...prev,
+                                      whatsappNumber: true,
+                                    }))
+                                  }
                                   placeholder="+234..."
-                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                  className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 ${
+                                    whatsappErr
+                                      ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                      : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                                  }`}
                                 />
-                                {showContactErrors &&
-                                  contactValidation.errors.whatsappNumber && (
-                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
-                                      {contactValidation.errors.whatsappNumber}
-                                    </p>
-                                  )}
+                                {whatsappErr && (
+                                  <p
+                                    id="kws-err-whatsapp"
+                                    className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                                  >
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                    <span>{whatsappErr}</span>
+                                  </p>
+                                )}
                               </div>
 
                               <div>
@@ -837,21 +885,41 @@ export function AssessmentQuestionView({
                                 <input
                                   id="kws-email"
                                   type="email"
+                                  inputMode="email"
                                   autoComplete="email"
+                                  autoCapitalize="none"
+                                  spellCheck={false}
                                   required
+                                  aria-invalid={Boolean(emailErr)}
+                                  aria-describedby={
+                                    emailErr ? 'kws-err-email' : undefined
+                                  }
                                   value={answers.contact.email}
                                   onChange={(e) =>
                                     onUpdateContact({ email: e.target.value })
                                   }
+                                  onBlur={() =>
+                                    setTouchedContactFields((prev) => ({
+                                      ...prev,
+                                      email: true,
+                                    }))
+                                  }
                                   placeholder="you@example.com"
-                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                  className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 ${
+                                    emailErr
+                                      ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                      : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                                  }`}
                                 />
-                                {showContactErrors &&
-                                  contactValidation.errors.email && (
-                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
-                                      {contactValidation.errors.email}
-                                    </p>
-                                  )}
+                                {emailErr && (
+                                  <p
+                                    id="kws-err-email"
+                                    className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                                  >
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                    <span>{emailErr}</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -869,19 +937,36 @@ export function AssessmentQuestionView({
                                   type="text"
                                   autoComplete="address-level2"
                                   required
+                                  aria-invalid={Boolean(cityErr)}
+                                  aria-describedby={
+                                    cityErr ? 'kws-err-city' : undefined
+                                  }
                                   value={answers.contact.city}
                                   onChange={(e) =>
                                     onUpdateContact({ city: e.target.value })
                                   }
+                                  onBlur={() =>
+                                    setTouchedContactFields((prev) => ({
+                                      ...prev,
+                                      city: true,
+                                    }))
+                                  }
                                   placeholder="e.g. Ikeja"
-                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                  className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 ${
+                                    cityErr
+                                      ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                      : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                                  }`}
                                 />
-                                {showContactErrors &&
-                                  contactValidation.errors.city && (
-                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
-                                      {contactValidation.errors.city}
-                                    </p>
-                                  )}
+                                {cityErr && (
+                                  <p
+                                    id="kws-err-city"
+                                    className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                                  >
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                    <span>{cityErr}</span>
+                                  </p>
+                                )}
                               </div>
 
                               <div>
@@ -897,24 +982,41 @@ export function AssessmentQuestionView({
                                   type="text"
                                   autoComplete="address-level1"
                                   required
+                                  aria-invalid={Boolean(stateErr)}
+                                  aria-describedby={
+                                    stateErr ? 'kws-err-state' : undefined
+                                  }
                                   value={answers.contact.state}
                                   onChange={(e) =>
                                     onUpdateContact({ state: e.target.value })
                                   }
+                                  onBlur={() =>
+                                    setTouchedContactFields((prev) => ({
+                                      ...prev,
+                                      state: true,
+                                    }))
+                                  }
                                   placeholder="e.g. Lagos"
-                                  className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 focus:border-[var(--kws-accent)]"
+                                  className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] placeholder:text-[var(--kws-muted)]/70 ${
+                                    stateErr
+                                      ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                      : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                                  }`}
                                 />
-                                {showContactErrors &&
-                                  contactValidation.errors.state && (
-                                    <p className="mt-1 text-xs font-medium text-[var(--kws-accent)]">
-                                      {contactValidation.errors.state}
-                                    </p>
-                                  )}
+                                {stateErr && (
+                                  <p
+                                    id="kws-err-state"
+                                    className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                                  >
+                                    <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                    <span>{stateErr}</span>
+                                  </p>
+                                )}
                               </div>
                             </div>
 
                             <div className="pt-1">
-                              <label className="flex cursor-pointer items-start gap-3 text-sm text-[var(--kws-ink)]">
+                              <label className="flex min-h-[44px] cursor-pointer items-start gap-3 py-1 text-sm text-[var(--kws-ink)]">
                                 <input
                                   type="checkbox"
                                   checked={answers.contact.whatsappConsent}
@@ -923,19 +1025,33 @@ export function AssessmentQuestionView({
                                       whatsappConsent: e.target.checked,
                                     })
                                   }
-                                  className="mt-1 h-4 w-4 rounded border-[var(--kws-border-strong)] accent-[var(--kws-accent)]"
+                                  className="mt-0.5 h-5 w-5 shrink-0 rounded border-[var(--kws-border-strong)] accent-[var(--kws-accent)]"
                                 />
                                 <span>
                                   Send me my profile and occasional KWS Academy
                                   updates on WhatsApp.
                                 </span>
                               </label>
-                              <p className="mt-2 text-xs text-[var(--kws-muted)]">
+                              <p className="mt-1.5 text-xs text-[var(--kws-muted)]">
                                 Totally optional. Your full profile opens
                                 either way.
                               </p>
                             </div>
                           </div>
+                  );
+
+                  return (
+                    <div>
+                      <Surface className="rounded-[24px] p-6 sm:p-8">
+                        <h1
+                          tabIndex={-1}
+                          className="font-display text-xl font-bold leading-snug text-[var(--kws-ink)] sm:text-2xl [text-wrap:balance]"
+                        >
+                          {question.prompt}
+                        </h1>
+
+                        {question.kind === 'contact_details' ? (
+                          contactFieldsBlock
                         ) : (
                           <div
                             role="radiogroup"
@@ -957,10 +1073,10 @@ export function AssessmentQuestionView({
                                       currentStep.sectionId
                                     )
                                   }
-                                  className={`group flex w-full min-h-[56px] items-center justify-between gap-3 rounded-[20px] border px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[60px] sm:gap-4 sm:px-5 sm:py-4 ${
+                                  className={`group flex w-full min-h-[60px] items-center justify-between gap-3 rounded-[20px] border-2 px-4 py-3.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer active:scale-[0.988] sm:min-h-[64px] sm:gap-4 sm:px-5 sm:py-4 ${
                                     isSelected
-                                      ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-2 ring-[var(--kws-accent)]/25 shadow-[0_8px_20px_-10px_var(--kws-shadow-accent)]'
-                                      : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-tint-bg)]/40 hover:shadow-xs'
+                                      ? 'border-[var(--kws-accent)] bg-[var(--kws-tint-bg)] ring-4 ring-[var(--kws-accent)]/15 shadow-[0_10px_24px_-10px_var(--kws-shadow-accent)]'
+                                      : 'border-[var(--kws-border)] bg-[var(--kws-surface)] hover:-translate-y-0.5 hover:border-[var(--kws-border-strong)] hover:bg-[var(--kws-tint-bg)]/45 hover:shadow-xs'
                                   }`}
                                 >
                                   <div className="flex items-center gap-3 text-sm leading-relaxed sm:gap-3.5 sm:text-base">
@@ -971,7 +1087,7 @@ export function AssessmentQuestionView({
                                           : 'bg-[var(--kws-surface-subtle)] text-[var(--kws-muted)] group-hover:scale-105 group-hover:text-[var(--kws-ink)]'
                                       }`}
                                     >
-                                      {OPTION_LETTERS[idx]}
+                                      {opt.key ?? OPTION_LETTERS[idx]}
                                     </span>
                                     <span className="font-medium text-[var(--kws-ink)]">
                                       {opt.label}
@@ -1018,54 +1134,94 @@ export function AssessmentQuestionView({
                             <input
                               id="kws-other-text"
                               type="text"
+                              aria-invalid={Boolean(otherErr)}
+                              aria-describedby={
+                                otherErr ? 'kws-err-other-text' : undefined
+                              }
                               value={answers.otherText[question.id] ?? ''}
                               onChange={(e) =>
                                 onChangeOtherText(question.id, e.target.value)
                               }
+                              onBlur={() =>
+                                setTouchedContactFields((prev) => ({
+                                  ...prev,
+                                  otherText: true,
+                                }))
+                              }
                               placeholder="Enter your response"
-                              className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
+                              className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] ${
+                                otherErr
+                                  ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                  : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                              }`}
                             />
+                            {otherErr && (
+                              <p
+                                id="kws-err-other-text"
+                                className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                              >
+                                <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                <span>
+                                  Please add a short note above so we know what
+                                  you meant.
+                                </span>
+                              </p>
+                            )}
                           </div>
                         )}
 
-                        {/* Conditional Institution input */}
+                        {/* Conditional Institution input (verbatim from PART_D_CONDITIONAL) */}
                         {selectedOption?.requiresInstitution && (
                           <div className="mt-4">
                             <label
                               htmlFor="kws-institution"
                               className="block text-sm font-semibold text-[var(--kws-ink)]"
                             >
-                              Exact name of the institution you attend or most
-                              recently attended{' '}
+                              {PART_D_CONDITIONAL.text}{' '}
                               <span className="text-[var(--kws-accent)]">*</span>
                             </label>
                             <input
                               id="kws-institution"
                               type="text"
+                              aria-invalid={Boolean(institutionErr)}
+                              aria-describedby={
+                                institutionErr ? 'kws-err-institution' : undefined
+                              }
                               value={answers.contact.institution}
                               onChange={(e) =>
                                 onUpdateContact({ institution: e.target.value })
                               }
+                              onBlur={() =>
+                                setTouchedContactFields((prev) => ({
+                                  ...prev,
+                                  institution: true,
+                                }))
+                              }
                               placeholder="e.g. University of Lagos"
-                              className="mt-1.5 min-h-[46px] w-full rounded-xl border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
+                              className={`mt-1.5 min-h-[48px] w-full rounded-xl border bg-[var(--kws-surface)] px-3.5 py-2.5 text-base text-[var(--kws-ink)] ${
+                                institutionErr
+                                  ? 'border-[var(--kws-danger)] focus:border-[var(--kws-danger)]'
+                                  : 'border-[var(--kws-border-strong)] focus:border-[var(--kws-accent)]'
+                              }`}
                             />
+                            {institutionErr && (
+                              <p
+                                id="kws-err-institution"
+                                className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-[var(--kws-danger)]"
+                              >
+                                <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                <span>
+                                  Please add your school or institution above to
+                                  keep going.
+                                </span>
+                              </p>
+                            )}
                           </div>
                         )}
 
-                        {/* Friendly Missing Selection Hint */}
-                        {showMissingHint && !canProceed && question.kind !== 'contact_details' && (
-                          <p
-                            role="status"
-                            className="mt-4 text-sm font-medium text-[var(--kws-accent)]"
-                          >
-                            {!selectedOption
-                              ? 'Pick an answer to keep going.'
-                              : selectedOption.requiresOtherText &&
-                                  !(answers.otherText[question.id] ?? '').trim()
-                                ? 'Please add a short note above so we know what you meant.'
-                                : 'Please add your school or institution above to keep going.'}
-                          </p>
-                        )}
+                        {question.kind !== 'contact_details' &&
+                          showInlineContactFields &&
+                          contactFieldsBlock}
 
                         {/* Submission Error Alert */}
                         {submitError && (
@@ -1089,24 +1245,42 @@ export function AssessmentQuestionView({
                         )}
                       </Surface>
 
-                      {/* Sticky Bottom Mobile Action Bar */}
+                      {/* Sticky Bottom Mobile Action Bar — One Primary Action + Quiet Helper When Disabled */}
                       <div className="sticky bottom-0 z-20 -mx-4 mt-4 bg-gradient-to-t from-[var(--kws-bg)] via-[var(--kws-bg)]/95 to-transparent px-4 pt-6 pb-[calc(16px+env(safe-area-inset-bottom))] sm:static sm:mx-0 sm:mt-6 sm:bg-none sm:p-0">
                         <div className="flex flex-col gap-2.5 sm:flex-row-reverse sm:items-center sm:justify-between sm:gap-4">
-                          <Button
-                            variant="primary"
-                            allowWrap
-                            onClick={handleNextQuestion}
-                            loading={isSubmitting}
-                            className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[190px] sm:justify-center"
-                          >
-                            <span>Continue</span>
-                            {!isSubmitting && (
-                              <ArrowRight
-                                className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
-                                aria-hidden="true"
-                              />
+                          <div className="flex flex-col gap-1.5 sm:flex-row-reverse sm:items-center sm:gap-3">
+                            <Button
+                              variant="primary"
+                              allowWrap
+                              disabled={!canProceed || isSubmitting}
+                              aria-describedby={
+                                disabledHelperText
+                                  ? 'kws-continue-helper'
+                                  : undefined
+                              }
+                              onClick={handleNextQuestion}
+                              loading={isSubmitting}
+                              className="w-full min-h-[56px] justify-between px-6 sm:w-auto sm:min-w-[190px] sm:justify-center"
+                            >
+                              <span>Continue</span>
+                              {!isSubmitting && (
+                                <ArrowRight
+                                  className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </Button>
+
+                            {disabledHelperText && (
+                              <p
+                                id="kws-continue-helper"
+                                role="status"
+                                className="text-center text-xs font-medium text-[var(--kws-muted)] sm:text-right sm:text-sm"
+                              >
+                                {disabledHelperText}
+                              </p>
                             )}
-                          </Button>
+                          </div>
 
                           <Button
                             variant="secondary"

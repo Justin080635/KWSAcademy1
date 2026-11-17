@@ -6,19 +6,20 @@ import path from 'node:path';
 import test from 'node:test';
 import { createApp } from '../server/app.ts';
 import { SqliteAssessmentRepository } from '../server/storage.ts';
-import { ASSESSMENT_QUESTIONS } from '../src/domain/assessmentContent.ts';
+import { formatPublicShareSummary } from '../src/components/respondent/ResultsView.tsx';
+import { getInsightForPillar } from '../src/domain/pillarInsightEngine.ts';
 import {
   MIXED_STAGE_OBSERVATION,
   selectBestInsight,
 } from '../src/domain/pillarInsights.ts';
-import { getInsightForPillar } from '../src/domain/pillarInsightEngine.ts';
 import { scoreAssessment } from '../src/domain/scoring.ts';
 import {
   DEFAULT_PART_A_SCORING_CONFIG,
   type PartAScoringConfig,
 } from '../src/domain/scoringConfig.ts';
 import type { RespondentAnswers } from '../src/domain/types.ts';
-import { formatPublicShareSummary } from '../src/components/respondent/ResultsView.tsx';
+
+const STAGE_LETTERS = ['', 'A', 'B', 'C', 'D', 'E'] as const;
 
 function buildApprovedPartAConfig(): PartAScoringConfig {
   return {
@@ -30,44 +31,47 @@ function buildApprovedPartAConfig(): PartAScoringConfig {
   };
 }
 
-function buildBaseAnswers(overrides?: Partial<RespondentAnswers>): RespondentAnswers {
+function buildBaseAnswers(
+  overrides?: Partial<RespondentAnswers>
+): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_6',
-      style_q02: 'style_q02_opt_2',
-      style_q03: 'style_q03_opt_2',
-      style_q04: 'style_q04_opt_1',
-      style_q05: 'style_q05_opt_1',
-      style_q06: 'style_q06_opt_1',
-      style_q07: 'style_q07_opt_1',
-      style_q08: 'style_q08_opt_1',
-      style_q09: 'style_q09_opt_3',
-      growth_q01: 'growth_q01_stage_2',
-      growth_q02: 'growth_q02_stage_2',
-      growth_q03: 'growth_q03_stage_2',
-      growth_q04: 'growth_q04_stage_2',
-      growth_q05: 'growth_q05_foundations',
-      growth_q06: 'growth_q06_foundations',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_3',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_2',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_1',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_1',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_no',
-      profile_q08: 'profile_q08_referral',
+      // 5 Storyteller (A4-B, A5-B, A6-D, A7-C, A8-B), 2 Strategist (A2-C, A3-D), 1 Opportunity Builder (A1-A), 1 Creator (A9-B)
+      A1: 'A1-A',
+      A2: 'A2-C',
+      A3: 'A3-D',
+      A4: 'A4-B',
+      A5: 'A5-B',
+      A6: 'A6-D',
+      A7: 'A7-C',
+      A8: 'A8-B',
+      A9: 'A9-B',
+      B1: 'B1-B',
+      B2: 'B2-B',
+      B3: 'B3-B',
+      B4: 'B4-B',
+      B5: 'B5-B',
+      B6: 'B6-B',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-D',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-C',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-B',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-B',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-C',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-C',
+      D8: 'D8-F',
       ...(overrides?.selections ?? {}),
     },
     otherText: overrides?.otherText ?? {},
@@ -100,7 +104,7 @@ test('Pillar 1: unapproved Part A mapping produces neutral insight with zero fab
 test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, and broad patterns', () => {
   const partAConfig = buildApprovedPartAConfig();
 
-  // 1. Concentrated lead: 5 Storyteller, 2 Strategist, 1 Creator, 1 Connector
+  // 1. Concentrated lead: 5 Storyteller, 2 Strategist, 1 Opportunity Builder, 1 Creator
   const concentrated = getInsightForPillar(
     'professional_style',
     buildBaseAnswers(),
@@ -116,15 +120,15 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_6',
-        style_q02: 'style_q02_opt_2',
-        style_q03: 'style_q03_opt_2',
-        style_q04: 'style_q04_opt_1',
-        style_q05: 'style_q05_opt_1',
-        style_q06: 'style_q06_opt_1',
-        style_q07: 'style_q07_opt_2',
-        style_q08: 'style_q08_opt_3',
-        style_q09: 'style_q09_opt_3',
+        A1: 'A1-A', // Opportunity Builder
+        A2: 'A2-C', // Strategist
+        A3: 'A3-D', // Strategist
+        A4: 'A4-B', // Storyteller
+        A5: 'A5-B', // Storyteller
+        A6: 'A6-D', // Storyteller
+        A7: 'A7-A', // Strategist
+        A8: 'A8-A', // Creator
+        A9: 'A9-B', // Creator
       },
     }),
     { partAConfig }
@@ -139,15 +143,15 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_3',
-        style_q02: 'style_q02_opt_2',
-        style_q03: 'style_q03_opt_2',
-        style_q04: 'style_q04_opt_1',
-        style_q05: 'style_q05_opt_1',
-        style_q06: 'style_q06_opt_1',
-        style_q07: 'style_q07_opt_2',
-        style_q08: 'style_q08_opt_3',
-        style_q09: 'style_q09_opt_3',
+        A1: 'A1-B', // Creator
+        A2: 'A2-C', // Strategist
+        A3: 'A3-D', // Strategist
+        A4: 'A4-B', // Storyteller
+        A5: 'A5-B', // Storyteller
+        A6: 'A6-D', // Storyteller
+        A7: 'A7-A', // Strategist
+        A8: 'A8-A', // Creator
+        A9: 'A9-B', // Creator
       },
     }),
     { partAConfig }
@@ -160,25 +164,30 @@ test('Pillar 1: approved Part A mapping selects concentrated, paired, emerging, 
     'professional_style',
     buildBaseAnswers({
       selections: {
-        style_q01: 'style_q01_opt_6',
-        style_q02: 'style_q02_opt_2',
-        style_q03: 'style_q03_opt_2',
-        style_q04: 'style_q04_opt_1',
-        style_q05: 'style_q05_opt_1',
-        style_q06: 'style_q06_opt_1',
-        style_q07: 'style_q07_opt_5',
-        style_q08: 'style_q08_opt_3',
-        style_q09: 'style_q09_opt_3',
+        A1: 'A1-A', // Opportunity Builder
+        A2: 'A2-C', // Strategist
+        A3: 'A3-D', // Strategist
+        A4: 'A4-B', // Storyteller
+        A5: 'A5-B', // Storyteller
+        A6: 'A6-D', // Storyteller
+        A7: 'A7-B', // Executor
+        A8: 'A8-A', // Creator
+        A9: 'A9-B', // Creator
       },
     }),
     { partAConfig }
   );
   assert.equal(emerging.insight.insightId, 'part_a_emerging_style');
-  assert.ok(emerging.insight.message.includes('Storyteller came through again and again'));
+  assert.ok(
+    emerging.insight.message.includes('Storyteller came through again and again')
+  );
 });
 
 test('Pillar 2: evaluates all 5 growth stages, boundaries, and mixed-stage observation', () => {
-  const stageExpectations: Array<{ level: 1 | 2 | 3 | 4 | 5; phrase: string }> = [
+  const stageExpectations: Array<{
+    level: 1 | 2 | 3 | 4 | 5;
+    phrase: string;
+  }> = [
     { level: 1, phrase: 'starts with curiosity' },
     { level: 2, phrase: 'building your footing' },
     { level: 3, phrase: 'moving from learning into doing' },
@@ -187,14 +196,15 @@ test('Pillar 2: evaluates all 5 growth stages, boundaries, and mixed-stage obser
   ];
 
   for (const spec of stageExpectations) {
+    const letter = STAGE_LETTERS[spec.level];
     const out = getInsightForPillar(
       'growth_journey',
       buildBaseAnswers({
         selections: {
-          growth_q01: `growth_q01_stage_${spec.level}`,
-          growth_q02: `growth_q02_stage_${spec.level}`,
-          growth_q03: `growth_q03_stage_${spec.level}`,
-          growth_q04: `growth_q04_stage_${spec.level}`,
+          B1: `B1-${letter}`,
+          B2: `B2-${letter}`,
+          B3: `B3-${letter}`,
+          B4: `B4-${letter}`,
         },
       })
     );
@@ -209,16 +219,18 @@ test('Pillar 2: evaluates all 5 growth stages, boundaries, and mixed-stage obser
     'growth_journey',
     buildBaseAnswers({
       selections: {
-        growth_q01: 'growth_q01_stage_1',
-        growth_q02: 'growth_q02_stage_2',
-        growth_q03: 'growth_q03_stage_3',
-        growth_q04: 'growth_q04_stage_4',
+        B1: 'B1-A',
+        B2: 'B2-B',
+        B3: 'B3-C',
+        B4: 'B4-D',
       },
     })
   );
   assert.equal(mixed.insight.insightId, 'part_b_mixed_stage');
   assert.equal(mixed.insight.primaryMetric.value, 3);
-  assert.ok(mixed.insight.headline.includes('moving from learning into doing'));
+  assert.ok(
+    mixed.insight.headline.includes('moving from learning into doing')
+  );
   assert.equal(mixed.insight.secondaryObservation, MIXED_STAGE_OBSERVATION);
 });
 
@@ -226,7 +238,7 @@ test('Pillar 3: capability pattern priority & strict separation of Understanding
   // 1. Strong both (1 aligned & experience >= 3)
   const strong = getInsightForPillar('strengths_growth', buildBaseAnswers());
   assert.equal(strong.insight.insightId, 'part_c_strong_both');
-  assert.ok(strong.insight.message.includes('Media & Industry Intelligence'));
+  assert.ok(strong.insight.message.includes('MEDIA & INDUSTRY INTELLIGENCE'));
   assert.equal(strong.insight.primaryMetric.label, 'What you know');
   assert.equal(strong.insight.secondaryMetric?.label, 'What you’ve done');
   assert.equal(strong.insight.primaryMetric.max, 6);
@@ -237,64 +249,64 @@ test('Pillar 3: capability pattern priority & strict separation of Understanding
     'strengths_growth',
     buildBaseAnswers({
       selections: {
-        cap_p1_knowledge: 'cap_p1_k_examine',
-        cap_p1_experience: 'cap_p1_e_0',
-        cap_p2_knowledge: 'cap_p2_k_ask',
-        cap_p2_experience: 'cap_p2_e_2',
-        cap_p3_knowledge: 'cap_p3_k_ignore',
-        cap_p3_experience: 'cap_p3_e_2',
-        cap_p4_knowledge: 'cap_p4_k_post',
-        cap_p4_experience: 'cap_p4_e_1',
-        cap_p5_knowledge: 'cap_p5_k_start',
-        cap_p5_experience: 'cap_p5_e_1',
-        cap_p6_knowledge: 'cap_p6_k_charge',
-        cap_p6_experience: 'cap_p6_e_1',
+        'C1-U': 'C1-U-C',
+        'C1-E': 'C1-E-A',
+        'C2-U': 'C2-U-A',
+        'C2-E': 'C2-E-C',
+        'C3-U': 'C3-U-A',
+        'C3-E': 'C3-E-C',
+        'C4-U': 'C4-U-A',
+        'C4-E': 'C4-E-B',
+        'C5-U': 'C5-U-B',
+        'C5-E': 'C5-E-B',
+        'C6-U': 'C6-U-A',
+        'C6-E': 'C6-E-B',
       },
     })
   );
   assert.equal(uAhead.insight.insightId, 'part_c_understanding_ahead');
-  assert.ok(uAhead.insight.message.includes('Media & Industry Intelligence'));
+  assert.ok(uAhead.insight.message.includes('MEDIA & INDUSTRY INTELLIGENCE'));
 
   // 3. Experience ahead of Understanding (understanding === 0, experience >= 2, no aligned pillar)
   const expAhead = getInsightForPillar(
     'strengths_growth',
     buildBaseAnswers({
       selections: {
-        cap_p1_knowledge: 'cap_p1_k_avoid',
-        cap_p1_experience: 'cap_p1_e_4',
-        cap_p2_knowledge: 'cap_p2_k_ask',
-        cap_p2_experience: 'cap_p2_e_1',
-        cap_p3_knowledge: 'cap_p3_k_ignore',
-        cap_p3_experience: 'cap_p3_e_1',
-        cap_p4_knowledge: 'cap_p4_k_post',
-        cap_p4_experience: 'cap_p4_e_1',
-        cap_p5_knowledge: 'cap_p5_k_start',
-        cap_p5_experience: 'cap_p5_e_1',
-        cap_p6_knowledge: 'cap_p6_k_charge',
-        cap_p6_experience: 'cap_p6_e_1',
+        'C1-U': 'C1-U-A',
+        'C1-E': 'C1-E-E',
+        'C2-U': 'C2-U-A',
+        'C2-E': 'C2-E-B',
+        'C3-U': 'C3-U-A',
+        'C3-E': 'C3-E-B',
+        'C4-U': 'C4-U-A',
+        'C4-E': 'C4-E-B',
+        'C5-U': 'C5-U-B',
+        'C5-E': 'C5-E-B',
+        'C6-U': 'C6-U-A',
+        'C6-E': 'C6-E-B',
       },
     })
   );
   assert.equal(expAhead.insight.insightId, 'part_c_experience_ahead');
-  assert.ok(expAhead.insight.message.includes('Media & Industry Intelligence'));
+  assert.ok(expAhead.insight.message.includes('MEDIA & INDUSTRY INTELLIGENCE'));
 
   // 4. Balanced spread (understanding === 1 with exp === 2 across all pillars, spread 0 <= 1, total 12 >= 6)
   const balanced = getInsightForPillar(
     'strengths_growth',
     buildBaseAnswers({
       selections: {
-        cap_p1_knowledge: 'cap_p1_k_examine',
-        cap_p1_experience: 'cap_p1_e_2',
-        cap_p2_knowledge: 'cap_p2_k_define',
-        cap_p2_experience: 'cap_p2_e_2',
-        cap_p3_knowledge: 'cap_p3_k_revisit',
-        cap_p3_experience: 'cap_p3_e_2',
-        cap_p4_knowledge: 'cap_p4_k_clarify',
-        cap_p4_experience: 'cap_p4_e_2',
-        cap_p5_knowledge: 'cap_p5_k_coordinate',
-        cap_p5_experience: 'cap_p5_e_2',
-        cap_p6_knowledge: 'cap_p6_k_value_model',
-        cap_p6_experience: 'cap_p6_e_2',
+        'C1-U': 'C1-U-C',
+        'C1-E': 'C1-E-C',
+        'C2-U': 'C2-U-D',
+        'C2-E': 'C2-E-C',
+        'C3-U': 'C3-U-B',
+        'C3-E': 'C3-E-C',
+        'C4-U': 'C4-U-D',
+        'C4-E': 'C4-E-C',
+        'C5-U': 'C5-U-A',
+        'C5-E': 'C5-E-C',
+        'C6-U': 'C6-U-C',
+        'C6-E': 'C6-E-C',
       },
     })
   );
@@ -305,18 +317,18 @@ test('Pillar 3: capability pattern priority & strict separation of Understanding
     'strengths_growth',
     buildBaseAnswers({
       selections: {
-        cap_p1_knowledge: 'cap_p1_k_avoid',
-        cap_p1_experience: 'cap_p1_e_0',
-        cap_p2_knowledge: 'cap_p2_k_ask',
-        cap_p2_experience: 'cap_p2_e_0',
-        cap_p3_knowledge: 'cap_p3_k_ignore',
-        cap_p3_experience: 'cap_p3_e_1',
-        cap_p4_knowledge: 'cap_p4_k_post',
-        cap_p4_experience: 'cap_p4_e_1',
-        cap_p5_knowledge: 'cap_p5_k_start',
-        cap_p5_experience: 'cap_p5_e_1',
-        cap_p6_knowledge: 'cap_p6_k_charge',
-        cap_p6_experience: 'cap_p6_e_1',
+        'C1-U': 'C1-U-A',
+        'C1-E': 'C1-E-A',
+        'C2-U': 'C2-U-A',
+        'C2-E': 'C2-E-A',
+        'C3-U': 'C3-U-A',
+        'C3-E': 'C3-E-B',
+        'C4-U': 'C4-U-A',
+        'C4-E': 'C4-E-B',
+        'C5-U': 'C5-U-B',
+        'C5-E': 'C5-E-B',
+        'C6-U': 'C6-U-A',
+        'C6-E': 'C6-E-B',
       },
     })
   );
@@ -326,7 +338,7 @@ test('Pillar 3: capability pattern priority & strict separation of Understanding
 test('Pillar 4 & Fallbacks: consultation vs self-directed and missing metrics resilience', () => {
   const book = getInsightForPillar(
     'profile_next_steps',
-    buildBaseAnswers({ selections: { profile_q07: 'profile_q07_yes' } })
+    buildBaseAnswers({ selections: { D7: 'D7-A' } })
   );
   assert.equal(book.insight.insightId, 'part_d_consultation_requested');
   assert.equal(book.insight.headline, 'Your profile is in.');
@@ -334,13 +346,13 @@ test('Pillar 4 & Fallbacks: consultation vs self-directed and missing metrics re
 
   const moreInfo = getInsightForPillar(
     'profile_next_steps',
-    buildBaseAnswers({ selections: { profile_q07: 'profile_q07_more_info' } })
+    buildBaseAnswers({ selections: { D7: 'D7-B' } })
   );
   assert.equal(moreInfo.insight.insightId, 'part_d_consultation_requested');
 
   const selfDir = getInsightForPillar(
     'profile_next_steps',
-    buildBaseAnswers({ selections: { profile_q07: 'profile_q07_no' } })
+    buildBaseAnswers({ selections: { D7: 'D7-C' } })
   );
   assert.equal(selfDir.insight.insightId, 'part_d_self_directed');
   assert.equal(selfDir.insight.headline, 'Your profile is in.');
@@ -394,18 +406,24 @@ test('HTTP & Report Consistency: /api/assessment/pillar-insight, admin Part A ap
     });
     assert.equal(unapproveRes.status, 200);
 
-    const preApprovalRes = await fetch(`${baseUrl}/api/assessment/pillar-insight`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pillarId: 'professional_style', answers }),
-    });
+    const preApprovalRes = await fetch(
+      `${baseUrl}/api/assessment/pillar-insight`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pillarId: 'professional_style', answers }),
+      }
+    );
     assert.equal(preApprovalRes.status, 200);
     const preApprovalJson = (await preApprovalRes.json()) as {
       insight: { insightId: string; headline: string };
       partAConfigApproved: boolean;
     };
     assert.equal(preApprovalJson.partAConfigApproved, false);
-    assert.equal(preApprovalJson.insight.insightId, 'part_a_unapproved_neutral');
+    assert.equal(
+      preApprovalJson.insight.insightId,
+      'part_a_unapproved_neutral'
+    );
 
     // 2. Admin approves Part A scoring config
     const approveRes = await fetch(`${baseUrl}/api/admin/configs/scoring`, {
@@ -430,7 +448,10 @@ test('HTTP & Report Consistency: /api/assessment/pillar-insight, admin Part A ap
       partAConfigApproved: boolean;
     };
     assert.equal(postApprovalJson.partAConfigApproved, true);
-    assert.equal(postApprovalJson.insight.insightId, 'part_a_concentrated_lead');
+    assert.equal(
+      postApprovalJson.insight.insightId,
+      'part_a_concentrated_lead'
+    );
     assert.ok(postApprovalJson.insight.message.includes('Storyteller'));
 
     // 4. Full submission stores pillarInsights consistently with milestone insights
@@ -463,7 +484,10 @@ test('HTTP & Report Consistency: /api/assessment/pillar-insight, admin Part A ap
 
     const insights = submitJson.record.result.pillarInsights;
     assert.ok(insights);
-    assert.equal(insights.professionalStyle.insightId, postApprovalJson.insight.insightId);
+    assert.equal(
+      insights.professionalStyle.insightId,
+      postApprovalJson.insight.insightId
+    );
     assert.equal(insights.growthJourney.insightId, 'part_b_stage_2');
     assert.equal(insights.strengthsGrowth.insightId, 'part_c_strong_both');
     assert.equal(insights.profileNextSteps.insightId, 'part_d_self_directed');

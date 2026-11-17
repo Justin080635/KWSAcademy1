@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { animate, useInView, useReducedMotion } from 'motion/react';
 import type { CircularMetricSpec, CircularMetricTone } from '../../domain/types.ts';
 
@@ -21,12 +21,8 @@ const SIZE_CONFIG: Record<
   lg: { px: 120, stroke: 9, valueClass: 'text-2xl' },
 };
 
-const RING_REVEAL_DURATION_SEC = 2.05;
+const RING_REVEAL_DURATION_SEC = 2.1;
 const RING_EASE_OUT = [0.22, 1, 0.36, 1] as const;
-
-// Completed rings are remembered per route + metric signature so scrolling away,
-// parent re-renders, or returning to the results page will not replay animations.
-const completedRingKeys = new Set<string>();
 
 function parseDisplayValue(displayValue: string): {
   prefix: string;
@@ -107,41 +103,38 @@ export function CircularProgressRing({
   const segArc = segmentsCount ? Math.max(2, sliceLength - gapArc) : 0;
 
   const { prefix, targetNum, suffix } = parseDisplayValue(metric.displayValue);
-  const routeKey =
-    typeof window !== 'undefined' ? window.location.pathname : 'ssr';
-  const ringKey = `${routeKey}::${metric.id}::${clampedValue}::${safeMax}::${surface}`;
+  const metricSignature = `${metric.id}::${clampedValue}::${safeMax}::${metric.displayValue}::${surface}`;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const continuousCircleRef = useRef<SVGCircleElement | null>(null);
   const segmentRefs = useRef<Array<SVGCircleElement | null>>([]);
+  const valueSpanRef = useRef<HTMLSpanElement | null>(null);
 
   const inView = useInView(containerRef, { once: true, amount: 'some' });
   const shouldStart = !viewportReveal || inView;
 
-  const isCompletedRef = useRef<boolean>(
-    prefersReducedMotion || completedRingKeys.has(ringKey)
-  );
+  const isCompletedRef = useRef<boolean>(prefersReducedMotion);
   const isAnimatingRef = useRef<boolean>(false);
-  const currentProgressRef = useRef<number>(
-    isCompletedRef.current ? 1 : 0
-  );
-  const lastRingKeyRef = useRef<string>(ringKey);
+  const currentProgressRef = useRef<number>(prefersReducedMotion ? 1 : 0);
+  const lastSignatureRef = useRef<string>(metricSignature);
 
-  if (lastRingKeyRef.current !== ringKey) {
-    lastRingKeyRef.current = ringKey;
-    const alreadyDone = prefersReducedMotion || completedRingKeys.has(ringKey);
-    isCompletedRef.current = alreadyDone;
+  if (lastSignatureRef.current !== metricSignature) {
+    lastSignatureRef.current = metricSignature;
+    isCompletedRef.current = prefersReducedMotion;
     isAnimatingRef.current = false;
-    currentProgressRef.current = alreadyDone ? 1 : 0;
+    currentProgressRef.current = prefersReducedMotion ? 1 : 0;
   }
 
-  const [shownNum, setShownNum] = useState<number | null>(() => {
-    if (targetNum === null) return null;
-    return isCompletedRef.current ? targetNum : 0;
-  });
+  const formatForProgress = (p: number): string => {
+    if (targetNum === null || prefersReducedMotion) {
+      return metric.displayValue;
+    }
+    const num = p >= 1 ? targetNum : Math.round(p * targetNum);
+    return `${prefix}${num}${suffix}`;
+  };
 
   useEffect(() => {
-    const applySvgProgress = (p: number) => {
+    const applyVisualProgress = (p: number) => {
       if (segmentsCount) {
         const filledProgress = p * filledSegments;
         for (let idx = 0; idx < filledSegments; idx += 1) {
@@ -149,7 +142,7 @@ export function CircularProgressRing({
           if (!el) continue;
           const segFill = Math.max(0, Math.min(1, filledProgress - idx));
           const segOffset = segArc * (1 - segFill);
-          const segOpacity = segFill > 0.01 ? 1 : 0;
+          const segOpacity = segFill > 0.005 ? 1 : 0;
           el.setAttribute('stroke-dashoffset', String(segOffset));
           el.setAttribute('stroke-opacity', String(segOpacity));
         }
@@ -166,33 +159,28 @@ export function CircularProgressRing({
           String(nextOpacity)
         );
       }
+
+      if (valueSpanRef.current) {
+        valueSpanRef.current.textContent = formatForProgress(p);
+      }
     };
 
-    if (prefersReducedMotion || completedRingKeys.has(ringKey)) {
+    if (prefersReducedMotion) {
       isCompletedRef.current = true;
       isAnimatingRef.current = false;
       currentProgressRef.current = 1;
-      applySvgProgress(1);
-      if (targetNum !== null) {
-        setShownNum(targetNum);
-      }
+      applyVisualProgress(1);
       return;
     }
 
     if (isCompletedRef.current) {
-      applySvgProgress(1);
-      if (targetNum !== null) {
-        setShownNum(targetNum);
-      }
+      applyVisualProgress(1);
       return;
     }
 
     if (!shouldStart) {
       currentProgressRef.current = 0;
-      applySvgProgress(0);
-      if (targetNum !== null) {
-        setShownNum(0);
-      }
+      applyVisualProgress(0);
       return;
     }
 
@@ -200,10 +188,9 @@ export function CircularProgressRing({
       isCompletedRef.current = true;
       isAnimatingRef.current = false;
       currentProgressRef.current = 1;
-      completedRingKeys.add(ringKey);
-      applySvgProgress(0);
-      if (targetNum !== null) {
-        setShownNum(targetNum);
+      applyVisualProgress(0);
+      if (valueSpanRef.current) {
+        valueSpanRef.current.textContent = metric.displayValue;
       }
       return;
     }
@@ -214,36 +201,21 @@ export function CircularProgressRing({
 
     isAnimatingRef.current = true;
     currentProgressRef.current = 0;
-    applySvgProgress(0);
-    if (targetNum !== null) {
-      setShownNum(0);
-    }
+    applyVisualProgress(0);
 
-    let lastRenderedNum = 0;
     const controls = animate(0, 1, {
       duration: RING_REVEAL_DURATION_SEC,
       ease: RING_EASE_OUT,
       onUpdate(latest) {
         const clampedP = Math.max(0, Math.min(1, latest));
         currentProgressRef.current = clampedP;
-        applySvgProgress(clampedP);
-        if (targetNum !== null) {
-          const nextNum = Math.round(clampedP * targetNum);
-          if (nextNum !== lastRenderedNum) {
-            lastRenderedNum = nextNum;
-            setShownNum(nextNum);
-          }
-        }
+        applyVisualProgress(clampedP);
       },
       onComplete() {
         isAnimatingRef.current = false;
         isCompletedRef.current = true;
         currentProgressRef.current = 1;
-        completedRingKeys.add(ringKey);
-        applySvgProgress(1);
-        if (targetNum !== null) {
-          setShownNum(targetNum);
-        }
+        applyVisualProgress(1);
       },
     });
 
@@ -254,7 +226,7 @@ export function CircularProgressRing({
       }
     };
   }, [
-    ringKey,
+    metricSignature,
     shouldStart,
     prefersReducedMotion,
     ratio,
@@ -263,17 +235,16 @@ export function CircularProgressRing({
     filledSegments,
     segArc,
     targetNum,
+    prefix,
+    suffix,
+    metric.displayValue,
   ]);
 
   const renderProgress = isCompletedRef.current ? 1 : currentProgressRef.current;
   const renderRatio = ratio * renderProgress;
   const renderDashOffset = circumference * (1 - renderRatio);
   const renderStrokeOpacity = renderRatio > 0.001 ? 1 : 0;
-
-  const formattedDisplay =
-    targetNum === null || prefersReducedMotion || shownNum === null
-      ? metric.displayValue
-      : `${prefix}${shownNum}${suffix}`;
+  const initialText = formatForProgress(renderProgress);
 
   const valueTextSize =
     size === 'lg' && metric.displayValue.length > 6
@@ -343,7 +314,7 @@ export function CircularProgressRing({
                   Math.min(1, renderProgress * filledSegments - idx)
                 );
                 const segOffset = segArc * (1 - segFill);
-                const segOpacity = segFill > 0.01 ? 1 : 0;
+                const segOpacity = segFill > 0.005 ? 1 : 0;
 
                 return (
                   <circle
@@ -385,7 +356,7 @@ export function CircularProgressRing({
                 stroke={`url(#${gradientId})`}
                 strokeWidth={cfg.stroke}
                 strokeLinecap="round"
-                strokeDasharray={circumference}
+                strokeDasharray={`${circumference} ${circumference}`}
                 strokeDashoffset={renderDashOffset}
                 strokeOpacity={renderStrokeOpacity}
               />
@@ -395,11 +366,12 @@ export function CircularProgressRing({
 
         <div className="absolute inset-0 flex items-center justify-center px-2">
           <span
+            ref={valueSpanRef}
             className={`font-display font-bold leading-none tabular-nums ${
               isOnDark ? 'text-white' : 'text-[var(--kws-ink)]'
             } ${valueTextSize}`}
           >
-            {formattedDisplay}
+            {initialText}
           </span>
         </div>
       </div>

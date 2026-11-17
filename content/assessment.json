@@ -1,0 +1,1168 @@
+{
+  "contentVersion": "spec-2026-11-17",
+  "source": "KWS Academy Professional Discovery Assessment Master Specification (Parts A-D). Text is copied verbatim; do not edit.",
+  "partA": {
+    "questions": [
+      {
+        "id": "A1",
+        "text": "Imagine a group has just come up with an exciting new idea. Before the group decides what to do, what would you be most inclined to contribute?",
+        "options": [
+          {
+            "id": "A1-A",
+            "key": "A",
+            "text": "Explore how the idea could become something valuable or create an opportunity."
+          },
+          {
+            "id": "A1-B",
+            "key": "B",
+            "text": "Think of something creative that could bring the idea to life."
+          },
+          {
+            "id": "A1-C",
+            "key": "C",
+            "text": "Find people who could contribute and bring everyone together."
+          },
+          {
+            "id": "A1-D",
+            "key": "D",
+            "text": "Organize the work and make sure things move forward."
+          }
+        ]
+      },
+      {
+        "id": "A2",
+        "text": "You have one month to work on a personal project that could help your professional growth. Which part would excite you most?",
+        "options": [
+          {
+            "id": "A2-A",
+            "key": "A",
+            "text": "Finding people to collaborate with, learn from or involve in the project."
+          },
+          {
+            "id": "A2-B",
+            "key": "B",
+            "text": "Exploring how the project could create value, attract interest or open up opportunities."
+          },
+          {
+            "id": "A2-C",
+            "key": "C",
+            "text": "Researching the subject, understanding the problem and deciding the best approach."
+          },
+          {
+            "id": "A2-D",
+            "key": "D",
+            "text": "Organizing the work, setting milestones and making sure I complete it."
+          }
+        ]
+      },
+      {
+        "id": "A3",
+        "text": "You're attending an event where professionals from different parts of the media, marketing and communications industries are sharing their experiences. What would make the event most worthwhile to you?",
+        "options": [
+          {
+            "id": "A3-A",
+            "key": "A",
+            "text": "Discovering new creative ideas, tools and ways of producing work."
+          },
+          {
+            "id": "A3-B",
+            "key": "B",
+            "text": "Understanding how people turn their skills, ideas and services into business opportunities."
+          },
+          {
+            "id": "A3-C",
+            "key": "C",
+            "text": "Learning how projects are organized, managed and delivered successfully."
+          },
+          {
+            "id": "A3-D",
+            "key": "D",
+            "text": "Learning about industry trends, changes and where the industry is heading."
+          }
+        ]
+      },
+      {
+        "id": "A4",
+        "text": "A team has worked on a campaign, but the results are disappointing. What would you be most interested in looking into?",
+        "options": [
+          {
+            "id": "A4-A",
+            "key": "A",
+            "text": "Whether the right people were involved and communication was effective."
+          },
+          {
+            "id": "A4-B",
+            "key": "B",
+            "text": "Whether the message was clear and connected with the intended audience."
+          },
+          {
+            "id": "A4-C",
+            "key": "C",
+            "text": "Whether the product, service or offer gave people a compelling reason to respond."
+          },
+          {
+            "id": "A4-D",
+            "key": "D",
+            "text": "Whether the creative work was engaging and effective."
+          }
+        ]
+      },
+      {
+        "id": "A5",
+        "text": "A community event is being organized. The purpose and overall direction have already been agreed upon. Which part would you most enjoy taking responsibility for?",
+        "options": [
+          {
+            "id": "A5-A",
+            "key": "A",
+            "text": "Organizing activities, managing responsibilities and ensuring the event is delivered."
+          },
+          {
+            "id": "A5-B",
+            "key": "B",
+            "text": "Shaping the message and deciding how the event should communicate its ideas."
+          },
+          {
+            "id": "A5-C",
+            "key": "C",
+            "text": "Building relationships, coordinating people and encouraging collaboration."
+          },
+          {
+            "id": "A5-D",
+            "key": "D",
+            "text": "Developing the creative work and bringing concepts to life."
+          }
+        ]
+      },
+      {
+        "id": "A6",
+        "text": "A friend has a good product but is struggling to attract customers. Where would your attention naturally go first?",
+        "options": [
+          {
+            "id": "A6-A",
+            "key": "A",
+            "text": "Identifying people or networks that could help the product reach more customers."
+          },
+          {
+            "id": "A6-B",
+            "key": "B",
+            "text": "Understanding the customers, the market and how the product should be positioned."
+          },
+          {
+            "id": "A6-C",
+            "key": "C",
+            "text": "Exploring how the product could be packaged, priced or presented to create greater value."
+          },
+          {
+            "id": "A6-D",
+            "key": "D",
+            "text": "Finding the best way to describe the product and communicate why people should care."
+          }
+        ]
+      },
+      {
+        "id": "A7",
+        "text": "Two people on a team disagree about the direction of a project. What would you naturally contribute?",
+        "options": [
+          {
+            "id": "A7-A",
+            "key": "A",
+            "text": "Examining their arguments against the project's objective and identifying the strongest direction."
+          },
+          {
+            "id": "A7-B",
+            "key": "B",
+            "text": "Turning the agreed direction into clear responsibilities and next steps."
+          },
+          {
+            "id": "A7-C",
+            "key": "C",
+            "text": "Helping them explain their positions clearly and understand one another."
+          },
+          {
+            "id": "A7-D",
+            "key": "D",
+            "text": "Bringing them into a constructive conversation and helping them find common ground."
+          }
+        ]
+      },
+      {
+        "id": "A8",
+        "text": "You have an exciting idea, but you don't have much money, equipment or support. What are you most likely to do?",
+        "options": [
+          {
+            "id": "A8-A",
+            "key": "A",
+            "text": "Create a small sample or prototype to demonstrate what the idea could become."
+          },
+          {
+            "id": "A8-B",
+            "key": "B",
+            "text": "Find a compelling way to explain the idea and attract people's interest."
+          },
+          {
+            "id": "A8-C",
+            "key": "C",
+            "text": "Test whether people would be interested in it and whether it could become a viable opportunity."
+          },
+          {
+            "id": "A8-D",
+            "key": "D",
+            "text": "Evaluate the idea carefully and identify the most practical way forward."
+          }
+        ]
+      },
+      {
+        "id": "A9",
+        "text": "Imagine you notice that people around you are struggling with a problem, but nobody seems to be addressing it. What would you most naturally want to do?",
+        "options": [
+          {
+            "id": "A9-A",
+            "key": "A",
+            "text": "Organize a practical way to address the problem and ensure something gets done."
+          },
+          {
+            "id": "A9-B",
+            "key": "B",
+            "text": "Think of something useful or creative that could help solve the problem."
+          },
+          {
+            "id": "A9-C",
+            "key": "C",
+            "text": "Find a way to communicate the problem so people understand why it matters."
+          },
+          {
+            "id": "A9-D",
+            "key": "D",
+            "text": "Understand why the problem exists and identify the most effective way to address it."
+          }
+        ]
+      }
+    ]
+  },
+  "partB": {
+    "questions": [
+      {
+        "id": "B1",
+        "text": "Which statement best describes your current professional situation?",
+        "options": [
+          {
+            "id": "B1-A",
+            "key": "A",
+            "text": "I'm still exploring my interests and trying to understand what professional direction may suit me."
+          },
+          {
+            "id": "B1-B",
+            "key": "B",
+            "text": "I've identified an area of interest and I'm learning the knowledge or skills I need to enter it."
+          },
+          {
+            "id": "B1-C",
+            "key": "C",
+            "text": "I'm beginning to use what I've learned through projects, assignments, work or personal initiatives."
+          },
+          {
+            "id": "B1-D",
+            "key": "D",
+            "text": "I'm working in my chosen area and building experience, credibility or a track record."
+          },
+          {
+            "id": "B1-E",
+            "key": "E",
+            "text": "I'm established in my area and looking to expand my expertise, responsibilities or opportunities."
+          }
+        ]
+      },
+      {
+        "id": "B2",
+        "text": "How would you describe your current knowledge and skills in the area you want to grow?",
+        "options": [
+          {
+            "id": "B2-A",
+            "key": "A",
+            "text": "I'm still discovering my interests and the skills I may want to develop."
+          },
+          {
+            "id": "B2-B",
+            "key": "B",
+            "text": "I'm learning the fundamentals and building an initial understanding."
+          },
+          {
+            "id": "B2-C",
+            "key": "C",
+            "text": "I've acquired some knowledge and can apply parts of what I've learned."
+          },
+          {
+            "id": "B2-D",
+            "key": "D",
+            "text": "I've developed relevant skills and can demonstrate them through completed work or experience."
+          },
+          {
+            "id": "B2-E",
+            "key": "E",
+            "text": "I have substantial knowledge and experience, and can consistently deliver results."
+          }
+        ]
+      },
+      {
+        "id": "B3",
+        "text": "Which statement best describes your practical experience in your chosen or intended area?",
+        "options": [
+          {
+            "id": "B3-A",
+            "key": "A",
+            "text": "I haven't applied it practically yet; I'm still exploring."
+          },
+          {
+            "id": "B3-B",
+            "key": "B",
+            "text": "I'm learning, but I have had little opportunity to practise."
+          },
+          {
+            "id": "B3-C",
+            "key": "C",
+            "text": "I've practised through personal, academic or collaborative work."
+          },
+          {
+            "id": "B3-D",
+            "key": "D",
+            "text": "I've independently completed projects, handled responsibilities or worked on real assignments."
+          },
+          {
+            "id": "B3-E",
+            "key": "E",
+            "text": "I've repeatedly applied my capabilities in professional settings and have a track record of completed work."
+          }
+        ]
+      },
+      {
+        "id": "B4",
+        "text": "How would you describe your professional visibility and credibility?",
+        "options": [
+          {
+            "id": "B4-A",
+            "key": "A",
+            "text": "I'm still figuring out how I want to position myself professionally."
+          },
+          {
+            "id": "B4-B",
+            "key": "B",
+            "text": "I'm beginning to develop a professional identity and present myself in my chosen area."
+          },
+          {
+            "id": "B4-C",
+            "key": "C",
+            "text": "I've started sharing my work, making connections or creating evidence of what I can do."
+          },
+          {
+            "id": "B4-D",
+            "key": "D",
+            "text": "I have a portfolio, professional relationships or a track record that demonstrates my work."
+          },
+          {
+            "id": "B4-E",
+            "key": "E",
+            "text": "I'm recognized for my work or expertise and regularly attract relevant opportunities."
+          }
+        ]
+      },
+      {
+        "id": "B5",
+        "text": "What is the biggest thing currently holding back your professional growth?",
+        "options": [
+          {
+            "id": "B5-A",
+            "key": "A",
+            "text": "I'm unclear about my direction, interests or strengths."
+          },
+          {
+            "id": "B5-B",
+            "key": "B",
+            "text": "I lack some of the knowledge or skills I need."
+          },
+          {
+            "id": "B5-C",
+            "key": "C",
+            "text": "I don't have enough opportunities to practise or gain real experience."
+          },
+          {
+            "id": "B5-D",
+            "key": "D",
+            "text": "I struggle to demonstrate my abilities, build credibility or attract opportunities."
+          },
+          {
+            "id": "B5-E",
+            "key": "E",
+            "text": "I need stronger connections, guidance, resources or access."
+          },
+          {
+            "id": "B5-F",
+            "key": "F",
+            "text": "I know what I want to achieve but struggle with consistency, execution or follow-through."
+          },
+          {
+            "id": "B5-G",
+            "key": "G",
+            "text": "I'm not significantly held back; I'm looking for ways to grow further."
+          }
+        ]
+      },
+      {
+        "id": "B6",
+        "text": "What would meaningful progress look like for you over the next 12 months?",
+        "options": [
+          {
+            "id": "B6-A",
+            "key": "A",
+            "text": "Gaining clarity about my professional direction and the opportunities available to me."
+          },
+          {
+            "id": "B6-B",
+            "key": "B",
+            "text": "Acquiring knowledge and developing capabilities relevant to my goals."
+          },
+          {
+            "id": "B6-C",
+            "key": "C",
+            "text": "Completing practical projects and gaining experience I can demonstrate."
+          },
+          {
+            "id": "B6-D",
+            "key": "D",
+            "text": "Building a stronger portfolio, professional identity and network."
+          },
+          {
+            "id": "B6-E",
+            "key": "E",
+            "text": "Securing better opportunities, taking on greater responsibilities or growing my professional or business activity."
+          },
+          {
+            "id": "B6-F",
+            "key": "F",
+            "text": "Expanding my expertise, influence or capacity to create professional or commercial value."
+          }
+        ]
+      }
+    ]
+  },
+  "partC": {
+    "cards": [
+      {
+        "id": "C1",
+        "capability": "MEDIA & INDUSTRY INTELLIGENCE",
+        "understanding": {
+          "text": "Imagine you're interested in building a career in media, marketing or communications, but you're not sure which direction to take. What would give you the most useful starting point?",
+          "options": [
+            {
+              "id": "C1-U-A",
+              "key": "A",
+              "text": "Explore the tools and software commonly used by professionals in the industry."
+            },
+            {
+              "id": "C1-U-B",
+              "key": "B",
+              "text": "Look at the most popular career paths and identify the ones attracting attention."
+            },
+            {
+              "id": "C1-U-C",
+              "key": "C",
+              "text": "Understand the different industry areas, professional roles, workflows and how they connect."
+            },
+            {
+              "id": "C1-U-D",
+              "key": "D",
+              "text": "Start producing work in an area that interests you and learn from the experience."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have exploring or understanding the media, marketing and communications industries, their professional roles, platforms and developments?",
+          "options": [
+            {
+              "id": "C1-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C1-E-B",
+              "key": "B",
+              "text": "I'm beginning to learn about the industry and its different areas."
+            },
+            {
+              "id": "C1-E-C",
+              "key": "C",
+              "text": "I've explored the industry through research, courses or personal learning."
+            },
+            {
+              "id": "C1-E-D",
+              "key": "D",
+              "text": "I've used my industry knowledge to guide decisions or activities in projects or work."
+            },
+            {
+              "id": "C1-E-E",
+              "key": "E",
+              "text": "I regularly apply industry knowledge in professional work and can demonstrate my understanding."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "C"
+      },
+      {
+        "id": "C2",
+        "capability": "MARKETING & BRAND STRATEGY",
+        "understanding": {
+          "text": "A business has been promoting its products on social media, but it isn't attracting the customers it wants. Before recommending a new marketing approach, what would be most useful to understand?",
+          "options": [
+            {
+              "id": "C2-U-A",
+              "key": "A",
+              "text": "Which platforms competitors use and how frequently they publish content."
+            },
+            {
+              "id": "C2-U-B",
+              "key": "B",
+              "text": "Which types of content currently receive the most engagement across social media."
+            },
+            {
+              "id": "C2-U-C",
+              "key": "C",
+              "text": "Which advertising formats are available and how much each one costs."
+            },
+            {
+              "id": "C2-U-D",
+              "key": "D",
+              "text": "Who the business wants to reach, what those customers value and how the offering meets their needs."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have developing or applying marketing and brand strategies, understanding audiences, positioning products or planning marketing activities?",
+          "options": [
+            {
+              "id": "C2-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C2-E-B",
+              "key": "B",
+              "text": "I'm currently learning about marketing and brand strategy."
+            },
+            {
+              "id": "C2-E-C",
+              "key": "C",
+              "text": "I've applied some of these ideas in personal, academic or collaborative projects."
+            },
+            {
+              "id": "C2-E-D",
+              "key": "D",
+              "text": "I've independently applied marketing or brand strategy to real projects or businesses."
+            },
+            {
+              "id": "C2-E-E",
+              "key": "E",
+              "text": "I've repeatedly developed or applied strategies, evaluated performance and improved outcomes."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "D"
+      },
+      {
+        "id": "C3",
+        "capability": "STRATEGIC COMMUNICATIONS & STORYTELLING",
+        "understanding": {
+          "text": "An organization wants young people to understand a new initiative and take part in it. What should guide the way its message is developed?",
+          "options": [
+            {
+              "id": "C3-U-A",
+              "key": "A",
+              "text": "The communication style and language that have worked well for similar organizations."
+            },
+            {
+              "id": "C3-U-B",
+              "key": "B",
+              "text": "The audience's interests, the purpose of the message and what the organization wants people to understand or do."
+            },
+            {
+              "id": "C3-U-C",
+              "key": "C",
+              "text": "The communication channels with the largest audiences and the formats that attract the most attention."
+            },
+            {
+              "id": "C3-U-D",
+              "key": "D",
+              "text": "The amount of information the organization needs to share and how it can all fit into one message."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have developing messages, writing content, shaping stories or communicating ideas to specific audiences?",
+          "options": [
+            {
+              "id": "C3-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C3-E-B",
+              "key": "B",
+              "text": "I'm currently learning how to communicate ideas and develop content."
+            },
+            {
+              "id": "C3-E-C",
+              "key": "C",
+              "text": "I've created content, written or communicated ideas through personal, academic or collaborative work."
+            },
+            {
+              "id": "C3-E-D",
+              "key": "D",
+              "text": "I've independently developed communication materials, content or stories for real projects or audiences."
+            },
+            {
+              "id": "C3-E-E",
+              "key": "E",
+              "text": "I've consistently developed and delivered communication or storytelling projects and can demonstrate their effectiveness."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "B"
+      },
+      {
+        "id": "C4",
+        "capability": "DIGITAL CONTENT & MEDIA PRODUCTION",
+        "understanding": {
+          "text": "A team needs to produce a short video campaign for a particular audience. What should it consider when deciding how the video will be created?",
+          "options": [
+            {
+              "id": "C4-U-A",
+              "key": "A",
+              "text": "The equipment available and the production techniques the team can use confidently."
+            },
+            {
+              "id": "C4-U-B",
+              "key": "B",
+              "text": "The visual style of successful videos in the same industry and how to achieve a similar result."
+            },
+            {
+              "id": "C4-U-C",
+              "key": "C",
+              "text": "The amount of footage required and the editing techniques that will make the video engaging."
+            },
+            {
+              "id": "C4-U-D",
+              "key": "D",
+              "text": "The video's purpose, intended audience, platform, format and available production resources."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have planning or producing digital content such as photography, videos, graphics, audio or other media?",
+          "options": [
+            {
+              "id": "C4-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C4-E-B",
+              "key": "B",
+              "text": "I'm learning about content creation and media production."
+            },
+            {
+              "id": "C4-E-C",
+              "key": "C",
+              "text": "I've created content through personal, academic or collaborative projects."
+            },
+            {
+              "id": "C4-E-D",
+              "key": "D",
+              "text": "I've independently planned or produced content for real projects, businesses or audiences."
+            },
+            {
+              "id": "C4-E-E",
+              "key": "E",
+              "text": "I regularly produce professional content and can demonstrate my work and production experience."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "D"
+      },
+      {
+        "id": "C5",
+        "capability": "CAMPAIGN & PROJECT EXECUTION",
+        "understanding": {
+          "text": "An organization has agreed on a campaign strategy and wants to launch in three weeks. What would be the most useful next step before execution begins?",
+          "options": [
+            {
+              "id": "C5-U-A",
+              "key": "A",
+              "text": "Break the campaign into activities, assign responsibilities, establish timelines and identify the resources required."
+            },
+            {
+              "id": "C5-U-B",
+              "key": "B",
+              "text": "Begin developing the campaign's promotional materials so the team has something ready to publish."
+            },
+            {
+              "id": "C5-U-C",
+              "key": "C",
+              "text": "Bring everyone together to discuss the campaign and allow team members to decide how they will contribute."
+            },
+            {
+              "id": "C5-U-D",
+              "key": "D",
+              "text": "Establish the campaign's performance targets and decide how its results will be measured."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have planning, coordinating or executing projects, events, campaigns or organized initiatives?",
+          "options": [
+            {
+              "id": "C5-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C5-E-B",
+              "key": "B",
+              "text": "I've participated in projects but have had limited planning or coordination responsibilities."
+            },
+            {
+              "id": "C5-E-C",
+              "key": "C",
+              "text": "I've organized or executed personal, academic, volunteer or collaborative initiatives."
+            },
+            {
+              "id": "C5-E-D",
+              "key": "D",
+              "text": "I've independently planned or coordinated real projects, managing responsibilities and timelines."
+            },
+            {
+              "id": "C5-E-E",
+              "key": "E",
+              "text": "I've repeatedly managed projects or campaigns from planning through delivery and evaluation."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "A"
+      },
+      {
+        "id": "C6",
+        "capability": "CREATIVE BUSINESS & PROFESSIONAL DEVELOPMENT",
+        "understanding": {
+          "text": "A photographer has strong technical skills and produces good work but struggles to attract paying clients consistently. What would be most useful to address?",
+          "options": [
+            {
+              "id": "C6-U-A",
+              "key": "A",
+              "text": "Improving the quality of equipment and investing in more advanced photography techniques."
+            },
+            {
+              "id": "C6-U-B",
+              "key": "B",
+              "text": "Increasing social media activity and publishing more examples of completed work."
+            },
+            {
+              "id": "C6-U-C",
+              "key": "C",
+              "text": "Identifying a suitable customer group, understanding its needs and developing an offering with clear value and pricing."
+            },
+            {
+              "id": "C6-U-D",
+              "key": "D",
+              "text": "Studying successful photographers and adopting the promotional strategies they use."
+            }
+          ]
+        },
+        "experience": {
+          "text": "How much experience do you have positioning yourself professionally, building a portfolio, developing professional relationships or turning your skills into business opportunities?",
+          "options": [
+            {
+              "id": "C6-E-A",
+              "key": "A",
+              "text": "I have little or no experience in this area."
+            },
+            {
+              "id": "C6-E-B",
+              "key": "B",
+              "text": "I've started exploring professional development and how to present my work."
+            },
+            {
+              "id": "C6-E-C",
+              "key": "C",
+              "text": "I've taken some steps through personal branding, networking, portfolio development or offering services."
+            },
+            {
+              "id": "C6-E-D",
+              "key": "D",
+              "text": "I've independently positioned my skills, built professional relationships or pursued clients and opportunities."
+            },
+            {
+              "id": "C6-E-E",
+              "key": "E",
+              "text": "I've consistently applied these skills to build a reputation, secure opportunities or generate business value."
+            }
+          ]
+        },
+        "correctUnderstandingKey": "C"
+      }
+    ]
+  },
+  "partD": {
+    "questions": [
+      {
+        "id": "D1",
+        "text": "Which of these best describes your current situation?",
+        "options": [
+          {
+            "id": "D1-A",
+            "key": "A",
+            "text": "I'm currently a university or college student."
+          },
+          {
+            "id": "D1-B",
+            "key": "B",
+            "text": "I've recently graduated and I'm preparing to enter the professional world."
+          },
+          {
+            "id": "D1-C",
+            "key": "C",
+            "text": "I'm exploring a career in media, marketing or communications."
+          },
+          {
+            "id": "D1-D",
+            "key": "D",
+            "text": "I'm already working in one of these industries and want to develop further."
+          },
+          {
+            "id": "D1-E",
+            "key": "E",
+            "text": "I'm a content creator or digital creative looking to strengthen my professional capabilities."
+          },
+          {
+            "id": "D1-F",
+            "key": "F",
+            "text": "I'm an entrepreneur or business owner looking to improve how I use media and marketing in my business."
+          },
+          {
+            "id": "D1-G",
+            "key": "G",
+            "text": "I'm a freelancer or independent creative professional."
+          },
+          {
+            "id": "D1-H",
+            "key": "H",
+            "text": "Other."
+          }
+        ]
+      },
+      {
+        "id": "D2",
+        "text": "What is the biggest challenge currently limiting your professional growth?",
+        "options": [
+          {
+            "id": "D2-A",
+            "key": "A",
+            "text": "I'm not sure which professional direction to pursue."
+          },
+          {
+            "id": "D2-B",
+            "key": "B",
+            "text": "I lack some of the knowledge or skills required to progress."
+          },
+          {
+            "id": "D2-C",
+            "key": "C",
+            "text": "I understand what I need to do but lack practical experience."
+          },
+          {
+            "id": "D2-D",
+            "key": "D",
+            "text": "I struggle to demonstrate my abilities through a strong portfolio or track record."
+          },
+          {
+            "id": "D2-E",
+            "key": "E",
+            "text": "I find it difficult to attract opportunities, clients or professional connections."
+          },
+          {
+            "id": "D2-F",
+            "key": "F",
+            "text": "I need better guidance, mentorship or accountability."
+          },
+          {
+            "id": "D2-G",
+            "key": "G",
+            "text": "I have several of these challenges."
+          },
+          {
+            "id": "D2-H",
+            "key": "H",
+            "text": "I am not currently facing a major challenge; I want to improve and advance."
+          }
+        ]
+      },
+      {
+        "id": "D3",
+        "text": "How important is it for you to address this challenge?",
+        "options": [
+          {
+            "id": "D3-A",
+            "key": "A",
+            "text": "It's not a major priority right now."
+          },
+          {
+            "id": "D3-B",
+            "key": "B",
+            "text": "It's something I'd like to address within the next 6–12 months."
+          },
+          {
+            "id": "D3-C",
+            "key": "C",
+            "text": "It's important, and I want to make progress within the next 3–6 months."
+          },
+          {
+            "id": "D3-D",
+            "key": "D",
+            "text": "It's a high priority, and I want to take action within the next 1–3 months."
+          },
+          {
+            "id": "D3-E",
+            "key": "E",
+            "text": "I need to address it as soon as possible."
+          }
+        ]
+      },
+      {
+        "id": "D4",
+        "text": "KWS Academy's Professional Development Programme is an in-person, 10-week programme in Ikeja, Lagos. How accessible would attending be for you?",
+        "options": [
+          {
+            "id": "D4-A",
+            "key": "A",
+            "text": "I'm based in Lagos and can attend comfortably."
+          },
+          {
+            "id": "D4-B",
+            "key": "B",
+            "text": "I'm outside Lagos but can travel or arrange accommodation."
+          },
+          {
+            "id": "D4-C",
+            "key": "C",
+            "text": "I could attend if the schedule and logistics are manageable."
+          },
+          {
+            "id": "D4-D",
+            "key": "D",
+            "text": "I would need a different location or delivery format."
+          },
+          {
+            "id": "D4-E",
+            "key": "E",
+            "text": "Attending in person would not currently be possible."
+          }
+        ]
+      },
+      {
+        "id": "D5",
+        "text": "The KWS Academy Professional Development Programme is a 10-week experience with a programme fee of ₦1,200,000. How would you describe your current financial readiness for an investment of this size?",
+        "options": [
+          {
+            "id": "D5-A",
+            "key": "A",
+            "text": "I can comfortably make this investment."
+          },
+          {
+            "id": "D5-B",
+            "key": "B",
+            "text": "I can make this investment with some financial planning."
+          },
+          {
+            "id": "D5-C",
+            "key": "C",
+            "text": "I may be able to make this investment with support or an alternative payment arrangement."
+          },
+          {
+            "id": "D5-D",
+            "key": "D",
+            "text": "I am interested, but this is currently beyond my financial capacity."
+          },
+          {
+            "id": "D5-E",
+            "key": "E",
+            "text": "I am not currently considering a paid programme at this investment level."
+          }
+        ]
+      },
+      {
+        "id": "D6",
+        "text": "The next Professional Development Programme cohort is scheduled for January 2027. How likely are you to consider joining?",
+        "options": [
+          {
+            "id": "D6-A",
+            "key": "A",
+            "text": "I'm ready and seriously considering joining the January cohort."
+          },
+          {
+            "id": "D6-B",
+            "key": "B",
+            "text": "I'm interested and would like to understand the programme better before deciding."
+          },
+          {
+            "id": "D6-C",
+            "key": "C",
+            "text": "I would like to join, but I need more time to prepare."
+          },
+          {
+            "id": "D6-D",
+            "key": "D",
+            "text": "I am interested in a future cohort instead."
+          },
+          {
+            "id": "D6-E",
+            "key": "E",
+            "text": "I'm not currently considering joining."
+          }
+        ]
+      },
+      {
+        "id": "D7",
+        "text": "Your Next Step. You've completed your Professional Discovery Journey and gained some insight into your professional style, growth stage and development areas. Would you like to have a conversation with a member of the KWS Academy team to gain further clarity on your results, discuss your professional goals and explore possible next steps?",
+        "options": [
+          {
+            "id": "D7-A",
+            "key": "A",
+            "text": "Yes, I'd like to schedule a consultation."
+          },
+          {
+            "id": "D7-B",
+            "key": "B",
+            "text": "I'd like to, but I'd prefer to receive more information first."
+          },
+          {
+            "id": "D7-C",
+            "key": "C",
+            "text": "Not at the moment. I'm happy with my assessment results for now."
+          }
+        ]
+      },
+      {
+        "id": "D8",
+        "text": "Where did you first hear about this Professional Discovery Journey?",
+        "options": [
+          {
+            "id": "D8-A",
+            "key": "A",
+            "text": "Instagram"
+          },
+          {
+            "id": "D8-B",
+            "key": "B",
+            "text": "Facebook"
+          },
+          {
+            "id": "D8-C",
+            "key": "C",
+            "text": "LinkedIn"
+          },
+          {
+            "id": "D8-D",
+            "key": "D",
+            "text": "WhatsApp"
+          },
+          {
+            "id": "D8-E",
+            "key": "E",
+            "text": "TikTok"
+          },
+          {
+            "id": "D8-F",
+            "key": "F",
+            "text": "A friend, colleague or personal referral"
+          },
+          {
+            "id": "D8-G",
+            "key": "G",
+            "text": "KWS Academy or DreamLife Studios"
+          },
+          {
+            "id": "D8-H",
+            "key": "H",
+            "text": "Other."
+          }
+        ]
+      }
+    ],
+    "conditional": {
+      "showIf": "D1 is A or B",
+      "id": "D1-institution",
+      "text": "Which institution do you currently attend or did you graduate from?",
+      "type": "short_text"
+    }
+  },
+  "scoring": {
+    "partB": "Q1-Q4: A=1,B=2,C=3,D=4,E=5; mean rounded to nearest whole stage; Q5 and Q6 not scored; flag MIXED-STAGE when max minus min >= 2",
+    "partC": {
+      "understanding": "1 point if the selected key equals correctUnderstandingKey, else 0 (INTERNAL, never shown to the respondent)",
+      "experience": "A=0,B=1,C=2,D=3,E=4",
+      "note": "keep understanding and experience separate; no combined score"
+    },
+    "partA_styleMap_DRAFT_PENDING_KWS_APPROVAL": {
+      "A1": {
+        "A": "opportunity_builder",
+        "B": "creator",
+        "C": "connector",
+        "D": "executor"
+      },
+      "A2": {
+        "A": "connector",
+        "B": "opportunity_builder",
+        "C": "strategist",
+        "D": "executor"
+      },
+      "A3": {
+        "A": "creator",
+        "B": "opportunity_builder",
+        "C": "executor",
+        "D": "strategist"
+      },
+      "A4": {
+        "A": "connector",
+        "B": "storyteller",
+        "C": "opportunity_builder",
+        "D": "creator"
+      },
+      "A5": {
+        "A": "executor",
+        "B": "storyteller",
+        "C": "connector",
+        "D": "creator"
+      },
+      "A6": {
+        "A": "connector",
+        "B": "strategist",
+        "C": "opportunity_builder",
+        "D": "storyteller"
+      },
+      "A7": {
+        "A": "strategist",
+        "B": "executor",
+        "C": "storyteller",
+        "D": "connector"
+      },
+      "A8": {
+        "A": "creator",
+        "B": "storyteller",
+        "C": "opportunity_builder",
+        "D": "strategist"
+      },
+      "A9": {
+        "A": "executor",
+        "B": "creator",
+        "C": "storyteller",
+        "D": "strategist"
+      }
+    }
+  }
+}

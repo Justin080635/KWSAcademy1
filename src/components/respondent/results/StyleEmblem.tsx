@@ -26,13 +26,13 @@ const STYLE_ICON_MOTION: Record<
   StyleId | 'BROAD',
   { className: string; duration: string; delay: string }
 > = {
-  STORYTELLER: { className: 'kws-icon-float-tilt', duration: '3.5s', delay: '0s' },
-  STRATEGIST: { className: 'kws-icon-sway', duration: '3.9s', delay: '-0.6s' },
-  CREATOR: { className: 'kws-icon-pulse-breath', duration: '3.1s', delay: '-1.1s' },
-  CONNECTOR: { className: 'kws-icon-drift', duration: '3.4s', delay: '-1.6s' },
-  EXECUTOR: { className: 'kws-icon-pulse-breath', duration: '2.9s', delay: '-0.4s' },
-  OPPORTUNITY_BUILDER: { className: 'kws-icon-float-tilt', duration: '3.6s', delay: '-1.3s' },
-  BROAD: { className: 'kws-icon-sway', duration: '4s', delay: '-0.8s' },
+  STORYTELLER: { className: 'kws-icon-float-tilt', duration: '3.1s', delay: '0s' },
+  STRATEGIST: { className: 'kws-icon-sway', duration: '3.4s', delay: '-0.6s' },
+  CREATOR: { className: 'kws-icon-pulse-breath', duration: '2.8s', delay: '-1.1s' },
+  CONNECTOR: { className: 'kws-icon-drift', duration: '3.1s', delay: '-1.6s' },
+  EXECUTOR: { className: 'kws-icon-pulse-breath', duration: '2.7s', delay: '-0.4s' },
+  OPPORTUNITY_BUILDER: { className: 'kws-icon-float-tilt', duration: '3.2s', delay: '-1.3s' },
+  BROAD: { className: 'kws-icon-sway', duration: '3.5s', delay: '-0.8s' },
 };
 
 const CAPABILITY_ICON_MOTION: Record<
@@ -41,32 +41,32 @@ const CAPABILITY_ICON_MOTION: Record<
 > = {
   media_industry_intelligence: {
     className: 'kws-icon-sway',
-    duration: '3.8s',
+    duration: '3.4s',
     delay: '0s',
   },
   marketing_brand_strategy: {
     className: 'kws-icon-pulse-breath',
-    duration: '3s',
+    duration: '2.7s',
     delay: '-0.5s',
   },
   strategic_communications_storytelling: {
     className: 'kws-icon-float-tilt',
-    duration: '3.4s',
+    duration: '3.1s',
     delay: '-1.1s',
   },
   digital_content_media_production: {
     className: 'kws-icon-float-tilt',
-    duration: '3.7s',
+    duration: '3.3s',
     delay: '-1.7s',
   },
   campaign_project_execution: {
     className: 'kws-icon-drift',
-    duration: '3.2s',
+    duration: '2.9s',
     delay: '-2.2s',
   },
   creative_business_professional_development: {
     className: 'kws-icon-drift',
-    duration: '3.9s',
+    duration: '3.4s',
     delay: '-2.8s',
   },
 };
@@ -105,12 +105,12 @@ export function StyleEmblem({
     >
       {!prefersReducedMotion && (
         <span
-          className="kws-emblem-glow pointer-events-none absolute inset-0 rounded-full"
+          className="kws-emblem-glow pointer-events-none absolute -inset-1 rounded-full"
           style={{
             background:
               tone === 'onDark'
-                ? 'radial-gradient(circle, rgba(232,206,156,0.28) 0%, transparent 72%)'
-                : 'radial-gradient(circle, rgba(95,27,71,0.16) 0%, rgba(198,164,106,0.12) 48%, transparent 72%)',
+                ? 'radial-gradient(circle, rgba(232,206,156,0.42) 0%, rgba(255,255,255,0.12) 48%, transparent 74%)'
+                : 'radial-gradient(circle, rgba(95,27,71,0.24) 0%, rgba(198,164,106,0.22) 48%, transparent 74%)',
           }}
         />
       )}

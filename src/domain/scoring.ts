@@ -1,6 +1,6 @@
 import {
+  ASSESSMENT_CONTENT_VERSION,
   ASSESSMENT_QUESTIONS,
-  ASSESSMENT_STEPS,
   CAPABILITY_PILLARS,
   PROFESSIONAL_STYLES,
   QUESTION_MAP,
@@ -17,12 +17,19 @@ import {
   validatePartAScoringConfig,
   type PartAScoringConfig,
 } from './scoringConfig.ts';
+import {
+  validateContactDetails,
+  validateAllAnswers,
+  isQuestionComplete,
+  isStepCompleteForSteps,
+  isStepComplete,
+  stepRequiresContactDetails,
+} from './validation.ts';
 import type {
   ArchetypePattern,
   AssessmentOption,
   AssessmentQuestion,
   AssessmentResult,
-  AssessmentStep,
   CapabilityResultItem,
   DevelopmentPriorityItem,
   GrowthJourneyResult,
@@ -31,14 +38,23 @@ import type {
   NextStepResult,
   ProfessionalStyleResult,
   RespondentAnswers,
-  RespondentContact,
   StyleDetailPayload,
   StyleId,
   StyleScoreItem,
   SubmissionRecord,
 } from './types.ts';
 
-export const ASSESSMENT_VERSION = 'kws-assessment-v2.0';
+export {
+  validateContactDetails,
+  validateAllAnswers,
+  isQuestionComplete,
+  isStepCompleteForSteps,
+  isStepComplete,
+  stepRequiresContactDetails,
+};
+
+export const CONTENT_VERSION = ASSESSMENT_CONTENT_VERSION;
+export const ASSESSMENT_VERSION = 'kws-assessment-v3.0';
 export const SCORING_ENGINE_VERSION = 'kws-scoring-v3.0';
 export const PART_A_CONFIG_VERSION = DEFAULT_PART_A_SCORING_CONFIG.approved
   ? 'approved-v1'
@@ -46,8 +62,6 @@ export const PART_A_CONFIG_VERSION = DEFAULT_PART_A_SCORING_CONFIG.approved
 
 export const REFLECTIVE_DISCLAIMER =
   'These results reflect your answers today. They are here to spark honest reflection and conversation—never an exam score or final label.';
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const EXPERIENCE_LABELS: Record<0 | 1 | 2 | 3 | 4, string> = {
   0: 'Haven’t started yet',
@@ -68,138 +82,6 @@ function resolveSelectedOption(
   const selectedOptionId = answers.selections[questionId];
   if (!selectedOptionId) return undefined;
   return question.options.find((opt) => opt.id === selectedOptionId);
-}
-
-export function validateContactDetails(contact: RespondentContact): {
-  valid: boolean;
-  errors: Partial<Record<keyof RespondentContact, string>>;
-} {
-  const errors: Partial<Record<keyof RespondentContact, string>> = {};
-
-  if (!contact.fullName.trim()) {
-    errors.fullName = 'Please enter your full name.';
-  }
-  if (!contact.whatsappNumber.trim()) {
-    errors.whatsappNumber =
-      'Please add your WhatsApp number with country code (e.g. +234...).';
-  }
-  if (!contact.email.trim()) {
-    errors.email = 'Please add your email address.';
-  } else if (!EMAIL_PATTERN.test(contact.email.trim())) {
-    errors.email = 'That email doesn’t look quite right.';
-  }
-  if (!contact.city.trim()) {
-    errors.city = 'Please add your city.';
-  }
-  if (!contact.state.trim()) {
-    errors.state = 'Please add your state.';
-  }
-
-  return {
-    valid: Object.keys(errors).length === 0,
-    errors,
-  };
-}
-
-export function validateAllAnswers(
-  answers: RespondentAnswers,
-  questions: AssessmentQuestion[] = ASSESSMENT_QUESTIONS
-): {
-  valid: boolean;
-  missingQuestionIds: string[];
-} {
-  const missingQuestionIds: string[] = [];
-  const activeQuestions = questions.filter((q) => q.active !== false);
-
-  for (const question of activeQuestions) {
-    if (question.kind === 'contact_details') {
-      if (!validateContactDetails(answers.contact).valid) {
-        missingQuestionIds.push(question.id);
-      }
-      continue;
-    }
-
-    const selected = resolveSelectedOption(question.id, answers, activeQuestions);
-    if (!selected) {
-      missingQuestionIds.push(question.id);
-      continue;
-    }
-
-    if (
-      selected.requiresOtherText &&
-      !(answers.otherText[question.id] ?? '').trim()
-    ) {
-      missingQuestionIds.push(question.id);
-      continue;
-    }
-
-    if (
-      selected.requiresInstitution &&
-      !answers.contact.institution.trim()
-    ) {
-      missingQuestionIds.push(question.id);
-    }
-  }
-
-  return {
-    valid: missingQuestionIds.length === 0,
-    missingQuestionIds,
-  };
-}
-
-export function isQuestionComplete(
-  questionId: string,
-  answers: RespondentAnswers,
-  questions?: AssessmentQuestion[]
-): boolean {
-  const question =
-    questions?.find((q) => q.id === questionId) ?? QUESTION_MAP[questionId];
-  if (!question) return false;
-  if (question.active === false) return true;
-
-  if (question.kind === 'contact_details') {
-    return validateContactDetails(answers.contact).valid;
-  }
-
-  const selected = resolveSelectedOption(questionId, answers, questions);
-  if (!selected) return false;
-
-  if (
-    selected.requiresOtherText &&
-    !(answers.otherText[questionId] ?? '').trim()
-  ) {
-    return false;
-  }
-
-  if (selected.requiresInstitution && !answers.contact.institution.trim()) {
-    return false;
-  }
-
-  return true;
-}
-
-export function isStepCompleteForSteps(
-  stepIndex: number,
-  answers: RespondentAnswers,
-  steps: AssessmentStep[],
-  questions?: AssessmentQuestion[]
-): boolean {
-  const step = steps[stepIndex];
-  if (!step) return false;
-  if (step.kind === 'question') {
-    return isQuestionComplete(step.question.id, answers, questions);
-  }
-  return (
-    isQuestionComplete(step.card.understandingQuestion.id, answers, questions) &&
-    isQuestionComplete(step.card.experienceQuestion.id, answers, questions)
-  );
-}
-
-export function isStepComplete(
-  stepIndex: number,
-  answers: RespondentAnswers
-): boolean {
-  return isStepCompleteForSteps(stepIndex, answers, ASSESSMENT_STEPS);
 }
 
 function toStyleDetail(styleId: StyleId): StyleDetailPayload {
@@ -368,8 +250,8 @@ export function scorePartBGrowthJourney(
     ? `You’re between stages—some parts of your work feel well ahead while others are still warming up (spanning ${Math.min(...values)} to ${Math.max(...values)} across the path).`
     : `Your answers sit closely together around the ${indicativeStage.name} stage.`;
 
-  const challengeOption = resolveSelectedOption('growth_q05', answers, questions);
-  const progressOption = resolveSelectedOption('growth_q06', answers, questions);
+  const challengeOption = resolveSelectedOption('B5', answers, questions);
+  const progressOption = resolveSelectedOption('B6', answers, questions);
 
   return {
     indicativeStage,
@@ -491,7 +373,7 @@ export function buildNextStep(
   questions?: AssessmentQuestion[]
 ): NextStepResult {
   const consultationOption = resolveSelectedOption(
-    'profile_q07',
+    'D7',
     answers,
     questions
   );

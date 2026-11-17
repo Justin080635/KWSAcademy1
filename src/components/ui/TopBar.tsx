@@ -50,7 +50,12 @@ export function TopBar({
     onNavigate(nextRoute, hash);
   };
 
-  const renderCtaContent = () => {
+  const showHeaderAction =
+    isAdmin ||
+    route.view === 'assessment' ||
+    (Boolean(lastSubmissionId) && route.view !== 'results');
+
+  const renderSecondaryLinkContent = () => {
     if (isAdmin) {
       return (
         <>
@@ -67,23 +72,7 @@ export function TopBar({
         </>
       );
     }
-    if (lastSubmissionId && route.view !== 'results') {
-      return 'See My Profile';
-    }
-    if (hasStarted) {
-      return (
-        <>
-          <span>Continue</span>
-          <span className="hidden min-[380px]:inline"> discovery</span>
-        </>
-      );
-    }
-    return (
-      <>
-        <span>Start</span>
-        <span className="hidden min-[380px]:inline"> discovering</span>
-      </>
-    );
+    return 'See My Profile';
   };
 
   return (
@@ -138,16 +127,18 @@ export function TopBar({
           </a>
         </nav>
 
-        {/* Zone 3: Primary action + compact menu button for mobile/tablet */}
+        {/* Zone 3: Quiet contextual link (never a competing primary CTA) + mobile menu toggle */}
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handlePrimaryAction}
-            className="min-h-[38px] px-4 py-1.5 text-xs sm:min-h-[40px] sm:px-4 sm:text-sm"
-          >
-            {renderCtaContent()}
-          </Button>
+          {showHeaderAction && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handlePrimaryAction}
+              className="min-h-[38px] px-3.5 py-1.5 text-xs sm:min-h-[40px] sm:px-4 sm:text-sm"
+            >
+              {renderSecondaryLinkContent()}
+            </Button>
+          )}
           <button
             type="button"
             aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}

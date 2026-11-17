@@ -32,7 +32,7 @@ export function Button({
 
   const variants = {
     primary:
-      'bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[0_10px_24px_-8px_var(--kws-shadow-accent)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_14px_28px_-8px_var(--kws-shadow-accent)]',
+      'kws-btn-shine bg-[image:var(--kws-gradient-btn)] text-[var(--kws-btn-fg)] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_14px_30px_-8px_var(--kws-shadow-accent)] hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.34),0_18px_34px_-8px_var(--kws-shadow-accent)]',
     secondary:
       'bg-[var(--kws-surface)] text-[var(--kws-ink)] border border-[var(--kws-border-strong)] hover:-translate-y-0.5 hover:border-[var(--kws-accent)] hover:bg-[var(--kws-tint-bg)]/55 hover:shadow-xs',
     ghost:

@@ -13,8 +13,6 @@ import {
   KWS_EASE,
 } from '../../ui/motionPrimitives.tsx';
 
-const completedJourneyKeys = new Set<string>();
-
 interface GrowthJourneyRadialProps {
   currentStage: GrowthStageDefinition;
   mixedStageFlag: boolean;
@@ -65,17 +63,21 @@ export function GrowthJourneyRadial({
     currentStage.level
   );
 
-  const routeKey =
-    typeof window !== 'undefined' ? window.location.pathname : 'ssr';
-  const journeyKey = `${routeKey}::stage-${currentStage.level}`;
+  const stageKey = `stage-${currentStage.level}`;
   const dialRef = useRef<HTMLDivElement | null>(null);
   const arcPathRef = useRef<SVGPathElement | null>(null);
   const inView = useInView(dialRef, { once: true, amount: 'some' });
-  const isCompletedRef = useRef<boolean>(
-    prefersReducedMotion || completedJourneyKeys.has(journeyKey)
-  );
+  const isCompletedRef = useRef<boolean>(prefersReducedMotion);
   const isAnimatingRef = useRef<boolean>(false);
-  const progressRef = useRef<number>(isCompletedRef.current ? 1 : 0);
+  const progressRef = useRef<number>(prefersReducedMotion ? 1 : 0);
+  const lastStageKeyRef = useRef<string>(stageKey);
+
+  if (lastStageKeyRef.current !== stageKey) {
+    lastStageKeyRef.current = stageKey;
+    isCompletedRef.current = prefersReducedMotion;
+    isAnimatingRef.current = false;
+    progressRef.current = prefersReducedMotion ? 1 : 0;
+  }
 
   useEffect(() => {
     const applyArcProgress = (p: number) => {
@@ -87,7 +89,7 @@ export function GrowthJourneyRadial({
       );
     };
 
-    if (prefersReducedMotion || completedJourneyKeys.has(journeyKey)) {
+    if (prefersReducedMotion) {
       isCompletedRef.current = true;
       isAnimatingRef.current = false;
       progressRef.current = 1;
@@ -113,7 +115,7 @@ export function GrowthJourneyRadial({
     applyArcProgress(0);
 
     const controls = animate(0, 1, {
-      duration: 2.0,
+      duration: 2.05,
       ease: [0.22, 1, 0.36, 1],
       onUpdate(latest) {
         const clamped = Math.max(0, Math.min(1, latest));
@@ -124,7 +126,6 @@ export function GrowthJourneyRadial({
         isAnimatingRef.current = false;
         isCompletedRef.current = true;
         progressRef.current = 1;
-        completedJourneyKeys.add(journeyKey);
         applyArcProgress(1);
       },
     });
@@ -135,7 +136,7 @@ export function GrowthJourneyRadial({
         isAnimatingRef.current = false;
       }
     };
-  }, [journeyKey, inView, prefersReducedMotion]);
+  }, [stageKey, inView, prefersReducedMotion]);
 
   const stageProgressRatio =
     (currentStage.level - 1) / (GROWTH_STAGES.length - 1);
@@ -208,7 +209,7 @@ export function GrowthJourneyRadial({
               strokeWidth="14"
               strokeLinecap="round"
               pathLength={1}
-              strokeDasharray={1}
+              strokeDasharray="1 2"
               strokeDashoffset={
                 isCompletedRef.current ? 0 : 1 - progressRef.current
               }

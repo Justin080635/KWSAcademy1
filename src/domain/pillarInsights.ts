@@ -1366,7 +1366,7 @@ export function buildPartAMetricsFromResult(
     activeOrientationQuestions.length > 0
       ? activeOrientationQuestions.filter((q) => Boolean(answers.selections[q.id]))
           .length
-      : Object.keys(answers.selections).filter((k) => k.startsWith('style_q')).length;
+      : Object.keys(answers.selections).filter((k) => /^A[1-9]\d*$/.test(k)).length;
 
   if (professionalStyle.status !== 'complete') {
     return {

@@ -26,41 +26,41 @@ function buildCompleteAnswers(
 ): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_6',
-      style_q02: 'style_q02_opt_2',
-      style_q03: 'style_q03_opt_3',
-      style_q04: 'style_q04_opt_4',
-      style_q05: 'style_q05_opt_5',
-      style_q06: 'style_q06_opt_6',
-      style_q07: 'style_q07_opt_1',
-      style_q08: 'style_q08_opt_2',
-      style_q09: 'style_q09_opt_3',
-      growth_q01: 'growth_q01_stage_2',
-      growth_q02: 'growth_q02_stage_3',
-      growth_q03: 'growth_q03_stage_3',
-      growth_q04: 'growth_q04_stage_4',
-      growth_q05: 'growth_q05_application',
-      growth_q06: 'growth_q06_projects',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_3',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_4',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_1',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_2',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_very_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_no',
-      profile_q08: 'profile_q08_referral',
+      A1: 'A1-A',
+      A2: 'A2-C',
+      A3: 'A3-A',
+      A4: 'A4-D',
+      A5: 'A5-A',
+      A6: 'A6-C',
+      A7: 'A7-C',
+      A8: 'A8-B',
+      A9: 'A9-B',
+      B1: 'B1-B',
+      B2: 'B2-C',
+      B3: 'B3-C',
+      B4: 'B4-D',
+      B5: 'B5-C',
+      B6: 'B6-C',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-D',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-E',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-B',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-C',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-D',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-C',
+      D8: 'D8-F',
       ...(overrides?.selections ?? {}),
     },
     otherText: overrides?.otherText ?? {},
@@ -132,7 +132,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         9
       );
       assert.equal(
-        ASSESSMENT_QUESTIONS.some((q) => q.id === 'style_q10'),
+        ASSESSMENT_QUESTIONS.some((q) => q.id === 'A10'),
         false
       );
       assert.equal(
@@ -148,9 +148,10 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
       assert.equal(
         ASSESSMENT_QUESTIONS.filter((q) => q.sectionId === 'profile_next_steps')
           .length,
-        9
+        8
       );
-      assert.equal(ASSESSMENT_STEPS.length, 30);
+      assert.equal(ASSESSMENT_QUESTIONS.length, 35);
+      assert.equal(ASSESSMENT_STEPS.length, 29);
 
       const base = buildCompleteAnswers();
       for (let i = 0; i < ASSESSMENT_STEPS.length; i += 1) {
@@ -158,26 +159,24 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
       }
 
       // Conditional institution validation for university student / recent graduate
-      const studentStepIdx = ASSESSMENT_STEPS.findIndex(
-        (s) => s.id === 'profile_q01'
-      );
+      const studentStepIdx = ASSESSMENT_STEPS.findIndex((s) => s.id === 'D1');
       const studentMissingInst = buildCompleteAnswers({
         selections: {
           ...base.selections,
-          profile_q01: 'profile_q01_student',
+          D1: 'D1-A',
         },
         contact: { ...base.contact, institution: '' },
       });
       assert.equal(isStepComplete(studentStepIdx, studentMissingInst), false);
       assert.deepEqual(
         validateAllAnswers(studentMissingInst).missingQuestionIds,
-        ['profile_q01']
+        ['D1']
       );
 
       const studentWithInst = buildCompleteAnswers({
         selections: {
           ...base.selections,
-          profile_q01: 'profile_q01_graduate',
+          D1: 'D1-B',
         },
         contact: { ...base.contact, institution: 'University of Lagos' },
       });
@@ -188,7 +187,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
       const otherMissing = buildCompleteAnswers({
         selections: {
           ...base.selections,
-          profile_q08: 'profile_q08_other',
+          D8: 'D8-H',
         },
         otherText: {},
       });
@@ -216,7 +215,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
 
         // Start progressive draft with partial answers
         const partial = {
-          selections: { style_q01: 'style_q01_opt_6' },
+          selections: { A1: 'A1-A' },
           otherText: {},
           contact: {
             fullName: '',
@@ -245,13 +244,13 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         const token = draftBody.accessToken as string;
         assert.ok(subId && token);
 
-        // Simulate navigating Back & overwriting style_q01 selection
+        // Simulate navigating Back & overwriting A1 selection
         const updatedDraftAnswers = buildCompleteAnswers({
           selections: {
             ...base.selections,
-            style_q01: 'style_q01_opt_5',
-            profile_q01: 'profile_q01_student',
-            profile_q07: 'profile_q07_yes',
+            A1: 'A1-B',
+            D1: 'D1-A',
+            D7: 'D7-A',
           },
           contact: {
             ...base.contact,
@@ -275,7 +274,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         );
         assert.equal(putRes.status, 200);
         const putBody = await putRes.json();
-        assert.equal(putBody.record.answers.selections.style_q01, 'style_q01_opt_5');
+        assert.equal(putBody.record.answers.selections.A1, 'A1-B');
 
         // Student without institution must fail finalize (400)
         const failStudentRes = await fetch(
@@ -296,7 +295,7 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         assert.equal(failStudentRes.status, 400);
         const failStudentJson = await failStudentRes.json();
         assert.equal(failStudentJson.error, 'INCOMPLETE_ASSESSMENT');
-        assert.ok(failStudentJson.missingQuestionIds.includes('profile_q01'));
+        assert.ok(failStudentJson.missingQuestionIds.includes('D1'));
 
         // Supply institution and submit cleanly
         const validStudentAnswers = {
@@ -491,6 +490,9 @@ test('Stage 7 Final Integration, QA & Production Readiness Suite', async (t) => 
         .join('\n');
       assert.ok(!bundleText.includes('PART_C_UNDERSTANDING_CORRECT_OPTIONS'));
       assert.ok(!bundleText.includes('DEFAULT_PART_A_SCORING_CONFIG'));
+      assert.ok(!bundleText.includes('correctUnderstandingKey'));
+      assert.ok(!bundleText.includes('partA_styleMap_DRAFT_PENDING_KWS_APPROVAL'));
+      assert.ok(!bundleText.includes('partA_styleMap'));
       assert.ok(!bundleText.includes('stage7-admin-pass'));
 
       const ctx = await createQaServerContext({

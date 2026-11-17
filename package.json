@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "tsx --test tests/scoring.test.ts tests/pillar_insights.test.ts tests/backend.test.ts tests/admin_stage5.test.ts tests/stage6.test.ts tests/stage7_qa.test.ts"
+    "test": "tsx --test tests/scoring.test.ts tests/pillar_insights.test.ts tests/results_overhaul.test.ts tests/content_verbatim.test.ts tests/backend.test.ts tests/admin_stage5.test.ts tests/stage6.test.ts tests/stage7_qa.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

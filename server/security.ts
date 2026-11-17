@@ -99,11 +99,11 @@ export function sanitizeAttributionPayload(
     string,
     unknown
   >;
-  const q8Id = answers?.selections?.['profile_q08'] ?? '';
-  const q8Opt = QUESTION_MAP['profile_q08']?.options.find(
+  const q8Id = answers?.selections?.['D8'] ?? '';
+  const q8Opt = QUESTION_MAP['D8']?.options.find(
     (o) => o.id === q8Id
   );
-  const q8Extra = answers?.otherText?.['profile_q08']?.trim();
+  const q8Extra = answers?.otherText?.['D8']?.trim();
   const discoveryLabel = q8Opt
     ? q8Extra
       ? `${q8Opt.label} (${q8Extra})`

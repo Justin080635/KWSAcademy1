@@ -72,10 +72,18 @@ export interface AssessmentSectionMeta {
 
 export interface AssessmentOption {
   id: string;
+  key?: string;
   label: string;
   requiresOtherText?: boolean;
   requiresInstitution?: boolean;
   consultationIntent?: 'book' | 'more_info' | 'none';
+}
+
+export interface PartDConditionalQuestion {
+  id: string;
+  showIf: string;
+  text: string;
+  type: string;
 }
 
 export interface AssessmentQuestion {
@@ -532,6 +540,7 @@ export interface ReportDeliveryEventRecord {
 
 export interface AssessmentVersionSnapshot {
   assessmentVersion: string;
+  contentVersion?: string;
   scoringVersion: string;
   partAConfigVersion: string;
   partAConfigApproved: boolean;
@@ -672,6 +681,7 @@ export interface LeadSegmentationEvaluation {
 
 export interface AssessmentConfigPayload {
   assessmentVersion: string;
+  contentVersion: string;
   scoringVersion: string;
   partAConfigVersion: string;
   partAConfigApproved: boolean;

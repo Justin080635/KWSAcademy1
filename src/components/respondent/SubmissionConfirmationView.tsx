@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, Check } from 'lucide-react';
+import { ASSESSMENT_SECTIONS } from '../../domain/assessmentContent.ts';
 import { buildAllPillarInsightsFromResults } from '../../domain/pillarInsights.ts';
 import type { PillarInsightResult } from '../../domain/types.ts';
 import {
@@ -9,6 +10,7 @@ import {
 } from '../../services/api.ts';
 import { Button } from '../ui/Button.tsx';
 import { CircularProgressRing } from '../ui/CircularProgressRing.tsx';
+import { JourneyIndicator } from '../ui/JourneyIndicator.tsx';
 import { Surface } from '../ui/Surface.tsx';
 import { BlurredReportPreview } from './BlurredReportPreview.tsx';
 
@@ -24,10 +26,21 @@ export function SubmissionConfirmationView({
   onViewResults,
 }: SubmissionConfirmationViewProps) {
   const prefersReducedMotion = useReducedMotion();
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
   const [loadedRecord, setLoadedRecord] =
     useState<PublicRespondentRecord | null>(
       record && record.id === submissionId ? record : null
     );
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion ? 'instant' : 'smooth',
+      });
+    }
+    headingRef.current?.focus({ preventScroll: true });
+  }, [submissionId, prefersReducedMotion]);
 
   useEffect(() => {
     if (record && record.id === submissionId) {
@@ -124,6 +137,13 @@ export function SubmissionConfirmationView({
 
   return (
     <div className="mx-auto max-w-[820px] px-4 pt-6 pb-8 sm:px-6 sm:py-12">
+      <JourneyIndicator
+        sections={ASSESSMENT_SECTIONS}
+        currentSectionIndex={3}
+        completedSectionCount={4}
+        progressRatio={1}
+        className="mb-6"
+      />
       <motion.div
         initial={prefersReducedMotion ? false : { opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
@@ -147,7 +167,11 @@ export function SubmissionConfirmationView({
               <Check className="h-6 w-6 stroke-[2.5]" />
             </div>
 
-            <h1 className="mt-4 text-left font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]">
+            <h1
+              ref={headingRef}
+              tabIndex={-1}
+              className="mt-4 text-left font-display text-[28px] font-bold leading-[1.15] tracking-[-0.025em] text-[var(--kws-ink)] sm:text-[32px] [text-wrap:balance]"
+            >
               {partDInsight.headline}
             </h1>
 

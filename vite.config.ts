@@ -5,8 +5,49 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+  const canonicalAssessmentJsonPath = path.resolve(
+    __dirname,
+    'content/assessment.json'
+  );
+
   return {
     plugins: [
+      {
+        name: 'strip-internal-assessment-scoring',
+        enforce: 'pre',
+        load(id, options) {
+          if (options?.ssr) return null;
+          const cleanId = id.split('?', 1)[0];
+          if (path.resolve(cleanId) !== canonicalAssessmentJsonPath) {
+            return null;
+          }
+          const raw = fs.readFileSync(canonicalAssessmentJsonPath, 'utf8');
+          const parsed = JSON.parse(raw) as {
+            contentVersion?: string;
+            source?: string;
+            partA?: unknown;
+            partB?: unknown;
+            partC?: {
+              cards?: Array<Record<string, unknown>>;
+            };
+            partD?: unknown;
+          };
+          const sanitized = {
+            contentVersion: parsed.contentVersion,
+            source: parsed.source,
+            partA: parsed.partA,
+            partB: parsed.partB,
+            partC: {
+              cards: (parsed.partC?.cards ?? []).map((card) => {
+                const { correctUnderstandingKey: _omit, ...publicCard } = card;
+                return publicCard;
+              }),
+            },
+            partD: parsed.partD,
+          };
+          return JSON.stringify(sanitized);
+        },
+      },
       react(),
       tailwindcss(),
       // Copies src/assets into dist/ so root-relative URLs like

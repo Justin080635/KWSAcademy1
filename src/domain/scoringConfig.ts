@@ -1,3 +1,4 @@
+import assessmentSpec from '../../content/assessment.json';
 import { ASSESSMENT_QUESTIONS } from './assessmentContent.ts';
 import type {
   AssessmentQuestion,
@@ -13,65 +14,83 @@ export interface PartAScoringConfig {
   optionToStyle: Record<string, StyleId | null>;
 }
 
+const RAW_STYLE_NAME_TO_ID: Record<string, StyleId> = {
+  storyteller: 'STORYTELLER',
+  strategist: 'STRATEGIST',
+  creator: 'CREATOR',
+  connector: 'CONNECTOR',
+  executor: 'EXECUTOR',
+  opportunity_builder: 'OPPORTUNITY_BUILDER',
+};
+
+const CARD_ID_TO_PILLAR_ID: Record<string, PillarId> = {
+  C1: 'media_industry_intelligence',
+  C2: 'marketing_brand_strategy',
+  C3: 'strategic_communications_storytelling',
+  C4: 'digital_content_media_production',
+  C5: 'campaign_project_execution',
+  C6: 'creative_business_professional_development',
+};
+
+function buildDefaultOptionToStyle(): Record<string, StyleId | null> {
+  const rawMap = (
+    assessmentSpec as {
+      scoring?: {
+        partA_styleMap_DRAFT_PENDING_KWS_APPROVAL?: Record<
+          string,
+          Record<string, string>
+        >;
+      };
+    }
+  ).scoring?.partA_styleMap_DRAFT_PENDING_KWS_APPROVAL;
+
+  const result: Record<string, StyleId | null> = {};
+  if (!rawMap) return result;
+
+  for (const [questionId, optionMap] of Object.entries(rawMap)) {
+    for (const [optionKey, rawStyle] of Object.entries(optionMap)) {
+      const styleId = RAW_STYLE_NAME_TO_ID[rawStyle.toLowerCase()];
+      if (styleId) {
+        result[`${questionId}-${optionKey}`] = styleId;
+      }
+    }
+  }
+  return result;
+}
+
+function buildPartCUnderstandingKeys(): Record<PillarId, string> {
+  const cards =
+    (
+      assessmentSpec as {
+        partC?: {
+          cards?: Array<{ id: string; correctUnderstandingKey?: string }>;
+        };
+      }
+    ).partC?.cards ?? [];
+
+  const out: Partial<Record<PillarId, string>> = {};
+  for (const card of cards) {
+    const pillarId = CARD_ID_TO_PILLAR_ID[card.id];
+    if (pillarId && card.correctUnderstandingKey) {
+      out[pillarId] = `${card.id}-U-${card.correctUnderstandingKey}`;
+    }
+  }
+
+  return out as Record<PillarId, string>;
+}
+
 /**
  * Part A — Professional Style Configurable Scoring Matrix
  *
- * All scoring configuration lives strictly in this file so KWS Academy can
- * adjust mappings or the close-score threshold without touching scoring logic.
- * Default closeScoreThreshold is 1 (top two scores within 1 point show as a broad profile).
+ * Server-only scoring matrix derived from content/assessment.json.
+ * Never exposed to respondent client bundles.
  */
 export const DEFAULT_PART_A_SCORING_CONFIG: PartAScoringConfig = {
   approved: true,
   closeScoreThreshold: 1,
   notes:
-    'KWS Academy Part A scoring matrix (draft map active for instant results; pending formal sign-off).',
-  optionToStyle: {
-    // Q1: A=Opportunity Builder, B=Creator, C=Connector, D=Executor
-    style_q01_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q01_opt_3: 'CREATOR',
-    style_q01_opt_4: 'CONNECTOR',
-    style_q01_opt_5: 'EXECUTOR',
-    // Q2: A=Connector, B=Opportunity Builder, C=Strategist, D=Executor
-    style_q02_opt_4: 'CONNECTOR',
-    style_q02_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q02_opt_2: 'STRATEGIST',
-    style_q02_opt_5: 'EXECUTOR',
-    // Q3: A=Creator, B=Opportunity Builder, C=Executor, D=Strategist
-    style_q03_opt_3: 'CREATOR',
-    style_q03_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q03_opt_5: 'EXECUTOR',
-    style_q03_opt_2: 'STRATEGIST',
-    // Q4: A=Connector, B=Storyteller, C=Opportunity Builder, D=Creator
-    style_q04_opt_4: 'CONNECTOR',
-    style_q04_opt_1: 'STORYTELLER',
-    style_q04_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q04_opt_3: 'CREATOR',
-    // Q5: A=Executor, B=Storyteller, C=Connector, D=Creator
-    style_q05_opt_5: 'EXECUTOR',
-    style_q05_opt_1: 'STORYTELLER',
-    style_q05_opt_4: 'CONNECTOR',
-    style_q05_opt_3: 'CREATOR',
-    // Q6: A=Connector, B=Strategist, C=Opportunity Builder, D=Storyteller
-    style_q06_opt_4: 'CONNECTOR',
-    style_q06_opt_2: 'STRATEGIST',
-    style_q06_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q06_opt_1: 'STORYTELLER',
-    // Q7: A=Strategist, B=Executor, C=Storyteller, D=Connector
-    style_q07_opt_2: 'STRATEGIST',
-    style_q07_opt_5: 'EXECUTOR',
-    style_q07_opt_1: 'STORYTELLER',
-    style_q07_opt_4: 'CONNECTOR',
-    // Q8: A=Creator, B=Storyteller, C=Opportunity Builder, D=Strategist
-    style_q08_opt_3: 'CREATOR',
-    style_q08_opt_1: 'STORYTELLER',
-    style_q08_opt_6: 'OPPORTUNITY_BUILDER',
-    style_q08_opt_2: 'STRATEGIST',
-    // Q9: A=Executor, B=Creator, C=Storyteller, D=Strategist
-    style_q09_opt_5: 'EXECUTOR',
-    style_q09_opt_3: 'CREATOR',
-    style_q09_opt_1: 'STORYTELLER',
-    style_q09_opt_2: 'STRATEGIST',
-  },
+    'KWS Academy Part A scoring matrix loaded from master specification JSON (draft map active for instant results; pending formal sign-off).',
+  optionToStyle: buildDefaultOptionToStyle(),
 };
 
 export interface PartAConfigValidation {
@@ -122,88 +141,70 @@ export function validatePartAScoringConfig(
 }
 
 /**
- * Part B — Growth Journey Option Values (Questions 1–4 only)
- * Questions 5 and 6 are diagnostic only and excluded from stage calculation.
+ * Part B — Growth Journey Option Values (B1–B4 only)
+ * B5 and B6 are diagnostic only and excluded from stage calculation.
  */
-export const PART_B_SCORED_QUESTION_IDS = [
-  'growth_q01',
-  'growth_q02',
-  'growth_q03',
-  'growth_q04',
-] as const;
+export const PART_B_SCORED_QUESTION_IDS = ['B1', 'B2', 'B3', 'B4'] as const;
 
 export const PART_B_OPTION_VALUES: Record<string, GrowthStageLevel> = {
-  growth_q01_stage_1: 1,
-  growth_q01_stage_2: 2,
-  growth_q01_stage_3: 3,
-  growth_q01_stage_4: 4,
-  growth_q01_stage_5: 5,
-  growth_q02_stage_1: 1,
-  growth_q02_stage_2: 2,
-  growth_q02_stage_3: 3,
-  growth_q02_stage_4: 4,
-  growth_q02_stage_5: 5,
-  growth_q03_stage_1: 1,
-  growth_q03_stage_2: 2,
-  growth_q03_stage_3: 3,
-  growth_q03_stage_4: 4,
-  growth_q03_stage_5: 5,
-  growth_q04_stage_1: 1,
-  growth_q04_stage_2: 2,
-  growth_q04_stage_3: 3,
-  growth_q04_stage_4: 4,
-  growth_q04_stage_5: 5,
+  'B1-A': 1,
+  'B1-B': 2,
+  'B1-C': 3,
+  'B1-D': 4,
+  'B1-E': 5,
+  'B2-A': 1,
+  'B2-B': 2,
+  'B2-C': 3,
+  'B2-D': 4,
+  'B2-E': 5,
+  'B3-A': 1,
+  'B3-B': 2,
+  'B3-C': 3,
+  'B3-D': 4,
+  'B3-E': 5,
+  'B4-A': 1,
+  'B4-B': 2,
+  'B4-C': 3,
+  'B4-D': 4,
+  'B4-E': 5,
 };
 
 /**
  * Part C — Strengths & Growth Areas Approved Answer Keys & Experience Scale
- *
- * Approved Understanding Keys:
- * - Capability 1 (Media & Industry Intelligence): C -> cap_p1_k_examine
- * - Capability 2 (Marketing & Brand Strategy): D -> cap_p2_k_define
- * - Capability 3 (Strategic Communications & Storytelling): B -> cap_p3_k_revisit
- * - Capability 4 (Digital Content & Media Production): D -> cap_p4_k_clarify
- * - Capability 5 (Campaign & Project Execution): A -> cap_p5_k_coordinate
- * - Capability 6 (Creative Business & Professional Development): C -> cap_p6_k_value_model
+ * Loaded directly from content/assessment.json (server-only, never exposed to respondents).
  */
-export const PART_C_UNDERSTANDING_CORRECT_OPTIONS: Record<PillarId, string> = {
-  media_industry_intelligence: 'cap_p1_k_examine',
-  marketing_brand_strategy: 'cap_p2_k_define',
-  strategic_communications_storytelling: 'cap_p3_k_revisit',
-  digital_content_media_production: 'cap_p4_k_clarify',
-  campaign_project_execution: 'cap_p5_k_coordinate',
-  creative_business_professional_development: 'cap_p6_k_value_model',
-};
+export const PART_C_UNDERSTANDING_CORRECT_OPTIONS: Record<PillarId, string> =
+  buildPartCUnderstandingKeys();
 
 export const PART_C_EXPERIENCE_VALUES: Record<string, 0 | 1 | 2 | 3 | 4> = {
-  cap_p1_e_0: 0,
-  cap_p1_e_1: 1,
-  cap_p1_e_2: 2,
-  cap_p1_e_3: 3,
-  cap_p1_e_4: 4,
-  cap_p2_e_0: 0,
-  cap_p2_e_1: 1,
-  cap_p2_e_2: 2,
-  cap_p2_e_3: 3,
-  cap_p2_e_4: 4,
-  cap_p3_e_0: 0,
-  cap_p3_e_1: 1,
-  cap_p3_e_2: 2,
-  cap_p3_e_3: 3,
-  cap_p3_e_4: 4,
-  cap_p4_e_0: 0,
-  cap_p4_e_1: 1,
-  cap_p4_e_2: 2,
-  cap_p4_e_3: 3,
-  cap_p4_e_4: 4,
-  cap_p5_e_0: 0,
-  cap_p5_e_1: 1,
-  cap_p5_e_2: 2,
-  cap_p5_e_3: 3,
-  cap_p5_e_4: 4,
-  cap_p6_e_0: 0,
-  cap_p6_e_1: 1,
-  cap_p6_e_2: 2,
-  cap_p6_e_3: 3,
-  cap_p6_e_4: 4,
+  'C1-E-A': 0,
+  'C1-E-B': 1,
+  'C1-E-C': 2,
+  'C1-E-D': 3,
+  'C1-E-E': 4,
+  'C2-E-A': 0,
+  'C2-E-B': 1,
+  'C2-E-C': 2,
+  'C2-E-D': 3,
+  'C2-E-E': 4,
+  'C3-E-A': 0,
+  'C3-E-B': 1,
+  'C3-E-C': 2,
+  'C3-E-D': 3,
+  'C3-E-E': 4,
+  'C4-E-A': 0,
+  'C4-E-B': 1,
+  'C4-E-C': 2,
+  'C4-E-D': 3,
+  'C4-E-E': 4,
+  'C5-E-A': 0,
+  'C5-E-B': 1,
+  'C5-E-C': 2,
+  'C5-E-D': 3,
+  'C5-E-E': 4,
+  'C6-E-A': 0,
+  'C6-E-B': 1,
+  'C6-E-C': 2,
+  'C6-E-D': 3,
+  'C6-E-E': 4,
 };

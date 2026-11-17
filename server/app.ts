@@ -12,6 +12,7 @@ import {
 } from '../src/domain/assessmentContent.ts';
 import {
   ASSESSMENT_VERSION,
+  CONTENT_VERSION,
   PART_A_CONFIG_VERSION,
   SCORING_ENGINE_VERSION,
 } from '../src/domain/scoring.ts';
@@ -254,6 +255,7 @@ export async function createApp(options?: {
     res.json({
       ok: true,
       assessmentVersion: ASSESSMENT_VERSION,
+      contentVersion: CONTENT_VERSION,
       scoringVersion: SCORING_ENGINE_VERSION,
       partAConfigVersion: PART_A_CONFIG_VERSION,
       storage: repository.getBoundaryStatus(),
@@ -272,6 +274,7 @@ export async function createApp(options?: {
 
     res.json({
       assessmentVersion: activeVersion.versionId,
+      contentVersion: CONTENT_VERSION,
       scoringVersion: SCORING_ENGINE_VERSION,
       partAConfigVersion: partAConfig.approved
         ? 'approved-v1'
@@ -1617,6 +1620,16 @@ export async function createApp(options?: {
           ws: hmrEnabled ? undefined : false,
         },
         appType: 'spa',
+      });
+      app.use('/content', (req, res, next) => {
+        if ('import' in req.query) {
+          next();
+          return;
+        }
+        res.status(404).json({
+          error: 'NOT_FOUND',
+          message: 'Direct access to raw assessment content files is disabled.',
+        });
       });
       app.use(vite.middlewares);
     } else {

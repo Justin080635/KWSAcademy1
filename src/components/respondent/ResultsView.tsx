@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   AlertCircle,
@@ -40,6 +40,7 @@ import {
 } from '../../services/api.ts';
 import { Button } from '../ui/Button.tsx';
 import { CircularProgressRing } from '../ui/CircularProgressRing.tsx';
+import { JourneyDotsPill } from '../ui/JourneyIndicator.tsx';
 import { Surface } from '../ui/Surface.tsx';
 import {
   KWS_DURATIONS,
@@ -129,12 +130,25 @@ export function ResultsView({
   onBackHome,
 }: ResultsViewProps) {
   const prefersReducedMotion = useReducedMotion();
+  const headingRef = useRef<HTMLHeadingElement | null>(null);
   const [record, setRecord] = useState<PublicRespondentRecord | null>(
     initialRecord && initialRecord.id === submissionId ? initialRecord : null
   );
   const [loading, setLoading] = useState<boolean>(!record);
   const [error, setError] = useState<string | null>(null);
   const [activeChapter, setActiveChapter] = useState<string>('section-reveal');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReducedMotion ? 'instant' : 'smooth',
+      });
+    }
+    if (record) {
+      headingRef.current?.focus({ preventScroll: true });
+    }
+  }, [submissionId, Boolean(record), prefersReducedMotion]);
 
   const [selectedExplorerStyle, setSelectedExplorerStyle] =
     useState<StyleId>('STORYTELLER');
@@ -474,9 +488,18 @@ export function ResultsView({
             <span className="tracking-wide uppercase">
               KWS Academy · Personal Discovery Report
             </span>
-            <span className="tabular-nums text-white/75">
-              Ref {record.id}
-            </span>
+            <div className="flex items-center gap-3">
+              <JourneyDotsPill
+                orientation="horizontal"
+                activeIndex={3}
+                completedCount={4}
+                animateEntrance={false}
+                ariaLabel="Four-part discovery journey: all 4 parts complete"
+              />
+              <span className="tabular-nums text-white/75">
+                Ref {record.id}
+              </span>
+            </div>
           </div>
 
           <div className="mt-8 grid grid-cols-1 items-center gap-10 lg:grid-cols-12">
@@ -505,6 +528,8 @@ export function ResultsView({
               </motion.p>
 
               <motion.h1
+                ref={headingRef}
+                tabIndex={-1}
                 initial={
                   prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 10 }
                 }
@@ -1461,7 +1486,7 @@ export function ResultsView({
                   setFeedbackSavedMsg(null);
                 }}
                 placeholder="Any short thought you’d like to leave..."
-                className="mt-1.5 w-full rounded-[12px] border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2 text-sm text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
+                className="mt-1.5 min-h-[44px] w-full rounded-[12px] border border-[var(--kws-border-strong)] bg-[var(--kws-surface)] px-3.5 py-2 text-base text-[var(--kws-ink)] focus:border-[var(--kws-accent)]"
               />
             </div>
             <Button

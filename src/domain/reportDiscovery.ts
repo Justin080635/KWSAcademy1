@@ -211,7 +211,7 @@ export function selectFeaturedCapability(
   if (caps.length === 0) {
     return {
       pillarId: 'media_industry_intelligence',
-      name: 'Media & Industry Intelligence',
+      name: 'MEDIA & INDUSTRY INTELLIGENCE',
       understandingScore: 0,
       experienceScore: 0,
       experienceLabel: 'Haven’t started yet',

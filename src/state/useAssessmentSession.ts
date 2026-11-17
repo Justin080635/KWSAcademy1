@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ASSESSMENT_CONTENT_VERSION,
   ASSESSMENT_QUESTIONS,
   ASSESSMENT_SECTIONS,
   ASSESSMENT_STEPS,
@@ -45,6 +46,7 @@ const DRAFT_STORAGE_KEY = 'kws_assessment_draft_v3';
 const THEME_STORAGE_KEY = 'kws_theme_preference_v1';
 
 interface DraftPayload {
+  contentVersion: string;
   idempotencyKey: string;
   submitNonce: string;
   backendSubmissionId: string | null;
@@ -102,8 +104,12 @@ const EMPTY_ANSWERS: RespondentAnswers = {
   },
 };
 
-function createFreshDraft(lastSubmissionId: string | null = null): DraftPayload {
+function createFreshDraft(
+  lastSubmissionId: string | null = null,
+  contentVersion: string = ASSESSMENT_CONTENT_VERSION
+): DraftPayload {
   return {
+    contentVersion,
     idempotencyKey: generateClientId('idem'),
     submitNonce: generateClientId('nonce'),
     backendSubmissionId: null,
@@ -196,7 +202,13 @@ function loadDraft(): DraftPayload {
     if (!raw) return createFreshDraft();
 
     const parsed = JSON.parse(raw) as Partial<DraftPayload>;
+    if (parsed.contentVersion !== ASSESSMENT_CONTENT_VERSION) {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      return createFreshDraft();
+    }
+
     return {
+      contentVersion: ASSESSMENT_CONTENT_VERSION,
       idempotencyKey:
         typeof parsed.idempotencyKey === 'string' && parsed.idempotencyKey
           ? parsed.idempotencyKey
@@ -262,7 +274,8 @@ export function useAssessmentSession() {
 
   const [assessmentConfig, setAssessmentConfig] =
     useState<AssessmentConfigPayload>(() => ({
-      assessmentVersion: 'kws-assessment-v2.0',
+      assessmentVersion: 'kws-assessment-v3.0',
+      contentVersion: ASSESSMENT_CONTENT_VERSION,
       scoringVersion: 'kws-scoring-v3.0',
       partAConfigVersion: 'approved-v1',
       partAConfigApproved: true,
@@ -288,13 +301,20 @@ export function useAssessmentSession() {
         if (Array.isArray(cfg.questions) && cfg.questions.length > 0) {
           setAssessmentConfig(cfg);
           const nextSteps = buildAssessmentSteps(cfg.questions);
-          setDraft((prev) => ({
-            ...prev,
-            stepIndex: Math.max(
-              0,
-              Math.min(nextSteps.length - 1, prev.stepIndex)
-            ),
-          }));
+          const activeContentVersion =
+            cfg.contentVersion || ASSESSMENT_CONTENT_VERSION;
+          setDraft((prev) => {
+            if (prev.contentVersion !== activeContentVersion) {
+              return createFreshDraft(prev.lastSubmissionId, activeContentVersion);
+            }
+            return {
+              ...prev,
+              stepIndex: Math.max(
+                0,
+                Math.min(nextSteps.length - 1, prev.stepIndex)
+              ),
+            };
+          });
         }
       })
       .catch(() => {

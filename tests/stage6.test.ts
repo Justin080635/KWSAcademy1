@@ -17,41 +17,41 @@ function buildCompleteAnswers(overrides?: {
 }): RespondentAnswers {
   return {
     selections: {
-      style_q01: 'style_q01_opt_6',
-      style_q02: 'style_q02_opt_2',
-      style_q03: 'style_q03_opt_3',
-      style_q04: 'style_q04_opt_4',
-      style_q05: 'style_q05_opt_5',
-      style_q06: 'style_q06_opt_6',
-      style_q07: 'style_q07_opt_1',
-      style_q08: 'style_q08_opt_2',
-      style_q09: 'style_q09_opt_3',
-      growth_q01: 'growth_q01_stage_2',
-      growth_q02: 'growth_q02_stage_3',
-      growth_q03: 'growth_q03_stage_3',
-      growth_q04: 'growth_q04_stage_4',
-      growth_q05: 'growth_q05_application',
-      growth_q06: 'growth_q06_projects',
-      cap_p1_knowledge: 'cap_p1_k_examine',
-      cap_p1_experience: 'cap_p1_e_3',
-      cap_p2_knowledge: 'cap_p2_k_define',
-      cap_p2_experience: 'cap_p2_e_2',
-      cap_p3_knowledge: 'cap_p3_k_revisit',
-      cap_p3_experience: 'cap_p3_e_2',
-      cap_p4_knowledge: 'cap_p4_k_clarify',
-      cap_p4_experience: 'cap_p4_e_4',
-      cap_p5_knowledge: 'cap_p5_k_coordinate',
-      cap_p5_experience: 'cap_p5_e_1',
-      cap_p6_knowledge: 'cap_p6_k_value_model',
-      cap_p6_experience: 'cap_p6_e_0',
-      profile_q01: 'profile_q01_employed',
-      profile_q02: 'profile_q02_experience',
-      profile_q03: 'profile_q03_very_important',
-      profile_q04: 'profile_q04_yes',
-      profile_q05: 'profile_q05_consider',
-      profile_q06: 'profile_q06_considering',
-      profile_q07: 'profile_q07_yes',
-      profile_q08: 'profile_q08_referral',
+      A1: 'A1-A',
+      A2: 'A2-C',
+      A3: 'A3-A',
+      A4: 'A4-D',
+      A5: 'A5-A',
+      A6: 'A6-C',
+      A7: 'A7-C',
+      A8: 'A8-B',
+      A9: 'A9-B',
+      B1: 'B1-B',
+      B2: 'B2-C',
+      B3: 'B3-C',
+      B4: 'B4-D',
+      B5: 'B5-C',
+      B6: 'B6-C',
+      'C1-U': 'C1-U-C',
+      'C1-E': 'C1-E-D',
+      'C2-U': 'C2-U-D',
+      'C2-E': 'C2-E-C',
+      'C3-U': 'C3-U-B',
+      'C3-E': 'C3-E-C',
+      'C4-U': 'C4-U-D',
+      'C4-E': 'C4-E-E',
+      'C5-U': 'C5-U-A',
+      'C5-E': 'C5-E-B',
+      'C6-U': 'C6-U-C',
+      'C6-E': 'C6-E-A',
+      D1: 'D1-D',
+      D2: 'D2-C',
+      D3: 'D3-D',
+      D4: 'D4-A',
+      D5: 'D5-C',
+      D6: 'D6-B',
+      D7: 'D7-A',
+      D8: 'D8-F',
       ...(overrides?.selections ?? {}),
     },
     otherText: {},
@@ -162,25 +162,25 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
             {
               eventType: 'question_displayed',
               sectionId: 'professional_style',
-              questionId: 'style_q01',
+              questionId: 'A1',
             },
             {
               eventType: 'answer_selected',
               sectionId: 'professional_style',
-              questionId: 'style_q01',
-              optionId: 'style_q01_opt_6',
+              questionId: 'A1',
+              optionId: 'A1-A',
             },
             {
               eventType: 'answer_changed',
               sectionId: 'professional_style',
-              questionId: 'style_q01',
-              optionId: 'style_q01_opt_3',
-              previousOptionId: 'style_q01_opt_6',
+              questionId: 'A1',
+              optionId: 'A1-B',
+              previousOptionId: 'A1-A',
             },
             {
               eventType: 'continue_clicked',
               sectionId: 'professional_style',
-              questionId: 'style_q01',
+              questionId: 'A1',
               activeTimeMs: 4000,
               inactiveTimeMs: 60000, // 60s tab inactive must NOT inflate active time
               wallTimeMs: 64000,
@@ -188,12 +188,12 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
             {
               eventType: 'question_displayed',
               sectionId: 'growth_journey',
-              questionId: 'growth_q01',
+              questionId: 'B1',
             },
             {
               eventType: 'continue_clicked',
               sectionId: 'growth_journey',
-              questionId: 'growth_q01',
+              questionId: 'B1',
               activeTimeMs: 12000,
               inactiveTimeMs: 0,
               wallTimeMs: 12000,
@@ -201,7 +201,7 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
             {
               eventType: 'back_clicked',
               sectionId: 'growth_journey',
-              questionId: 'growth_q02',
+              questionId: 'B2',
               activeTimeMs: 2000,
               inactiveTimeMs: 0,
               wallTimeMs: 2000,
@@ -212,7 +212,7 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
     );
     assert.equal(tel1Res.status, 200);
 
-    // Second submission + different active duration on style_q01 for median check
+    // Second submission + different active duration on A1 for median check
     const sub2Res = await fetch(`${ctx.baseUrl}/api/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -238,7 +238,7 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
           {
             eventType: 'continue_clicked',
             sectionId: 'professional_style',
-            questionId: 'style_q01',
+            questionId: 'A1',
             activeTimeMs: 8000,
             inactiveTimeMs: 0,
             wallTimeMs: 8000,
@@ -247,14 +247,14 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
       }),
     });
 
-    // Abandoned draft in Section A at style_q02
+    // Abandoned draft in Section A at A2
     const draftRes = await fetch(`${ctx.baseUrl}/api/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         mode: 'draft',
         answers: {
-          selections: { style_q01: 'style_q01_opt_6' },
+          selections: { A1: 'A1-A' },
           otherText: {},
           contact: {
             fullName: '',
@@ -285,12 +285,12 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
           {
             eventType: 'question_displayed',
             sectionId: 'professional_style',
-            questionId: 'style_q02',
+            questionId: 'A2',
           },
           {
             eventType: 'assessment_abandoned',
             sectionId: 'professional_style',
-            questionId: 'style_q02',
+            questionId: 'A2',
             activeTimeMs: 5000,
             inactiveTimeMs: 10000,
           },
@@ -329,7 +329,7 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
     };
 
     const q1 = summary.questionAnalytics.questions.find(
-      (q) => q.questionId === 'style_q01'
+      (q) => q.questionId === 'A1'
     );
     assert.ok(q1);
     // Samples: 4s and 8s -> avg = 6s, median = 6s; tab inactive avg = 60s kept separate
@@ -339,25 +339,25 @@ test('Question-level telemetry distinguishes active vs inactive time, computes m
     assert.equal(q1.changesCount, 1);
 
     const q2 = summary.questionAnalytics.questions.find(
-      (q) => q.questionId === 'style_q02'
+      (q) => q.questionId === 'A2'
     );
     assert.ok(q2);
     assert.equal(q2.abandonmentsCount, 1);
 
-    const g2 = summary.questionAnalytics.questions.find(
-      (q) => q.questionId === 'growth_q02'
+    const b2 = summary.questionAnalytics.questions.find(
+      (q) => q.questionId === 'B2'
     );
-    assert.ok(g2);
-    assert.equal(g2.backClicksCount, 1);
+    assert.ok(b2);
+    assert.equal(b2.backClicksCount, 1);
 
-    // growth_q01 had 12s active vs growth_q02 had 2s active
+    // B1 had 12s active vs B2 had 2s active
     assert.equal(
       summary.questionAnalytics.longestActiveQuestions[0].questionId,
-      'growth_q01'
+      'B1'
     );
     assert.equal(
       summary.questionAnalytics.shortestActiveQuestions[0].questionId,
-      'growth_q02'
+      'B2'
     );
     assert.match(summary.questionAnalytics.timingNote, /difficulty/i);
     assert.equal(summary.questionAnalytics.totalAbandonedSessions, 1);
@@ -406,7 +406,7 @@ test('Full attribution, unknown/direct fallback, and real campaign cost per comp
       body: JSON.stringify({
         mode: 'submit',
         answers: buildCompleteAnswers({
-          selections: { profile_q07: 'profile_q07_no' },
+          selections: { D7: 'D7-C' },
           contact: { email: 'two@example.com' },
         }),
         attribution: {
@@ -509,7 +509,10 @@ test('Full attribution, unknown/direct fallback, and real campaign cost per comp
     );
     assert.ok(metaRowAfter);
     assert.equal(metaRowAfter.costPerCompletion, 25000);
-    assert.equal(afterData.summary.consultationConversionOutcomes.scheduledCount, 1);
+    assert.equal(
+      afterData.summary.consultationConversionOutcomes.scheduledCount,
+      1
+    );
     assert.equal(afterData.summary.consultationRequestRatePct, 67);
   } finally {
     await ctx.close();
@@ -542,7 +545,7 @@ test('Immutable assessment versioning preserves historical submission snapshots 
         Cookie: advisorCookie,
       },
       body: JSON.stringify({
-        versionId: 'kws-v2.1',
+        versionId: 'kws-v3.1',
         label: 'Test',
         changeSummary: 'Test',
         questions: ASSESSMENT_QUESTIONS,
@@ -552,7 +555,7 @@ test('Immutable assessment versioning preserves historical submission snapshots 
 
     // Admin creates & activates new immutable version
     const editedQuestions = ASSESSMENT_QUESTIONS.map((q) =>
-      q.id === 'profile_q08'
+      q.id === 'D8'
         ? { ...q, prompt: 'Updated: Where did you discover KWS Academy?' }
         : q
     );
@@ -563,8 +566,8 @@ test('Immutable assessment versioning preserves historical submission snapshots 
         Cookie: adminCookie,
       },
       body: JSON.stringify({
-        versionId: 'kws-assessment-v2.1',
-        label: 'Revised Prompt v2.1',
+        versionId: 'kws-assessment-v3.1',
+        label: 'Revised Prompt v3.1',
         changeSummary: 'Clarified discovery question wording.',
         questions: editedQuestions,
         activateImmediately: true,
@@ -580,7 +583,7 @@ test('Immutable assessment versioning preserves historical submission snapshots 
         Cookie: adminCookie,
       },
       body: JSON.stringify({
-        versionId: 'kws-assessment-v2.1',
+        versionId: 'kws-assessment-v3.1',
         label: 'Overwrite Attempt',
         changeSummary: 'Should fail',
         questions: editedQuestions,
@@ -588,15 +591,15 @@ test('Immutable assessment versioning preserves historical submission snapshots 
     });
     assert.equal(dupRes.status, 409);
 
-    // Public config now serves kws-assessment-v2.1
+    // Public config now serves kws-assessment-v3.1
     const cfgRes = await fetch(`${ctx.baseUrl}/api/assessment/config`);
     const cfgData = (await cfgRes.json()) as {
       assessmentVersion: string;
       questions: Array<{ id: string; prompt: string }>;
     };
-    assert.equal(cfgData.assessmentVersion, 'kws-assessment-v2.1');
+    assert.equal(cfgData.assessmentVersion, 'kws-assessment-v3.1');
     assert.equal(
-      cfgData.questions.find((q) => q.id === 'profile_q08')?.prompt,
+      cfgData.questions.find((q) => q.id === 'D8')?.prompt,
       'Updated: Where did you discover KWS Academy?'
     );
 
@@ -611,10 +614,10 @@ test('Immutable assessment versioning preserves historical submission snapshots 
         assessmentSnapshot: { assessmentVersion: string };
       };
     };
-    assert.equal(histRecord.assessmentVersion, 'kws-assessment-v2.0');
+    assert.equal(histRecord.assessmentVersion, 'kws-assessment-v3.0');
     assert.equal(
       histRecord.assessmentSnapshot.assessmentVersion,
-      'kws-assessment-v2.0'
+      'kws-assessment-v3.0'
     );
   } finally {
     await ctx.close();
@@ -657,7 +660,7 @@ test('Email workflow, Official WhatsApp permission rules + mandatory review gate
     // 1. Create 3 submissions covering: book+consent, more_info+consent, none+consent
     const createSub = async (
       name: string,
-      prefOpt: 'profile_q07_yes' | 'profile_q07_more_info' | 'profile_q07_no',
+      prefOpt: 'D7-A' | 'D7-B' | 'D7-C',
       whatsappConsent = true
     ) => {
       const r = await fetch(`${ctx.baseUrl}/api/submissions`, {
@@ -666,7 +669,7 @@ test('Email workflow, Official WhatsApp permission rules + mandatory review gate
         body: JSON.stringify({
           mode: 'submit',
           answers: buildCompleteAnswers({
-            selections: { profile_q07: prefOpt },
+            selections: { D7: prefOpt },
             contact: {
               fullName: name,
               email: `${name.toLowerCase().replace(/\s+/g, '')}@example.com`,
@@ -687,9 +690,9 @@ test('Email workflow, Official WhatsApp permission rules + mandatory review gate
       return d.record.id;
     };
 
-    const bookId = await createSub('Book User', 'profile_q07_yes', true);
-    const infoId = await createSub('Info User', 'profile_q07_more_info', true);
-    const noneId = await createSub('None User', 'profile_q07_no', true);
+    const bookId = await createSub('Book User', 'D7-A', true);
+    const infoId = await createSub('Info User', 'D7-B', true);
+    const noneId = await createSub('None User', 'D7-C', true);
 
     // Wait briefly for non-blocking post-submission skipped email record
     await new Promise((r) => setTimeout(r, 40));
@@ -926,9 +929,9 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
   try {
     const adminCookie = await loginAs(ctx.baseUrl, 'admin-stage6-pass');
 
-    // 1. Deactivate style_q09 in a new active version -> public config hides it cleanly
+    // 1. Deactivate A9 in a new active version -> public config hides it cleanly
     const deactivatedQuestions = ASSESSMENT_QUESTIONS.map((q) =>
-      q.id === 'style_q09' ? { ...q, active: false } : q
+      q.id === 'A9' ? { ...q, active: false } : q
     );
     const vRes = await fetch(`${ctx.baseUrl}/api/admin/versions`, {
       method: 'POST',
@@ -937,9 +940,9 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
         Cookie: adminCookie,
       },
       body: JSON.stringify({
-        versionId: 'kws-v2-deactivated-q09',
+        versionId: 'kws-v3-deactivated-a9',
         label: 'Test Deactivation',
-        changeSummary: 'Deactivated style_q09',
+        changeSummary: 'Deactivated A9',
         questions: deactivatedQuestions,
         activateImmediately: true,
       }),
@@ -951,40 +954,40 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
       questions: Array<{ id: string }>;
       stepsCount: number;
     };
-    assert.equal(cfgAfterJson.questions.length, 35);
-    assert.equal(cfgAfterJson.stepsCount, 29);
+    assert.equal(cfgAfterJson.questions.length, 34);
+    assert.equal(cfgAfterJson.stepsCount, 28);
     assert.equal(
-      cfgAfterJson.questions.some((q) => q.id === 'style_q09'),
+      cfgAfterJson.questions.some((q) => q.id === 'A9'),
       false
     );
 
-    // Submitting without deactivated style_q09 succeeds cleanly under active version validation
-    const baseWithoutQ09 = buildCompleteAnswers({
+    // Submitting without deactivated A9 succeeds cleanly under active version validation
+    const baseWithoutA9 = buildCompleteAnswers({
       selections: {
-        profile_q03: 'profile_q03_very_important',
-        profile_q05: 'profile_q05_ready',
-        profile_q07: 'profile_q07_yes',
+        D3: 'D3-D',
+        D5: 'D5-A',
+        D7: 'D7-A',
       },
       contact: { email: 'deact-ok@example.com', fullName: 'Seyi Deact' },
     });
-    delete baseWithoutQ09.selections.style_q09;
-    const subNoQ09 = await fetch(`${ctx.baseUrl}/api/submissions`, {
+    delete baseWithoutA9.selections.A9;
+    const subNoA9 = await fetch(`${ctx.baseUrl}/api/submissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         mode: 'submit',
-        answers: baseWithoutQ09,
+        answers: baseWithoutA9,
         durationMinutes: 4,
       }),
     });
-    assert.equal(subNoQ09.status, 201);
-    const subNoQ09Data = (await subNoQ09.json()) as {
+    assert.equal(subNoA9.status, 201);
+    const subNoA9Data = (await subNoA9.json()) as {
       record: { id: string; result: { professionalStyle: { status: string } } };
       accessToken: string;
     };
     // Because segmentation is still unapproved, reviewCategory stays 'unreviewed'
     const adminSub1 = await fetch(
-      `${ctx.baseUrl}/api/admin/submissions/${subNoQ09Data.record.id}`,
+      `${ctx.baseUrl}/api/admin/submissions/${subNoA9Data.record.id}`,
       { headers: { Cookie: adminCookie } }
     );
     const adminSub1Json = (await adminSub1.json()) as {
@@ -993,7 +996,10 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
       };
     };
     assert.equal(adminSub1Json.record.consultation.reviewCategory, 'unreviewed');
-    assert.equal(Boolean(adminSub1Json.record.consultation.autoCategorized), false);
+    assert.equal(
+      Boolean(adminSub1Json.record.consultation.autoCategorized),
+      false
+    );
 
     // 2. Part A Scoring Config API rejects approving incomplete mapping (400)
     const scoringGet = await fetch(`${ctx.baseUrl}/api/admin/configs/scoring`, {
@@ -1018,7 +1024,7 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
         approved: true,
         optionToStyle: {
           ...currentScoring.optionToStyle,
-          style_q01_opt_6: null,
+          'A1-A': null,
         },
       }),
     });
@@ -1062,16 +1068,24 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         mode: 'submit',
-        answers: baseWithoutQ09,
+        answers: baseWithoutA9,
         durationMinutes: 5,
       }),
     });
     const manualSubData = (await manualSubRes.json()) as {
-      record: { id: string; result: { professionalStyle: { status: string; styleScores: unknown[] } } };
+      record: {
+        id: string;
+        result: {
+          professionalStyle: { status: string; styleScores: unknown[] };
+        };
+      };
     };
     // Part A matrix is now approved -> complete style calculated with 6 aggregate style counts
     assert.equal(manualSubData.record.result.professionalStyle.status, 'complete');
-    assert.equal(manualSubData.record.result.professionalStyle.styleScores.length, 6);
+    assert.equal(
+      manualSubData.record.result.professionalStyle.styleScores.length,
+      6
+    );
 
     await fetch(
       `${ctx.baseUrl}/api/admin/consultations/${manualSubData.record.id}`,
@@ -1085,7 +1099,7 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
       }
     );
 
-    // Approve segmentation rule: Very Important + Financially Ready + Yes Consultation -> priority_consultation
+    // Approve segmentation rule: High Priority (D3-D) + Financially Ready (D5-A) + Yes Consultation (D7-A) -> priority_consultation
     const segSaveRes = await fetch(
       `${ctx.baseUrl}/api/admin/configs/segmentation`,
       {
@@ -1107,9 +1121,9 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
               targetCategory: 'priority_consultation',
               priorityRank: 1,
               conditions: {
-                profile_q03: ['profile_q03_very_important'],
-                profile_q05: ['profile_q05_ready'],
-                profile_q07: ['profile_q07_yes'],
+                D3: ['D3-D'],
+                D5: ['D5-A'],
+                D7: ['D7-A'],
               },
             },
           ],
@@ -1118,7 +1132,7 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
     );
     assert.equal(segSaveRes.status, 200);
 
-    // Re-apply segmentation to unreviewed records -> updates subNoQ09Data, skips manually reviewed manualSubData
+    // Re-apply segmentation to unreviewed records -> updates subNoA9Data, skips manually reviewed manualSubData
     const applyRes = await fetch(
       `${ctx.baseUrl}/api/admin/segmentation/apply`,
       {
@@ -1135,7 +1149,7 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
     assert.equal(applyJson.skippedManualCount, 1);
 
     const autoChecked = await fetch(
-      `${ctx.baseUrl}/api/admin/submissions/${subNoQ09Data.record.id}`,
+      `${ctx.baseUrl}/api/admin/submissions/${subNoA9Data.record.id}`,
       { headers: { Cookie: adminCookie } }
     );
     const autoJson = (await autoChecked.json()) as {
@@ -1163,18 +1177,23 @@ test('Dynamic question deactivation, Part A scoring matrix API, and Lead Segment
       { headers: { Cookie: adminCookie } }
     );
     const manualJson = (await manualChecked.json()) as {
-      record: { consultation: { reviewCategory: string; autoCategorized?: boolean } };
+      record: {
+        consultation: { reviewCategory: string; autoCategorized?: boolean };
+      };
     };
     assert.equal(
       manualJson.record.consultation.reviewCategory,
       'future_opportunity'
     );
-    assert.equal(Boolean(manualJson.record.consultation.autoCategorized), false);
+    assert.equal(
+      Boolean(manualJson.record.consultation.autoCategorized),
+      false
+    );
 
     // Public respondent view MUST NEVER leak segmentation or review category
     const publicCheck = await fetch(
-      `${ctx.baseUrl}/api/submissions/${subNoQ09Data.record.id}`,
-      { headers: { 'X-Submission-Token': subNoQ09Data.accessToken } }
+      `${ctx.baseUrl}/api/submissions/${subNoA9Data.record.id}`,
+      { headers: { 'X-Submission-Token': subNoA9Data.accessToken } }
     );
     const publicText = await publicCheck.text();
     assert.ok(!publicText.includes('priority_consultation'));
